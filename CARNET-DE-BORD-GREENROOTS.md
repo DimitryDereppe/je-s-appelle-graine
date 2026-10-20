@@ -17,7 +17,7 @@
 
 ### Travail réalisé
 
-- MCD, MLD et MPD réalisés : [[Apothéose/apo-greenroots/docs_conception/05-mcd|MCD]], [[Apothéose/apo-greenroots/docs_conception/07-MLD|MLD]], [MPD](docs_conception/08-MPD.drawio.svg), et [[Apothéose/apo-greenroots/docs_conception/06-dictionnaire-de-donnees|dictionnaire de données]].
+- MCD, MLD et MPD réalisés : [[Apothéose/apo-greenroots/docs_conception/05-mcd|MCD]], [[Apothéose/apo-greenroots/docs_conception/07-MLD|MLD]], [[Apothéose/apo-greenroots/docs_conception/08-MPD|MPD]], et [[Apothéose/apo-greenroots/docs_conception/06-dictionnaire-de-donnees|dictionnaire de données]].
 
 ### Décisions
 
