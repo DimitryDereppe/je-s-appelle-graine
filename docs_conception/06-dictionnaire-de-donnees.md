@@ -30,8 +30,11 @@ Les tables sont donc renommées : `user` → `account`, `order` → `purchase`, 
 | id | INT | PRIMARY KEY, GENERATED ALWAYS AS IDENTITY | Identifiant unique de l'utilisateur |
 | email | VARCHAR(255) | NOT NULL, UNIQUE | Email, utilisé pour la connexion |
 | password | VARCHAR(255) | NOT NULL | Mot de passe **haché** (Argon2), jamais en clair |
-| firstname | VARCHAR(100) | | Prénom (facultatif à l'inscription) |
-| lastname | VARCHAR(100) | | Nom (facultatif à l'inscription) |
+| firstname | VARCHAR(100) | NOT NULL | Prénom (obligatoire à l'inscription) |
+| lastname | VARCHAR(100) | NOT NULL | Nom (obligatoire à l'inscription) |
+| address | VARCHAR(255) | | Adresse postale (facultative) |
+| account_type | VARCHAR(20) | NOT NULL, DEFAULT 'individual', CHECK (account_type IN ('individual', 'association', 'company')) | Type de compte : `individual` (particulier), `association`, `company` (entreprise) |
+| organization_name | VARCHAR(150) | | Nom de l'association ou de l'entreprise (facultatif, même si le compte n'est pas `individual`) |
 | role_id | INT | NOT NULL, FK(role.id) | Rôle de l'utilisateur (relation **Avoir**) ; `customer` à l'inscription |
 
 ## category

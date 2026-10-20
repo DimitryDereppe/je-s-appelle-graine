@@ -16,7 +16,7 @@ Notation : `__id__` = clé primaire, `#` = clé étrangère.
 | Table | Clé primaire | Colonnes | Clés étrangères | Vient de (MCD) | Règle de passage |
 | --- | --- | --- | --- | --- | --- |
 | **role** | `__id__` | name | — | Entité Rôle | Entité → table |
-| **account** | `__id__` | email, password, firstname, lastname | `#role_id` → role.id | Entité Utilisateur + **Avoir** (1,1 / 0,N) | Relation 1-N → FK côté **1,1** |
+| **account** | `__id__` | email, password, firstname, lastname, address, account_type, organization_name | `#role_id` → role.id | Entité Utilisateur + **Avoir** (1,1 / 0,N) | Relation 1-N → FK côté **1,1** |
 | **category** | `__id__` | name | — | Entité Catégorie | Entité → table |
 | **tree** | `__id__` | name, description, price, photo_url, is_available | `#category_id` → category.id | Entité Arbre + **Appartenir** (1,1 / 0,N) | Relation 1-N → FK côté **1,1** |
 | **cart** | `__id__` | — | `#account_id` → account.id (UNIQUE, peut être NULL) | Entité Panier + **Posséder** (0,1 / 0,1) | Relation 1-1 → FK d'un côté + `UNIQUE` |
@@ -28,7 +28,7 @@ Notation : `__id__` = clé primaire, `#` = clé étrangère.
 
 ```text
 role          ( __id__, name )
-account       ( __id__, email, password, firstname, lastname, #role_id )
+account       ( __id__, email, password, firstname, lastname, address, account_type, organization_name, #role_id )
 category      ( __id__, name )
 tree          ( __id__, name, description, price, photo_url, is_available, #category_id )
 cart          ( __id__, #account_id )

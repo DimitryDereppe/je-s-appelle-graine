@@ -30,7 +30,7 @@ CATÉGORIE: code catégorie, nom
 COMPOSER, 1N COMMANDE, 0N ARBRE: quantité, prix unitaire, nom de l'arbre
 COMMANDE: code commande, date de commande, total, statut
 PASSER, 0N UTILISATEUR, 01 COMMANDE
-UTILISATEUR: code utilisateur, nom, prénom, email, mot de passe
+UTILISATEUR: code utilisateur, nom, prénom, email, mot de passe, adresse, type de compte, raison sociale
 AVOIR, 11 UTILISATEUR, 0N RÔLE
 
 APPARTENIR, 0N CATÉGORIE, 11 ARBRE

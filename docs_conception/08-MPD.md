@@ -7,7 +7,7 @@ Le détail colonne par colonne est dans le [[06-dictionnaire-de-donnees|dictionn
 
 ![MPD GreenRoots](08b-MPD.drawio.svg)
 
-> Le fichier [08-MPD.drawio.svg](08-MPD.drawio.svg) est à la fois une image et un schéma **Draw.io** : l'ouvrir dans VS Code (extension Draw.io) pour le modifier, l'image se met à jour à l'enregistrement.
+> Le fichier [08b-MPD.drawio.svg](08b-MPD.drawio.svg) est à la fois une image et un schéma **Draw.io** : l'ouvrir dans VS Code (extension Draw.io) pour le modifier, l'image se met à jour à l'enregistrement.
 
 Notation : souligné = clé primaire, `#` = clé étrangère, `IDENTITY` = `GENERATED ALWAYS AS IDENTITY` (id numéroté automatiquement par PostgreSQL).
 

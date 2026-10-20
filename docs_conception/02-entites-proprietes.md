@@ -8,8 +8,11 @@
 - **code utilisateur** (identifiant unique)
 - email (unique, sert à se connecter)
 - mot de passe (stocké haché, jamais en clair)
-- nom
-- prénom
+- nom (obligatoire)
+- prénom (obligatoire)
+- adresse (facultative)
+- type de compte : particulier, association ou entreprise (obligatoire, particulier par défaut)
+- raison sociale : nom de l'association ou de l'entreprise (facultatif)
 
 ## Arbre
 
