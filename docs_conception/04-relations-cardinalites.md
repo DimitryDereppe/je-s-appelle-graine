@@ -8,7 +8,7 @@ Pour chaque lien entre des entités, combien de représentations peut-il y avoir
 | Contenir (quantité) | Panier | 0,N | Arbre | 0,N |
 | Posséder | Utilisateur | 0,1 | Panier | 0,1 |
 | Avoir | Utilisateur | 1,1 | Rôle | 0,N |
-| Passer | Utilisateur | 0,N | Commande | 1,1 |
+| Passer | Utilisateur | 0,N | Commande | 0,1 |
 | Composer (quantité, prix unitaire, nom de l'arbre) | Commande | 1,N | Arbre | 0,N |
 
 ## Lecture des cardinalités
@@ -17,11 +17,10 @@ Pour chaque lien entre des entités, combien de représentations peut-il y avoir
 - **Contenir** : un panier contient **zéro ou plusieurs** arbres (il peut être vide). Un arbre se trouve dans **zéro ou plusieurs** paniers.
 - **Posséder** : un utilisateur possède **au plus un** panier en cours (un administrateur n'en a pas forcément). Un panier appartient à **zéro ou un** utilisateur : zéro tant que c'est un panier visiteur.
 - **Avoir** : un utilisateur a **un et un seul** rôle (client ou administrateur). Un rôle est attribué à **zéro ou plusieurs** utilisateurs (au départ, aucun compte n'a forcément le rôle administrateur).
-- **Passer** : un utilisateur passe **zéro ou plusieurs** commandes. Une commande est passée par **un et un seul** utilisateur.
+- **Passer** : un utilisateur passe **zéro ou plusieurs** commandes. Une commande est passée par **zéro ou un** utilisateur : zéro si le compte a été supprimé, car la commande est conservée.
 - **Composer** : une commande est composée d'**au moins un** arbre (on ne valide pas un panier vide). Un arbre figure dans **zéro ou plusieurs** commandes.
 
-## Point à trancher en équipe
+## Décisions
 
-- **Suppression d'un compte** (droit à l'effacement RGPD) et cardinalité *Passer* 1,1 : une commande doit toujours avoir un utilisateur. Deux pistes :
-  1. ne pas effacer la ligne utilisateur mais l'**anonymiser** (email, nom et prénom remplacés par des valeurs neutres). C'est l'option retenue dans ce dossier ;
-  2. passer la cardinalité à 0,1 côté Commande et mettre la clé étrangère à `NULL` lors de la suppression.
+- **Suppression d'un compte** (droit à l'effacement RGPD) : le compte est réellement supprimé et ses commandes sont **conservées**, sans propriétaire. D'où la cardinalité *Passer* **0,1** côté Commande (au lieu de 1,1). L'autre piste, anonymiser le compte au lieu de le supprimer, a été écartée.
+- **Suppression d'une commande** : le client **n'a pas le droit** de supprimer une commande finalisée et payée (statut payée ou plantée) ; seules les commandes en attente peuvent l'être. Le statut est changé **manuellement par l'admin**. C'est une règle de gestion, vérifiée par l'API : elle ne change pas les cardinalités.

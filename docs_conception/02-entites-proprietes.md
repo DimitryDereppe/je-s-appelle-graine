@@ -33,7 +33,7 @@
 
 - **code commande** (identifiant unique)
 - date de commande
-- statut (ex. : confirmée ; d'autres statuts comme « plantée » viendront avec les évolutions). Géré par l'admin.
+- statut : en attente, payée ou plantée. Changé **manuellement par l'admin**. Une commande payée (ou plantée) ne peut plus être supprimée par le client.
 - total (montant total de la commande)
 
 ## Rôle

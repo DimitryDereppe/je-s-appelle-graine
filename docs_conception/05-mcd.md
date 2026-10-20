@@ -2,9 +2,9 @@
 
 Schéma complet (périmètre MVP) :
 
-![MCD GreenRoots](MCD.drawio.svg)
+![MCD GreenRoots](05b-MCD.drawio.svg)
 
-> Le fichier [MCD.drawio.svg](MCD.drawio.svg) est à la fois une image et un schéma **Draw.io** : l'ouvrir dans VS Code (extension Draw.io) pour le modifier, l'image se met à jour à l'enregistrement.
+> Le fichier [05b-MCD.drawio.svg](05b-MCD.drawio.svg) est à la fois une image et un schéma **Draw.io** : l'ouvrir dans VS Code (extension Draw.io) pour le modifier, l'image se met à jour à l'enregistrement.
 
 ## Entités
 
@@ -29,7 +29,7 @@ Même MCD au format texte Mocodo (à coller sur [mocodo.net](https://www.mocodo.
 CATÉGORIE: code catégorie, nom
 COMPOSER, 1N COMMANDE, 0N ARBRE: quantité, prix unitaire, nom de l'arbre
 COMMANDE: code commande, date de commande, total, statut
-PASSER, 0N UTILISATEUR, 11 COMMANDE
+PASSER, 0N UTILISATEUR, 01 COMMANDE
 UTILISATEUR: code utilisateur, nom, prénom, email, mot de passe
 AVOIR, 11 UTILISATEUR, 0N RÔLE
 

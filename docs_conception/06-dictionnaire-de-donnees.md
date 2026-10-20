@@ -4,14 +4,11 @@
 > Nommage selon la [[Apothéose/doc_ext/CHARTE-NOMMAGE-GREENROOTS|charte de nommage]] : tables au singulier, `snake_case`, en anglais ; clé étrangère = `<table>_id`.
 > Périmètre : MVP du [[Apothéose/doc_ext/CAHIER-DES-CHARGES-GREENROOTS - a valider avec la team|cahier des charges]].
 
-## ⚠️ Point à trancher : `user` et `order` sont des mots réservés
+## Décision : `account` et `purchase` au lieu de `user` et `order`
 
-En PostgreSQL, `user` et `order` (comme dans `ORDER BY`) sont des **mots réservés**. Une requête `SELECT * FROM user;` ne lit pas la table : elle renvoie l'utilisateur PostgreSQL connecté. Deux options :
+En PostgreSQL, `user` et `order` (comme dans `ORDER BY`) sont des **mots réservés**. Une requête `SELECT * FROM user;` ne lit pas la table : elle renvoie l'utilisateur PostgreSQL connecté.
 
-1. garder les noms de la charte et les écrire **toujours entre guillemets doubles** : `SELECT * FROM "user";`, `INSERT INTO "order" ...` ;
-2. faire évoluer la charte vers des noms non réservés (ex. `app_user` / `customer_order`), et noter l'exception dans le carnet de bord.
-
-Ce dictionnaire garde les noms de la charte (`user`, `order`) en attendant la décision.
+Les tables sont donc renommées : `user` → `account`, `order` → `purchase`, `order_line` → `purchase_line` (exception à la charte de nommage, notée dans le carnet de bord).
 
 ## role
 
@@ -24,9 +21,9 @@ Ce dictionnaire garde les noms de la charte (`user`, `order`) en attendant la d�
 
 > Les deux lignes `customer` et `admin` sont insérées dès la création de la base (données de départ), avant tout utilisateur.
 
-## user
+## account
 
-*Entité **Utilisateur** + relation **Avoir** (Utilisateur 1,1 — Rôle 0,N → clé étrangère côté `user`).*
+*Entité **Utilisateur** + relation **Avoir** (Utilisateur 1,1 — Rôle 0,N → clé étrangère côté `account`).*
 
 | Champ | Type | Spécificités | Description |
 | --- | --- | --- | --- |
@@ -67,9 +64,9 @@ Ce dictionnaire garde les noms de la charte (`user`, `order`) en attendant la d�
 | Champ | Type | Spécificités | Description |
 | --- | --- | --- | --- |
 | id | INT | PRIMARY KEY, GENERATED ALWAYS AS IDENTITY | Identifiant unique du panier |
-| user_id | INT | UNIQUE, FK(user.id) ON DELETE CASCADE | Propriétaire du panier ; `NULL` tant que c'est un panier visiteur |
+| account_id | INT | UNIQUE, FK(account.id) ON DELETE CASCADE | Propriétaire du panier ; `NULL` tant que c'est un panier visiteur |
 
-> Le panier visiteur est retrouvé grâce à la **session** (cookie `httpOnly`) qui mémorise l'`id` du panier. À la connexion, l'API renseigne `user_id`. La façon exacte de stocker la session reste à préciser (cf. cahier des charges, risques).
+> Le panier visiteur est retrouvé grâce à la **session** (cookie `httpOnly`) qui mémorise l'`id` du panier. À la connexion, l'API renseigne `account_id`. La façon exacte de stocker la session reste à préciser (cf. cahier des charges, risques).
 
 ## cart_item
 
@@ -83,28 +80,30 @@ Ce dictionnaire garde les noms de la charte (`user`, `order`) en attendant la d�
 | quantity | INT | NOT NULL, DEFAULT 1, CHECK (quantity > 0) | Quantité de cet arbre dans le panier |
 | | | UNIQUE (cart_id, tree_id) | Un même arbre n'apparaît qu'une fois par panier : on augmente sa quantité |
 
-## order
+## purchase
 
-*Entité **Commande** + relation **Passer** (Utilisateur 0,N — Commande 1,1 → clé étrangère côté `order`).*
+*Entité **Commande** + relation **Passer** (Utilisateur 0,N — Commande 0,1 → clé étrangère côté `purchase`, facultative).*
 
 | Champ | Type | Spécificités | Description |
 | --- | --- | --- | --- |
 | id | INT | PRIMARY KEY, GENERATED ALWAYS AS IDENTITY | Identifiant unique de la commande |
-| order_date | TIMESTAMPTZ | NOT NULL, DEFAULT now() | Date de confirmation de la commande |
-| status | VARCHAR(20) | NOT NULL, DEFAULT 'confirmed' | Statut, géré par l'admin (MVP : `confirmed` ; d'autres comme `planted` viendront avec les évolutions) |
+| purchase_date | TIMESTAMPTZ | NOT NULL, DEFAULT now() | Date de confirmation de la commande |
+| status | VARCHAR(20) | NOT NULL, DEFAULT 'pending', CHECK (status IN ('pending', 'paid', 'planted')) | Statut, changé **manuellement par l'admin** : `pending` (en attente, à la création), `paid` (finalisée et payée), `planted` (arbre planté) |
 | total_amount | NUMERIC(10,2) | NOT NULL, CHECK (total_amount >= 0) | Montant total calculé à la confirmation |
-| user_id | INT | NOT NULL, FK(user.id) | Client ayant passé la commande (relation **Passer**) |
+| account_id | INT | FK(account.id) ON DELETE SET NULL | Client ayant passé la commande (relation **Passer**) ; devient `NULL` si le compte est supprimé |
 
-> Suppression de compte : l'utilisateur est **anonymisé** plutôt qu'effacé, pour que `user_id` reste valide (voir [[04-relations-cardinalites|04-relations-cardinalites]], point à trancher).
+> Suppression de compte : le compte est supprimé, ses commandes sont **conservées** et leur `account_id` passe à `NULL` (voir [[04-relations-cardinalites|04-relations-cardinalites]], décisions).
+>
+> Suppression d'une commande : autorisée **uniquement** si `status = 'pending'`. Une commande `paid` ou `planted` ne doit jamais être effacée. Règle vérifiée par l'API avant le `DELETE` : une contrainte de clé étrangère ne regarde pas la valeur du statut.
 
-## order_line
+## purchase_line
 
 *Table de liaison pour la relation **Composer** (Commande 1,N — Arbre 0,N). Elle fige le nom et le prix au moment de l'achat.*
 
 | Champ | Type | Spécificités | Description |
 | --- | --- | --- | --- |
 | id | INT | PRIMARY KEY, GENERATED ALWAYS AS IDENTITY | Identifiant de la ligne de commande |
-| order_id | INT | NOT NULL, FK(order.id) ON DELETE CASCADE | Commande concernée |
+| purchase_id | INT | NOT NULL, FK(purchase.id) ON DELETE CASCADE | Commande concernée |
 | tree_id | INT | FK(tree.id) ON DELETE SET NULL | Arbre commandé (peut devenir `NULL` si l'arbre est un jour réellement supprimé) |
 | tree_name | VARCHAR(150) | NOT NULL | Nom de l'arbre **au moment de l'achat** |
 | unit_price | NUMERIC(10,2) | NOT NULL, CHECK (unit_price >= 0) | Prix unitaire **au moment de l'achat** |
