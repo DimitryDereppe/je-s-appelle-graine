@@ -16,7 +16,7 @@ Notation : souligné = clé primaire, `#` = clé étrangère, `IDENTITY` = `GENE
 | Ce que le MPD ajoute | Exemple dans GreenRoots | À quoi ça sert |
 | --- | --- | --- |
 | **Type** | `price NUMERIC(10,2)`, `purchase_date TIMESTAMPTZ` | Stocker la donnée au bon format (montant exact, date avec fuseau) |
-| **NOT NULL** | `email VARCHAR(255) NOT NULL` | Rendre la colonne obligatoire |
+| **NOT NULL** | `email VARCHAR(255) NOT NULL`, `cart.account_id INT NOT NULL` (pas de panier sans compte) | Rendre la colonne obligatoire |
 | **UNIQUE** | `email`, `cart.account_id`, `(cart_id, tree_id)` | Interdire les doublons |
 | **DEFAULT** | `status DEFAULT 'pending'`, `is_available DEFAULT TRUE` | Valeur mise automatiquement si on n'en donne pas |
 | **CHECK** | `quantity > 0`, `status IN ('pending', 'paid', 'planted')` | Refuser les valeurs incohérentes |

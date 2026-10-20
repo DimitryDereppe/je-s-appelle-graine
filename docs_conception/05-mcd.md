@@ -37,6 +37,6 @@ APPARTENIR, 0N CATÉGORIE, 11 ARBRE
 ARBRE: code arbre, nom, description, prix, photo, disponibilité
 CONTENIR, 0N PANIER, 0N ARBRE: quantité
 PANIER: code panier
-POSSÉDER, 01 UTILISATEUR, 01 PANIER
+POSSÉDER, 01 UTILISATEUR, 11 PANIER
 RÔLE: code rôle, rôle
 ```

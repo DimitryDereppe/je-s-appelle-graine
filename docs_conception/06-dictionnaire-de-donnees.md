@@ -62,14 +62,14 @@ Les tables sont donc renommées : `user` → `account`, `order` → `purchase`, 
 
 ## cart
 
-*Entité **Panier** + relation **Posséder** (Utilisateur 0,1 — Panier 0,1 → clé étrangère côté `cart`, facultative et unique).*
+*Entité **Panier** + relation **Posséder** (Utilisateur 0,1 — Panier 1,1 → clé étrangère côté `cart`, obligatoire et unique).*
 
 | Champ | Type | Spécificités | Description |
 | --- | --- | --- | --- |
 | id | INT | PRIMARY KEY, GENERATED ALWAYS AS IDENTITY | Identifiant unique du panier |
-| account_id | INT | UNIQUE, FK(account.id) ON DELETE CASCADE | Propriétaire du panier ; `NULL` tant que c'est un panier visiteur |
+| account_id | INT | NOT NULL, UNIQUE, FK(account.id) ON DELETE CASCADE | Propriétaire du panier (relation **Posséder**) : pas de panier sans compte |
 
-> Le panier visiteur est retrouvé grâce à la **session** (cookie `httpOnly`) qui mémorise l'`id` du panier. À la connexion, l'API renseigne `account_id`. La façon exacte de stocker la session reste à préciser (cf. cahier des charges, risques).
+> Le panier est **réservé aux comptes connectés** : l'API retrouve le panier grâce au compte de la session (`account_id`) et répond **401** si personne n'est connecté. Le panier (vide) est créé à l'inscription du client.
 
 ## cart_item
 

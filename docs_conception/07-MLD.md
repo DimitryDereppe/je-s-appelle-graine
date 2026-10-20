@@ -19,7 +19,7 @@ Notation : `__id__` = clé primaire, `#` = clé étrangère.
 | **account** | `__id__` | email, password, firstname, lastname, address, account_type, organization_name | `#role_id` → role.id | Entité Utilisateur + **Avoir** (1,1 / 0,N) | Relation 1-N → FK côté **1,1** |
 | **category** | `__id__` | name | — | Entité Catégorie | Entité → table |
 | **tree** | `__id__` | name, description, price, photo_url, is_available | `#category_id` → category.id | Entité Arbre + **Appartenir** (1,1 / 0,N) | Relation 1-N → FK côté **1,1** |
-| **cart** | `__id__` | — | `#account_id` → account.id (UNIQUE, peut être NULL) | Entité Panier + **Posséder** (0,1 / 0,1) | Relation 1-1 → FK d'un côté + `UNIQUE` |
+| **cart** | `__id__` | — | `#account_id` → account.id (UNIQUE, NOT NULL) | Entité Panier + **Posséder** (0,1 / 1,1) | Relation 1-1 → FK d'un côté + `UNIQUE` |
 | **cart_item** | `__id__` | quantity | `#cart_id` → cart.id, `#tree_id` → tree.id | Relation **Contenir** (0,N / 0,N) | Relation N-N → **table de liaison** |
 | **purchase** | `__id__` | purchase_date, status, total_amount | `#account_id` → account.id (peut être NULL) | Entité Commande + **Passer** (0,N / 0,1) | Relation 1-N → FK côté **0,1** |
 | **purchase_line** | `__id__` | tree_name, unit_price, quantity | `#purchase_id` → purchase.id, `#tree_id` → tree.id | Relation **Composer** (1,N / 0,N) | Relation N-N → **table de liaison** (avec ses attributs) |
@@ -45,7 +45,7 @@ purchase_line ( __id__, tree_name, unit_price, quantity, #purchase_id, #tree_id 
 
 ## Notes de traduction
 
-- **Posséder (0,1 / 0,1)** : la clé étrangère est placée dans `cart` et non dans `account`, car un panier visiteur existe sans utilisateur (`account_id` NULL). Le `UNIQUE` sur `account_id` garantit un seul panier par utilisateur.
+- **Posséder (0,1 / 1,1)** : la clé étrangère est placée dans `cart`, du côté **1,1** : chaque panier a obligatoirement un propriétaire (`account_id` NOT NULL), alors qu'un utilisateur peut ne pas avoir de panier. Le `UNIQUE` sur `account_id` garantit un seul panier par utilisateur.
 - **Tables de liaison** : comme dans le projet Pokédex, on utilise un `id` auto-incrémenté en clé primaire plutôt qu'une clé composite (les deux FK). `cart_item` ajoute `UNIQUE (cart_id, tree_id)` : un même arbre n'apparaît qu'une fois par panier, on augmente sa quantité.
 - **purchase_line** garde `tree_name` et `unit_price` en plus de `tree_id` : l'historique des commandes ne doit pas changer si l'arbre est modifié ou retiré du catalogue (cf. [[01-entites|01-entites]]).
 - **Passer (0,N / 0,1)** : `purchase.account_id` peut être NULL. Si un compte est supprimé, ses commandes sont conservées sans propriétaire (cf. [[04-relations-cardinalites|04-relations-cardinalites]], décisions).
