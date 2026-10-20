@@ -1,0 +1,15 @@
+# Relations entre les entités du projet GreenRoots
+
+Quelles entités possèdent des liens logiques entre elles ?
+
+**Arbre** -- Appartenir -- **Catégorie**
+
+**Panier** -- Contenir (quantité) -- **Arbre**
+
+**Utilisateur** -- Posséder -- **Panier**
+
+**Utilisateur** -- Avoir -- **Rôle**
+
+**Utilisateur** -- Passer -- **Commande**
+
+**Commande** -- Composer (quantité, prix unitaire, nom de l'arbre) -- **Arbre**
