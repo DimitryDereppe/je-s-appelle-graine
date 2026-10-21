@@ -9,7 +9,7 @@ Je s’appelle Graine est une plateforme e-commerce qui permet de contribuer à 
 
 La plateforme vise à réunir dans un même service la présentation du projet, la découverte des arbres, la gestion du catalogue et le suivi des commandes. À terme, Je s’appelle Graine pourra aussi accueillir des offres proposées par des associations partenaires.
 
-\*La première version n’encaisse aucun paiement et ne collecte aucune donnée bancaire. Elle doit néanmoins permettre de parcourir un parcours d’achat complet avec une confirmation et une commande enregistrée.
+\*La première version n’encaisse aucun paiement en ligne et ne collecte aucune donnée bancaire. Le client choisit son mode de paiement (virement, carte, chèque, PayPal), s’engage à payer sous 10 jours, puis règle en dehors du site. Le parcours d’achat est complet : commande enregistrée, confirmation à l’écran et par email.
 
 ## 2\. Besoins et objectifs
 
@@ -26,7 +26,7 @@ La plateforme vise à réunir dans un même service la présentation du projet, 
 - Présenter Je s’appelle Graine et sa mission dès la page d’accueil.
 - Permettre la consultation du catalogue et des fiches détaillées des arbres.
 - Proposer la création d’un compte et l’authentification des clients.
-- Enregistrer une commande pour un client connect (sans paiement réel).
+- Enregistrer une commande pour un client connecté, avec le mode de paiement choisi (sans paiement en ligne), et l’informer par email.
 - Permettre à chaque client de consulter uniquement son propre historique de commandes.
 - Permettre aux administrateurs Je s’appelle Graine de gérer les offres du catalogue depuis des pages protégées par authentification.
 - Concevoir une application utilisable sur mobile et ordinateur et pouvant évoluer vers un paiement réel et des partenaires.
@@ -39,14 +39,15 @@ Le MVP couvre le parcours d’achat, les fonctions essentielles du compte et l�
 
 1. **Accueil** : présenter Je s’appelle Graine et mettre en avant quelques arbres.
 2. **Pages de présentation et d’information** : proposer les pages « Qui sommes-nous », mentions légales et politique de confidentialité.
-3. **Catalogue** : afficher les arbres disponibles et filtrer par catégorie (résineux, feuillage caduc, feuillage persistant).
+3. **Catalogue** : afficher les arbres et filtrer par catégorie (résineux, feuillage caduc, feuillage persistant). Chaque arbre a un état de disponibilité : *disponible* (visible et commandable), *épuisé* (visible, non commandable) ou *retiré du catalogue* (masqué).
 4. **Fiche arbre** : présenter la photo, la description, le prix et le lieu de plantation lorsqu’il est renseigné. Choisir la quantité souhaitée (1 par défaut) avant d’ajouter l’arbre au panier.
 5. **Panier** : un utilisateur doit créer un compte ou se connecter avant d’ajouter un arbre au panier. Le client connecté peut consulter le panier, voir les quantités, les prix unitaires et le total, modifier les quantités et retirer des articles.
 6. **Compte client** : inscription, connexion, déconnexion, consultation et modification des informations, changement de mot de passe et suppression du compte.
-7. **Commande** : le client connecté poursuit depuis son panier et confirme sa commande (sans encaissement ni saisie de données bancaires).
-8. **Confirmation et historique** : confirmer l’enregistrement de la commande et permettre au client de consulter ses commandes passées.
-9. **Gestion du catalogue** : un administrateur peut ajouter, modifier et retirer du catalogue un arbre.
+7. **Commande et paiement** : depuis son panier, le client vérifie le récapitulatif puis, sur la page de paiement, choisit son mode de paiement (virement, carte bancaire, chèque, PayPal) et coche la case obligatoire « Je m’engage à effectuer mon paiement sous 10 jours, sinon ma commande sera annulée ». Rien n’est encaissé en ligne et aucune donnée bancaire n’est saisie : le client règle ensuite par le moyen choisi.
+8. **Confirmation, emails et historique** : à l’enregistrement de la commande, une confirmation s’affiche et un **email de confirmation de commande** est envoyé automatiquement. Quand l’administrateur enregistre la réception du paiement, un **email de réception du paiement** est envoyé au client. Le client consulte ses commandes passées et leur statut.
+9. **Gestion du catalogue** : un administrateur peut ajouter, modifier un arbre et changer son état de disponibilité. Un arbre déjà commandé n’est jamais supprimé : il passe à l’état *retiré du catalogue*.
 10. **Gestion des comptes clients** : un administrateur peut consulter et gérer les comptes clients. Les droits et actions d’administration sont réservés à ce rôle.
+11. **Suivi des commandes** : un administrateur consulte les commandes et change leur statut : *payée* à réception du paiement, *plantée*, ou *annulée* si le paiement n’est pas arrivé sous 10 jours.
 
 #### Parcours principal du MVP
 
@@ -54,17 +55,19 @@ Le MVP couvre le parcours d’achat, les fonctions essentielles du compte et l�
 2. Il consulte la fiche d’un arbre, choisit la quantité souhaitée et clique sur « Ajouter au panier ».
 3. S’il n’est pas connecté, le système lui demande de créer un compte ou de se connecter avant d’ajouter l’arbre.
 4. Une fois connecté, le client ajoute l’arbre au panier dans la quantité choisie, consulte son contenu et peut ajuster les quantités ou retirer des articles.
-5. Il vérifie le récapitulatif et confirme la commande.
-6. Le système enregistre la commande sans effectuer de paiement et affiche une confirmation.
-7. Le client retrouve sa commande dans son historique.
+5. Il vérifie le récapitulatif, passe à la page de paiement, choisit son mode de paiement, coche l’engagement de payer sous 10 jours et confirme la commande.
+6. Le système enregistre la commande (en attente de paiement), affiche une confirmation et envoie un email de confirmation.
+7. À réception du paiement, l’administrateur passe la commande à *payée* et le client reçoit un email. Sans paiement sous 10 jours, la commande est annulée.
+8. Le client retrouve sa commande et son statut dans son historique.
 
-Un arbre retiré du catalogue ne peut pas faire l’objet d’une nouvelle commande, mais les informations et le prix enregistrés au moment de l’achat restent visibles dans l’historique.
+Un arbre épuisé ou retiré du catalogue ne peut pas faire l’objet d’une nouvelle commande. Le prix payé est enregistré dans la commande ; le nom et le lieu de plantation sont lus dans l’arbre, qui n’est jamais supprimé une fois commandé : l’historique reste lisible.
 
 ### Évolutions potentielles
 
 Ces fonctionnalités sont envisagées, mais ne sont pas nécessaires pour que le MVP soit utilisable :
 
-- Paiement réel sécurisé par un prestataire tel que Stripe.
+- Paiement réel en ligne (carte, PayPal) sécurisé par un prestataire tel que Stripe.
+- Annulation automatique des commandes non payées après 10 jours (tâche planifiée), au lieu d’une annulation par l’administrateur.
 - Page des associations partenaires, newsletter et formulaire de contact.
 - Sélection des arbres mis en avant par l’administrateur.
 - Carte interactive permettant de visualiser les lieux de plantation des arbres achetés.
@@ -76,62 +79,62 @@ Ces fonctionnalités sont envisagées, mais ne sont pas nécessaires pour que le
 
 ### Architecture proposée
 
-L’application comprend un front-end, un back-end et une base de données, hébergés sur trois services distincts. Le front-end présente le site et envoie les demandes au back-end. Le back-end applique les règles de Je s’appelle Graine et lit ou enregistre les données dans la base.
+L’application comprend un front-end, un back-end et une base de données, hébergés ensemble sur un **VPS** (serveur privé virtuel loué), chacun dans un conteneur Docker. Le front-end présente le site et envoie les demandes au back-end. Le back-end applique les règles de Je s’appelle Graine, lit ou enregistre les données dans la base et envoie les emails.
 
 ```
 Visiteur dans son navigateur
-        │ charge les pages du site via HTTPS
+        │ HTTPS (un seul nom de domaine)
         ▼
-FRONT-END : Next.js / React
-Hébergement : Vercel
-        │ envoie et reçoit des données via l’API REST (HTTPS / JSON)
-        ▼
-BACK-END : API REST Je s’appelle Graine
-Hébergement : serveur personnel de Dimitry
-        │ lit et enregistre les données via une connexion PostgreSQL sécurisée
-        ▼
-BASE DE DONNÉES : PostgreSQL
-Hébergement : Neon
+VPS — conteneurs Docker (Docker Compose)
+  ├── Serveur web (HTTPS) : envoie /api/... à l’API, le reste au front-end
+  ├── FRONT-END : Next.js / React
+  ├── BACK-END : API REST Je s’appelle Graine
+  │       │ réseau Docker interne
+  │       ▼
+  └── BASE DE DONNÉES : PostgreSQL (volume de données sauvegardé)
+
+BACK-END ──SMTP──▶ Service d’envoi d’emails ──▶ boîte mail du client
 ```
 
 &nbsp;
 
-- **Front-end — Next.js et React, déployé sur Vercel :** affiche les pages publiques, le catalogue, le panier, les pages client et les pages d’administration. Il envoie les demandes de lecture ou de modification à **l’API REST Je s’appelle Graine**.
-- **Back-end — API REST Je s’appelle Graine avec Node.js et Express :** reçoit les requêtes du front-end, valide les données, vérifie les droits, applique les règles métier et renvoie des réponses JSON. L’API sera exécutée dans un conteneur Docker en développement et déployée sur le serveur personnel de Dimitry.
-- **Services métier :** modules du back-end qui appliquent les règles du projet. Par exemple, le service d’authentification vérifie les identifiants et gère les sessions ; le service de commande vérifie la disponibilité des arbres avant d’enregistrer une commande.
+- **Front-end — Next.js et React, dans un conteneur sur le VPS :** affiche les pages publiques, le catalogue, le panier, les pages client et les pages d’administration. Il envoie les demandes de lecture ou de modification à **l’API REST Je s’appelle Graine**.
+- **Back-end — API REST Je s’appelle Graine avec Node.js et Express :** reçoit les requêtes du front-end, valide les données, vérifie les droits, applique les règles métier et renvoie des réponses JSON. L’API est exécutée dans un conteneur Docker, en développement comme sur le VPS.
+- **Services métier :** modules du back-end qui appliquent les règles du projet. Par exemple, le service d’authentification vérifie les identifiants et gère les sessions ; le service de commande vérifie la disponibilité des arbres et l’engagement de paiement avant d’enregistrer une commande, puis demande l’envoi de l’email de confirmation.
+- **Envoi d’emails :** l’API envoie les emails automatiques (confirmation de commande, réception du paiement) en se connectant à un serveur d’envoi (SMTP) ; prestataire et bibliothèque à choisir (ex. Nodemailer côté Node.js).
 - **DataMappers :** modules utilisés par les services métier pour accéder aux données. Ils isolent les requêtes SQL paramétrées du reste du back-end. Le DataMapper est l’option privilégiée ; un ORM tel que Sequelize reste une alternative \- **A valider avec l'équipe \!\!\!**
-- **Base de données — PostgreSQL :** conserve les comptes, les offres d’arbres, les paniers et les commandes. Pendant le développement, PostgreSQL tourne dans un conteneur Docker local. Pour l’environnement distant, PostgreSQL sera hébergée chez Neon. Seul le back-end se connecte à la base ; les identifiants de connexion ne sont pas exposés au navigateur ni au front-end.
-- **Docker :** utilisé pendant le développement pour lancer l’API et une base PostgreSQL locale avec une configuration reproductible via Docker Compose. Sur le serveur de Dimitry, seul le conteneur de l’API sera déployé ; il se connectera à la base distante chez Neon. PostgreSQL locale reste réservée au développement.
+- **Base de données — PostgreSQL :** conserve les comptes, les offres d’arbres, les paniers et les commandes. PostgreSQL tourne dans un conteneur Docker, en local pendant le développement et sur le VPS. Sur le VPS, les données sont conservées dans un volume Docker et sauvegardées régulièrement. Seul le back-end se connecte à la base, par le réseau Docker interne ; la base n’est pas exposée sur Internet et ses identifiants ne sont pas exposés au navigateur ni au front-end.
+- **Docker :** Docker Compose lance les mêmes conteneurs (front-end, API, PostgreSQL) en développement et sur le VPS, avec une configuration reproductible.
 
-Dans cette architecture, les endpoints REST sont fournis par le back-end hébergé sur le serveur de Dimitry. Ce sont des routes de l’API Je s’appelle Graine, pas des Route Handlers Next.js. Le front-end déployé sur Vercel communique avec l’API via HTTPS.
+Dans cette architecture, les endpoints REST sont fournis par le back-end. Ce sont des routes de l’API Je s’appelle Graine, pas des Route Handlers Next.js. Le front-end et l’API sont servis sous le même nom de domaine (l’API sous `/api`), ce qui évite de partager le cookie de session entre deux domaines.
 
 ### Justification des choix
 
 - **Next.js et React** sont retenus pour construire l’interface à partir de composants réutilisables et organiser les pages du site. Le rendu côté serveur peut être utilisé pour les pages publiques, comme le catalogue, tandis que les composants interactifs répondent aux besoins du panier et des filtres.
-- **Vercel** est retenu pour déployer le front-end Next.js. Le front-end et l’API étant hébergés séparément, leurs URL et leurs paramètres de communication seront configurés dans les variables d’environnement.
 - **Une API REST distincte** sépare l’interface, les règles métier et l’accès aux données. Elle échange des données au format JSON avec le front-end et pourra être réutilisée par un autre client si le projet en a besoin.
 - **Node.js et Express** sont retenus pour développer l’API REST en JavaScript, comme le front-end. Express fournit le routage et les middlewares nécessaires au traitement des requêtes HTTP. L’organisation du back-end séparera les routes, les contrôleurs, les services métier et les DataMappers.
 - **PostgreSQL** est retenu pour stocker les données structurées et liées du projet, notamment les comptes, les arbres, les paniers et les commandes. Ses clés et contraintes permettent de garantir la cohérence des relations entre ces données.
-- **Neon** est retenu pour héberger la base PostgreSQL de l’environnement distant. La base sera ainsi accessible au back-end sans exposer ses identifiants au navigateur. La connexion sera configurée avant la mise en service.
 - **Le DataMapper** est l’option privilégiée pour isoler les requêtes SQL paramétrées dans des modules dédiés et distinguer l’accès aux données des règles métier. Le recours à un ORM comme Sequelize reste à valider par l’équipe.
-- **Docker** est utilisé en développement pour lancer PostgreSQL dans un environnement reproductible. Il permet également de conteneuriser l’API pour harmoniser son exécution entre les postes de développement et le serveur.
+- **Docker** conteneurise le front-end, l’API et PostgreSQL : l’application s’exécute de la même façon sur les postes de développement et sur le VPS.
 - **Husky** est retenu pour automatiser les vérifications définies par l’équipe avant les commits et détecter plus tôt les erreurs courantes. Les commandes associées seront documentées et maintenues rapides.
 - **HTTPS et JSON** sont retenus pour les échanges entre le front-end et l’API : HTTPS protège les données pendant leur transmission et JSON sert de format commun aux requêtes et réponses de l’API.
-- **Le serveur personnel de Dimitry** a été choisi pour héberger l’API en raison de sa facilité de gestion et de maintenance pour le projet.
+- **Un VPS** est retenu pour héberger toute l’application : un seul serveur à administrer, le même environnement Docker qu’en développement, et le front-end et l’API sur le même domaine. En contrepartie, l’équipe gère elle-même les mises à jour, la sécurité (pare-feu, certificat HTTPS) et les sauvegardes de la base.
+- **Un service d’envoi d’emails (SMTP)** est nécessaire pour que les emails automatiques arrivent bien dans la boîte de réception des clients, et non dans les indésirables. Le prestataire reste à choisir.
 
 ### Technologies retenues ou à confirmer
 
 | Composant                       | Choix proposé                                                                | État                                                                                                        |
 | :------------------------------ | :--------------------------------------------------------------------------- | :---------------------------------------------------------------------------------------------------------- |
-| Site web                        | Next.js, React                                                               | Choix retenu (déploiement sur Vercel                                                                        |
-| Hébergement du front-end        | Vercel                                                                       | Choix retenu                                                                                                |
-| API                             | Node.js et Express ; API REST sur le serveur personnel de Dimitry            | Choix retenu                                                                                                |
-| Base de données                 | PostgreSQL ; conteneur Docker en développement et Neon pour la base distante | Choix retenu                                                                                                |
+| Site web                        | Next.js, React                                                               | Choix retenu                                                                                                |
+| Hébergement                     | VPS : front-end, API et base de données                                      | Choix retenu ; fournisseur à choisir                                                                        |
+| API                             | Node.js et Express ; API REST                                                | Choix retenu                                                                                                |
+| Base de données                 | PostgreSQL dans un conteneur Docker (développement et VPS)                   | Choix retenu ; sauvegardes à mettre en place                                                                |
+| Envoi d’emails                  | Serveur SMTP d’un prestataire, Nodemailer côté API                           | À choisir                                                                                                   |
 | Accès aux données               | DataMappers avec requêtes paramétrées                                        | Option privilégiée et à valider                                                                             |
-| Conteneurisation                | Docker, éventuellement Docker Compose                                        | API conteneurisée en développement et sur le serveur ; PostgreSQL conteneurisée en développement uniquement |
+| Conteneurisation                | Docker et Docker Compose                                                     | Front-end, API et PostgreSQL conteneurisés, en développement et sur le VPS                                  |
 | Versionnement                   | Git et GitHub                                                                | Suivre les modifications et faciliter le travail en équipe                                                  |
 | Hooks Git                       | Husky                                                                        | Lancer automatiquement les vérifications prévues avant les commits ; commandes à définir                    |
-| Protocole entre Vercel et l’API | HTTPS avec réponses JSON                                                     | À mettre en place en environnement accessible depuis Internet                                               |
+| Protocole navigateur ↔ API      | HTTPS avec réponses JSON                                                     | Certificat HTTPS à mettre en place sur le VPS                                                               |
 
 &nbsp;
 
@@ -177,7 +180,8 @@ Espace client (connexion requise)
 │   ├── Modifier mon mot de passe
 │   └── Supprimer mon compte
 ├── Récapitulatif de commande
-├── Confirmation de commande simulée
+├── Paiement (choix du mode et engagement de payer sous 10 jours)
+├── Confirmation de commande
 └── Mes commandes
     └── Détail d’une commande
 
@@ -185,17 +189,20 @@ Espace administrateur (accès réservé)
 ├── Liste des arbres
 ├── Ajouter un arbre
 ├── Modifier un arbre
-├── Retirer un arbre du catalogue
-└── Gestion des comptes clients
-    ├── Consulter les comptes
-    └── Modifier l’état ou supprimer un compte
+├── Changer la disponibilité d’un arbre (disponible, épuisé, retiré)
+├── Gestion des comptes clients
+│   ├── Consulter les comptes
+│   └── Modifier l’état ou supprimer un compte
+└── Gestion des commandes
+    ├── Consulter les commandes
+    └── Changer le statut (payée, plantée, annulée)
 ```
 
 &nbsp;
 
 ## 8\. Routes prévues
 
-Les routes des pages web sont servies par le site Next.js. Les routes `/api/...` sont servies par l’API REST hébergée sur le serveur de Dimitry. Les méthodes HTTP indiquent l’action réalisée ; les routes API sont organisées autour des ressources.
+Les routes des pages web sont servies par le site Next.js. Les routes `/api/...` sont servies par l’API REST, sur le même VPS et le même nom de domaine. Les méthodes HTTP indiquent l’action réalisée ; les routes API sont organisées autour des ressources.
 
 ### Routes des pages web
 
@@ -203,7 +210,7 @@ Les routes des pages web sont servies par le site Next.js. Les routes `/api/...`
 | :------ | :------------------------------ | :--------------------------------------------------------------- | :-------------------------- |
 | GET     | `/`                             | Présenter Je s’appelle Graine et les arbres mis en avant                  | Public                      |
 | GET     | `/qui-sommes-nous`              | Présenter Je s’appelle Graine et sa mission                               | Public                      |
-| GET     | `/arbres`                       | Afficher les arbres disponibles                                  | Public                      |
+| GET     | `/arbres`                       | Afficher les arbres disponibles ou épuisés                       | Public                      |
 | GET     | `/arbres?categorie=:categorie`  | Filtrer les arbres par catégorie                                 | Public                      |
 | GET     | `/arbres/:id`                   | Afficher la fiche d’un arbre, son prix et son lieu de plantation | Public                      |
 | GET     | `/panier`                       | Consulter le panier et modifier les articles                     | Client connecté             |
@@ -212,7 +219,9 @@ Les routes des pages web sont servies par le site Next.js. Les routes `/api/...`
 | GET     | `/mentions-legales`             | Consulter les mentions légales                                   | Public                      |
 | GET     | `/politique-de-confidentialite` | Consulter la politique de confidentialité                        | Public                      |
 | GET     | `/compte`                       | Consulter et gérer les informations du compte                    | Client connecté             |
-| GET     | `/commande`                     | Afficher le récapitulatif avant confirmation                     | Client connecté             |
+| GET     | `/commande`                     | Afficher le récapitulatif avant le paiement                      | Client connecté             |
+| GET     | `/commande/paiement`            | Choisir le mode de paiement et cocher l’engagement (10 jours)    | Client connecté             |
+| GET     | `/commande/confirmation`        | Afficher la confirmation de la commande                          | Client connecté             |
 | GET     | `/commandes`                    | Afficher les commandes du client connecté                        | Client connecté             |
 | GET     | `/commandes/:id`                | Afficher le détail d’une commande                                | Propriétaire de la commande |
 | GET     | `/admin/arbres`                 | Gérer le catalogue                                               | Administrateur              |
@@ -221,6 +230,8 @@ Les routes des pages web sont servies par le site Next.js. Les routes `/api/...`
 | GET     | `/admin/comptes`                | Afficher la liste des comptes clients                            | Administrateur              |
 | GET     | `/admin/comptes/:id`            | Consulter un compte client                                       | Administrateur              |
 | GET     | `/admin/comptes/:id/modifier`   | Gérer l’état d’un compte client                                  | Administrateur              |
+| GET     | `/admin/commandes`              | Afficher toutes les commandes et leur statut                     | Administrateur              |
+| GET     | `/admin/commandes/:id`          | Consulter une commande et changer son statut                     | Administrateur              |
 
 &nbsp;
 
@@ -230,9 +241,9 @@ Les formulaires d’inscription, de connexion, de gestion du compte, de commande
 
 | Méthode | Endpoint                            | Fonction                                                  | Accès                       |
 | :------ | :---------------------------------- | :-------------------------------------------------------- | :-------------------------- |
-| GET     | `/api/arbres`                       | Lister les arbres publiés                                 | Public                      |
-| GET     | `/api/arbres?categorie=:categorie`  | Filtrer les arbres publiés par catégorie                  | Public                      |
-| GET     | `/api/arbres/:id`                   | Consulter le détail d’un arbre publié                     | Public                      |
+| GET     | `/api/arbres`                       | Lister les arbres disponibles ou épuisés                  | Public                      |
+| GET     | `/api/arbres?categorie=:categorie`  | Filtrer ces arbres par catégorie                          | Public                      |
+| GET     | `/api/arbres/:id`                   | Consulter le détail d’un arbre (sauf retiré du catalogue) | Public                      |
 | POST    | `/api/utilisateurs`                 | Créer un compte client                                    | Public                      |
 | POST    | `/api/sessions`                     | Vérifier les identifiants et ouvrir une session           | Public                      |
 | DELETE  | `/api/sessions/current`             | Fermer la session du client                               | Client connecté             |
@@ -244,12 +255,15 @@ Les formulaires d’inscription, de connexion, de gestion du compte, de commande
 | POST    | `/api/panier/articles`              | Ajouter un arbre au panier avec la quantité choisie       | Client connecté             |
 | PATCH   | `/api/panier/articles/:id`          | Modifier la quantité d’un article du panier               | Client connecté             |
 | DELETE  | `/api/panier/articles/:id`          | Retirer un article du panier                              | Client connecté             |
-| POST    | `/api/commandes`                    | Créer une commande simulée                                | Client connecté             |
+| POST    | `/api/commandes`                    | Créer la commande (mode de paiement + engagement 10 jours) et envoyer l’email de confirmation | Client connecté |
 | GET     | `/api/commandes`                    | Lister les commandes du client connecté                   | Client connecté             |
-| GET     | `/api/commandes/:id`                | Consulter une commande                                    | Propriétaire de la commande |
+| GET     | `/api/commandes/:id`                | Consulter une commande                                    | Propriétaire de la commande ou administrateur |
+| GET     | `/api/admin/commandes`              | Lister toutes les commandes (filtrables par statut)       | Administrateur              |
+| PATCH   | `/api/admin/commandes/:id/statut`   | Changer le statut ; `paid` envoie l’email de réception du paiement | Administrateur     |
 | POST    | `/api/arbres`                       | Ajouter un arbre au catalogue                             | Administrateur              |
-| PATCH   | `/api/arbres/:id`                   | Modifier ou retirer du catalogue un arbre                 | Administrateur              |
-| DELETE  | `/api/arbres/:id`                   | Retirer une offre sans effacer l’historique des commandes | Administrateur              |
+| PATCH   | `/api/arbres/:id`                   | Modifier un arbre, dont son état de disponibilité         | Administrateur              |
+| DELETE  | `/api/arbres/:id`                   | Supprimer un arbre jamais commandé (sinon refus : le passer à « retiré ») | Administrateur  |
+| GET     | `/api/disponibilites`               | Lister les états de disponibilité (formulaire arbre)      | Administrateur              |
 | GET     | `/api/utilisateurs`                 | Lister les comptes clients                                | Administrateur              |
 | GET     | `/api/utilisateurs/:id`             | Consulter un compte client                                | Administrateur              |
 | PATCH   | `/api/utilisateurs/:id`             | Modifier l’état d’un compte client                        | Administrateur              |
@@ -257,7 +271,7 @@ Les formulaires d’inscription, de connexion, de gestion du compte, de commande
 
 &nbsp;
 
-L’API répond en JSON. Les entrées sont validées côté serveur. Les endpoints privés contrôlent l’authentification et les droits, même si les pages du site masquent les actions non autorisées. L’authentification utilisera une session protégée par cookie `httpOnly` ; les détails de durée et de renouvellement de session restent à préciser. Le client ne peut consulter ou modifier que les informations de son propre compte. Après suppression du compte, sa session est invalidée. Les commandes déjà passées sont conservées selon les règles de conservation définies pour le projet ; les données personnelles qui ne sont plus nécessaires devront être supprimées ou anonymisées.
+L’API répond en JSON. Les entrées sont validées côté serveur. Les endpoints privés contrôlent l’authentification et les droits, même si les pages du site masquent les actions non autorisées. L’authentification utilisera une session protégée par cookie `httpOnly` ; les détails de durée et de renouvellement de session restent à préciser. Le client ne peut consulter ou modifier que les informations de son propre compte. Après suppression du compte, sa session est invalidée. `POST /api/commandes` refuse la commande si le mode de paiement n’est pas dans la liste prévue, si l’engagement de payer sous 10 jours n’est pas coché ou si un arbre du panier n’est pas disponible. Les commandes déjà passées sont conservées selon les règles de conservation définies pour le projet ; les données personnelles qui ne sont plus nécessaires devront être supprimées ou anonymisées.
 
 ## 9\. User stories
 
@@ -298,8 +312,9 @@ L’API répond en JSON. Les entrées sont validées côté serveur. Les endpoin
 | US12 | Client      | voir le détail de mon panier (arbres, quantités, prix unitaire, total) | vérifier ma commande avant de confirmer la commande simulée | MVP      |
 | US13 | Client      | modifier la quantité d'un arbre ou le retirer du panier                | ajuster ma commande                                         | MVP      |
 | US13b | Client     | choisir la quantité d'un arbre sur sa fiche (1 par défaut) avant de l'ajouter au panier | acheter plusieurs arbres identiques en une seule fois       | MVP      |
-| US14 | Client      | valider mon panier via un faux tunnel de commande                      | enregistrer ma commande sans effectuer de paiement réel     | MVP      |
-| US15 | Client      | recevoir une confirmation après ma commande                            | être sûr que ma commande a bien été prise en compte         | MVP      |
+| US14 | Client      | choisir mon mode de paiement (virement, carte, chèque, PayPal) et m’engager à payer sous 10 jours avant de confirmer ma commande | passer commande et régler par le moyen qui me convient | MVP      |
+| US15 | Client      | recevoir un email de confirmation après ma commande                    | être sûr que ma commande a bien été prise en compte         | MVP      |
+| US15b | Client     | recevoir un email quand mon paiement a été reçu                        | savoir que ma commande est validée                          | MVP      |
 | US16 | Client      | consulter l'historique de mes commandes                                | retrouver mes achats passés                                 | MVP      |
 | US17 | Client      | modifier mes informations personnelles (nom, adresse, email)           | garder un compte à jour                                     | MVP      |
 | US18 | Client      | changer mon mot de passe                                               | sécuriser mon compte                                        | MVP      |
@@ -314,8 +329,10 @@ L’API répond en JSON. Les entrées sont validées côté serveur. Les endpoin
 | US20 | Admin       | me connecter à un espace d'administration protégé                              | être le seul à pouvoir gérer le site       | MVP      |
 | US21 | Admin       | ajouter un arbre au catalogue (nom, catégorie, description, prix, image, lieu) | proposer de nouveaux arbres à la vente     | MVP      |
 | US22 | Admin       | modifier un arbre existant                                                     | corriger ou mettre à jour ses informations | MVP      |
-| US23 | Admin       | supprimer un arbre du catalogue                                                | retirer un arbre qui n'est plus disponible | MVP      |
+| US23 | Admin       | supprimer un arbre jamais commandé                                             | nettoyer le catalogue                      | MVP      |
+| US23b | Admin      | changer la disponibilité d’un arbre (disponible, épuisé, retiré du catalogue)  | ne proposer à la vente que les arbres commandables, sans perdre l’historique | MVP      |
 | US24 | Admin       | consulter et gérer la liste des utilisateurs                                   | modérer et assister les clients            | MVP      |
+| US25 | Admin       | consulter les commandes et changer leur statut (payée à réception du paiement, plantée, annulée si non payée sous 10 jours) | suivre les paiements et tenir les clients informés | MVP      |
 
 &nbsp;
 
@@ -326,9 +343,11 @@ L’API répond en JSON. Les entrées sont validées côté serveur. Les endpoin
 | L’obligation de créer un compte ou de se connecter avant l’ajout au panier freine certains visiteurs | Abandon du parcours d’achat | Expliquer clairement pourquoi un compte est requis et rendre l’inscription et la connexion simples. |
 | Un utilisateur consulte la commande d’un autre                                                            | Atteinte à la confidentialité                                                      | Vérifier côté API l’identité et le propriétaire de chaque commande.                                                                         |
 | Suppression d’un compte entraînant la perte de données nécessaires ou la conservation de données inutiles | Historique de commande incomplet ou données personnelles conservées sans nécessité | Définir les règles de conservation et anonymiser les données personnelles qui ne sont plus nécessaires.                                     |
-| Un arbre est modifié ou retiré après une commande                                                         | L’historique ne correspond plus à l’achat enregistré                               | Conserver dans la commande les informations et le montant associés au moment de sa création.                                                |
-| Les échanges entre le front-end Vercel et l’API sont bloqués ou la session n’est pas transmise            | Le client ne peut pas se connecter ou utiliser son compte                          | Configurer les origines CORS et les cookies pour le domaine Vercel et le domaine de l’API, puis vérifier le parcours en conditions réelles. |
-| La base locale Docker et la base Neon divergent                                                           | Comportements différents entre le développement et l’environnement distant         | Utiliser la même version majeure de PostgreSQL et appliquer les mêmes migrations aux deux bases.                                            |
+| Un arbre est modifié ou retiré après une commande                                                         | L’historique ne correspond plus à l’achat enregistré                               | Enregistrer le prix payé dans la commande ; ne jamais supprimer un arbre déjà commandé (état « retiré du catalogue »). Le nom et le lieu affichés dans l’historique sont ceux de l’arbre au moment de la consultation. |
+| Le VPS tombe en panne, est mal sécurisé ou perd ses données                                               | Site indisponible, données perdues ou compromises                                  | Sauvegarder automatiquement la base hors du VPS, activer un pare-feu, appliquer les mises à jour de sécurité et servir le site en HTTPS. |
+| La base locale et la base du VPS divergent                                                                | Comportements différents entre le développement et la production                   | Utiliser la même image PostgreSQL dans Docker Compose et appliquer les mêmes scripts SQL aux deux bases.                                   |
+| Les emails automatiques n’arrivent pas ou sont classés comme indésirables                                 | Le client ne reçoit ni confirmation ni avis de paiement                            | Passer par un prestataire d’envoi reconnu, configurer le nom de domaine pour l’envoi d’emails, et garder la commande et son statut visibles dans l’espace client. |
+| Des commandes restent impayées                                                                            | Arbres réservés sans paiement, suivi confus                                         | Engagement obligatoire de payer sous 10 jours, date limite visible, annulation par l’administrateur passé ce délai.                         |
 | Les identifiants de connexion sont interceptés ou mal stockés                                             | Compromission des comptes                                                          | Utiliser HTTPS, hacher les mots de passe côté serveur et protéger les sessions par cookie `httpOnly`.                                       |
 | Les images sont trop lourdes                                                                              | Pages lentes et consommation réseau excessive                                      | Redimensionner et compresser les images avant leur publication.                                                                             |
 | Les tâches sont mal réparties                                                                             | Retards, oublis ou travail en double                                               | Désigner un responsable par fonctionnalité et signaler rapidement les blocages.                                                             |

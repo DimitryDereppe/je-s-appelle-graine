@@ -13,6 +13,7 @@
 - adresse (facultative)
 - type de compte : particulier, association ou entreprise (obligatoire, particulier par défaut)
 - raison sociale : nom de l'association ou de l'entreprise (facultatif)
+- actif (oui/non) : compte actif dès l'inscription ; seul l'admin peut le désactiver
 
 ## Arbre
 
@@ -22,7 +23,11 @@
 - prix
 - photo
 - lieu de plantation (facultatif)
-- disponibilité (oui/non : un arbre retiré du catalogue n'est pas effacé)
+
+## Disponibilité
+
+- **code disponibilité** (identifiant unique)
+- libellé (disponible, épuisé, retiré du catalogue), unique
 
 ## Catégorie
 
@@ -37,8 +42,9 @@
 
 - **code commande** (identifiant unique)
 - date de commande
-- statut : en attente, payée ou plantée. Changé **manuellement par l'admin**. Une commande payée (ou plantée) ne peut plus être supprimée par le client.
+- statut : en attente, payée, plantée ou annulée. Changé **manuellement par l'admin** : payée à réception du paiement, annulée si le paiement n'est pas arrivé sous 10 jours. Une commande payée (ou plantée) ne peut plus être supprimée par le client.
 - total (montant total de la commande)
+- mode de paiement : virement, carte, chèque ou PayPal (obligatoire)
 
 ## Rôle
 

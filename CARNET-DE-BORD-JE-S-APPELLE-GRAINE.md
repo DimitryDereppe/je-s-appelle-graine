@@ -1,5 +1,34 @@
 # Carnet de bord — Je s’appelle Graine
 
+## 2026-10-21 — Nom du projet, paiement, disponibilité et hébergement
+
+### Travail réalisé
+
+- Projet renommé partout dans le dépôt : GreenRoots devient **Je s’appelle Graine** (fichiers `*-JE-S-APPELLE-GRAINE.md`).
+- Modèle de données mis à jour (texte et schémas MCD, MLD, MPD) : lieu de plantation, compte actif, table de disponibilité, mode de paiement.
+- Cahier des charges et user stories : quantité choisie sur la fiche arbre, page de paiement, emails automatiques, suivi des commandes par l'admin, hébergement sur VPS, nouvelles routes.
+
+### Décisions
+
+- **Nom du projet** : « Je s’appelle Graine » (décidé avec le groupe). Le dépôt GitHub `apo-greenroots` garde son nom pour l'instant.
+- **Lieu de plantation** : champ texte facultatif dans `tree` (pourra devenir une entité Lieu pour la carte interactive).
+- **Compte actif** (`account.is_active`) : géré par l'admin ; un compte désactivé reçoit un **403** à la connexion.
+- **Quantité** : le client choisit la quantité sur la fiche arbre avant d'ajouter au panier (US13b / US23b).
+- **Disponibilité** : nouvelle table `availability` (disponible, épuisé, retiré du catalogue) qui remplace `tree.is_available`.
+- **Historique des commandes** : `purchase_line` ne garde que la quantité et le prix payé ; le nom et le lieu sont lus dans `tree`. Un arbre déjà commandé n'est jamais supprimé (`purchase_line.tree_id` NOT NULL), il passe à « retiré du catalogue ».
+- **Email unique** : un utilisateur ne peut créer qu'un seul compte (`account.email` UNIQUE, déjà en place).
+- **Paiement** : page de paiement avec choix du mode (virement, carte, chèque, PayPal) et case obligatoire « Je m'engage à effectuer mon paiement sous 10 jours ou ma commande sera annulée ». Rien n'est encaissé en ligne. Nouveau statut `cancelled`.
+- **Emails automatiques** : confirmation à la création de la commande ; avis de réception quand l'admin passe la commande à `paid`. Le suivi des commandes par l'admin (US46) passe en MVP.
+- **Hébergement** : tout sur un **VPS** (front, API, PostgreSQL en conteneurs Docker), sur un seul nom de domaine. Fin de Vercel et Neon.
+
+### À poursuivre
+
+- Valider : modes de paiement en colonne `CHECK` (ou table), engagement « 10 jours » non stocké, annulation manuelle par l'admin, routes `/api/admin/commandes`.
+- Choisir le fournisseur du VPS, le serveur web (HTTPS), le prestataire d'envoi d'emails et la politique de sauvegarde.
+- Refaire l'image `01b-diagramme-architecture.png` (montre encore Vercel et Neon) et vérifier les autres PNG (ancien nom).
+- Trancher US27 (le client suit le statut de sa commande) : MVP ou évolution.
+- Aligner la numérotation des user stories entre le cahier et `user-stories.md`.
+
 ## 2026-10-20 — Conception de la base de données
 
 ### Travail réalisé

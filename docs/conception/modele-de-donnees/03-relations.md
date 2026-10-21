@@ -4,6 +4,8 @@ Quelles entités possèdent des liens logiques entre elles ?
 
 **Arbre** -- Appartenir -- **Catégorie**
 
+**Arbre** -- Être -- **Disponibilité**
+
 **Panier** -- Contenir (quantité) -- **Arbre**
 
 **Utilisateur** -- Posséder -- **Panier**
@@ -12,4 +14,4 @@ Quelles entités possèdent des liens logiques entre elles ?
 
 **Utilisateur** -- Passer -- **Commande**
 
-**Commande** -- Composer (quantité, prix unitaire, nom de l'arbre, lieu de plantation) -- **Arbre**
+**Commande** -- Composer (quantité, prix unitaire) -- **Arbre**

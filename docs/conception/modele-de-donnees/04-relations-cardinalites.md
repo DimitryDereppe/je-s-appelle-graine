@@ -5,15 +5,17 @@ Pour chaque lien entre des entités, combien de représentations peut-il y avoir
 | Relation | Entité A | Cardinalité A | Entité B | Cardinalité B |
 | --- | --- | --- | --- | --- |
 | Appartenir | Arbre | 1,1 | Catégorie | 0,N |
+| Être | Arbre | 1,1 | Disponibilité | 0,N |
 | Contenir (quantité) | Panier | 0,N | Arbre | 0,N |
 | Posséder | Utilisateur | 0,1 | Panier | 1,1 |
 | Avoir | Utilisateur | 1,1 | Rôle | 0,N |
 | Passer | Utilisateur | 0,N | Commande | 0,1 |
-| Composer (quantité, prix unitaire, nom de l'arbre, lieu de plantation) | Commande | 1,N | Arbre | 0,N |
+| Composer (quantité, prix unitaire) | Commande | 1,N | Arbre | 0,N |
 
 ## Lecture des cardinalités
 
 - **Appartenir** : un arbre appartient à **une et une seule** catégorie. Une catégorie regroupe **zéro ou plusieurs** arbres (une catégorie peut être vide au départ).
+- **Être** : un arbre est dans **un et un seul** état de disponibilité. Un état concerne **zéro ou plusieurs** arbres.
 - **Contenir** : un panier contient **zéro ou plusieurs** arbres (il peut être vide). Un arbre se trouve dans **zéro ou plusieurs** paniers.
 - **Posséder** : un utilisateur possède **au plus un** panier en cours (le panier d'un client est créé à son inscription ; un administrateur n'en a pas forcément). Un panier appartient à **un et un seul** utilisateur : il n'existe pas de panier visiteur.
 - **Avoir** : un utilisateur a **un et un seul** rôle (client ou administrateur). Un rôle est attribué à **zéro ou plusieurs** utilisateurs (au départ, aucun compte n'a forcément le rôle administrateur).
@@ -26,3 +28,4 @@ Pour chaque lien entre des entités, combien de représentations peut-il y avoir
 - **Création du panier** : le panier (vide) est créé **à l'inscription** du client. *Posséder* reste **0,1** côté Utilisateur, car un administrateur n'a pas forcément de panier.
 - **Suppression d'un compte** (droit à l'effacement RGPD) : le compte est réellement supprimé et ses commandes sont **conservées**, sans propriétaire. D'où la cardinalité *Passer* **0,1** côté Commande (au lieu de 1,1). L'autre piste, anonymiser le compte au lieu de le supprimer, a été écartée.
 - **Suppression d'une commande** : le client **n'a pas le droit** de supprimer une commande finalisée et payée (statut payée ou plantée) ; seules les commandes en attente peuvent l'être. Le statut est changé **manuellement par l'admin**. C'est une règle de gestion, vérifiée par l'API : elle ne change pas les cardinalités.
+- **Historique des commandes** : *Composer* ne garde que la quantité et le prix unitaire payé. Le nom et le lieu de plantation sont lus dans l'arbre : un arbre déjà commandé ne peut donc **jamais être supprimé**, seulement passé à l'état « retiré du catalogue ».

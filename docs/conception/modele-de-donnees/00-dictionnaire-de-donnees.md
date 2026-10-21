@@ -1,6 +1,6 @@
 # Dictionnaire de données — Je s’appelle Graine
 
-> SGBD : **PostgreSQL** (conteneur Docker en développement, Neon pour la base distante).
+> SGBD : **PostgreSQL** (conteneur Docker, en développement et sur le VPS).
 
 ## Décision : `account` et `purchase` au lieu de `user` et `order`
 
@@ -33,6 +33,7 @@ Les tables sont donc renommées : `user` → `account`, `order` → `purchase`, 
 | address | VARCHAR(255) | | Adresse postale (facultative) |
 | account_type | VARCHAR(20) | NOT NULL, DEFAULT 'individual', CHECK (account_type IN ('individual', 'association', 'company')) | Type de compte : `individual` (particulier), `association`, `company` (entreprise) |
 | organization_name | VARCHAR(150) | | Nom de l'association ou de l'entreprise (facultatif, même si le compte n'est pas `individual`) |
+| is_active | BOOLEAN | NOT NULL, DEFAULT TRUE | Compte actif : `TRUE` dès l'inscription ; seul l'admin peut le passer à `FALSE` (`PATCH /api/utilisateurs/:id`). Un compte désactivé reçoit un **403** à la connexion |
 | role_id | INT | NOT NULL, FK(role.id) | Rôle de l'utilisateur (relation **Avoir**) ; `customer` à l'inscription |
 
 ## category
@@ -44,9 +45,20 @@ Les tables sont donc renommées : `user` → `account`, `order` → `purchase`, 
 | id | INT | PRIMARY KEY, GENERATED ALWAYS AS IDENTITY | Identifiant unique de la catégorie |
 | name | VARCHAR(100) | NOT NULL, UNIQUE | Nom (résineux, feuillage caduc, feuillage persistant) |
 
+## availability
+
+*Entité **Disponibilité**.*
+
+| Champ | Type | Spécificités | Description |
+| --- | --- | --- | --- |
+| id | INT | PRIMARY KEY, GENERATED ALWAYS AS IDENTITY | Identifiant unique de l'état |
+| name | VARCHAR(50) | NOT NULL, UNIQUE | Nom de l'état : `available` (disponible : visible et commandable), `out_of_stock` (épuisé : visible, non commandable), `withdrawn` (retiré du catalogue : masqué, conservé pour l'historique) |
+
+> Les trois lignes sont insérées dès la création de la base (données de départ), comme pour `role`.
+
 ## tree
 
-*Entité **Arbre** + relation **Appartenir** (Arbre 1,1 — Catégorie 0,N → clé étrangère côté `tree`).*
+*Entité **Arbre** + relations **Appartenir** (Arbre 1,1 — Catégorie 0,N) et **Être** (Arbre 1,1 — Disponibilité 0,N) → clés étrangères côté `tree`.*
 
 | Champ | Type | Spécificités | Description |
 | --- | --- | --- | --- |
@@ -56,8 +68,8 @@ Les tables sont donc renommées : `user` → `account`, `order` → `purchase`, 
 | price | NUMERIC(10,2) | NOT NULL, CHECK (price >= 0) | Prix unitaire actuel |
 | photo_url | VARCHAR(255) | | Chemin de la photo |
 | planting_location | VARCHAR(150) | | Lieu de plantation (facultatif, affiché sur la fiche) |
-| is_available | BOOLEAN | NOT NULL, DEFAULT TRUE | Disponibilité : `FALSE` = retiré du catalogue (l'arbre n'est pas effacé) |
 | category_id | INT | NOT NULL, FK(category.id) | Catégorie de l'arbre (relation **Appartenir**) |
+| availability_id | INT | NOT NULL, FK(availability.id) | État de disponibilité (relation **Être**) |
 
 ## cart
 
@@ -90,23 +102,23 @@ Les tables sont donc renommées : `user` → `account`, `order` → `purchase`, 
 | --- | --- | --- | --- |
 | id | INT | PRIMARY KEY, GENERATED ALWAYS AS IDENTITY | Identifiant unique de la commande |
 | purchase_date | TIMESTAMPTZ | NOT NULL, DEFAULT now() | Date de confirmation de la commande |
-| status | VARCHAR(20) | NOT NULL, DEFAULT 'pending', CHECK (status IN ('pending', 'paid', 'planted')) | Statut, changé **manuellement par l'admin** : `pending` (en attente, à la création), `paid` (finalisée et payée), `planted` (arbre planté) |
+| status | VARCHAR(20) | NOT NULL, DEFAULT 'pending', CHECK (status IN ('pending', 'paid', 'planted', 'cancelled')) | Statut, changé **manuellement par l'admin** : `pending` (en attente de paiement, à la création), `paid` (paiement reçu), `planted` (arbre planté), `cancelled` (annulée : paiement non reçu sous 10 jours) |
 | total_amount | NUMERIC(10,2) | NOT NULL, CHECK (total_amount >= 0) | Montant total calculé à la confirmation |
+| payment_method | VARCHAR(20) | NOT NULL, CHECK (payment_method IN ('transfer', 'card', 'check', 'paypal')) | Mode de paiement choisi : `transfer` (virement), `card` (carte), `check` (chèque), `paypal`. Rien n'est encaissé en ligne |
 | account_id | INT | FK(account.id) ON DELETE SET NULL | Client ayant passé la commande (relation **Passer**) ; devient `NULL` si le compte est supprimé |
 
 > Suppression de compte : le compte est supprimé, ses commandes sont **conservées** et leur `account_id` passe à `NULL`.
 > Suppression d'une commande : autorisée **uniquement** si `status = 'pending'`. Une commande `paid` ou `planted` ne doit jamais être effacée. Règle vérifiée par l'API avant le `DELETE` : une contrainte de clé étrangère ne regarde pas la valeur du statut.
+> Paiement : le client doit cocher l'engagement de payer sous 10 jours (vérifié par l'API, non stocké). La date limite se calcule à partir de `purchase_date` (+ 10 jours) ; passé ce délai sans paiement, l'admin passe la commande à `cancelled`.
 
 ## purchase_line
 
-*Table de liaison pour la relation **Composer** (Commande 1,N — Arbre 0,N). Elle fige le nom, le prix et le lieu de plantation au moment de l'achat.*
+*Table de liaison pour la relation **Composer** (Commande 1,N — Arbre 0,N). Elle fige le prix payé ; le nom et le lieu de plantation sont lus dans `tree`.*
 
 | Champ | Type | Spécificités | Description |
 | --- | --- | --- | --- |
 | id | INT | PRIMARY KEY, GENERATED ALWAYS AS IDENTITY | Identifiant de la ligne de commande |
 | purchase_id | INT | NOT NULL, FK(purchase.id) ON DELETE CASCADE | Commande concernée |
-| tree_id | INT | FK(tree.id) ON DELETE SET NULL | Arbre commandé (peut devenir `NULL` si l'arbre est un jour réellement supprimé) |
-| tree_name | VARCHAR(150) | NOT NULL | Nom de l'arbre **au moment de l'achat** |
+| tree_id | INT | NOT NULL, FK(tree.id) | Arbre commandé : PostgreSQL refuse de supprimer un arbre déjà commandé (il passe à l'état « retiré du catalogue ») |
 | unit_price | NUMERIC(10,2) | NOT NULL, CHECK (unit_price >= 0) | Prix unitaire **au moment de l'achat** |
-| planting_location | VARCHAR(150) | | Lieu de plantation **au moment de l'achat** (facultatif : `NULL` si l'arbre n'en avait pas) |
 | quantity | INT | NOT NULL, CHECK (quantity > 0) | Quantité commandée |

@@ -41,8 +41,9 @@
 | US22 | Client | voir le détail de mon panier (arbres, quantités, prix unitaire, total) | vérifier ma commande avant de payer | MVP |
 | US23 | Client | modifier la quantité d'un arbre ou le retirer du panier | ajuster ma commande | MVP |
 | US23b | Client | choisir la quantité d'un arbre sur sa fiche (1 par défaut) avant de l'ajouter au panier | acheter plusieurs arbres identiques en une seule fois | MVP |
-| US24 | Client | valider mon panier via un (faux) tunnel de paiement | passer commande | MVP |
-| US25 | Client | recevoir une confirmation après ma commande | être sûr que ma commande a bien été prise en compte | MVP |
+| US24 | Client | choisir mon mode de paiement (virement, carte, chèque, PayPal) et m'engager à payer sous 10 jours avant de confirmer ma commande | passer commande et régler par le moyen qui me convient | MVP |
+| US25 | Client | recevoir un email de confirmation après ma commande | être sûr que ma commande a bien été prise en compte | MVP |
+| US25b | Client | recevoir un email quand mon paiement a été reçu | savoir que ma commande est validée | MVP |
 | US26 | Client | consulter l'historique de mes commandes | retrouver mes achats passés | MVP |
 | US27 | Client | suivre le statut d'une commande (validée, arbre planté...) | savoir où en est la plantation de mes arbres | Évo  |
 | US28 | Client | modifier mes informations personnelles (nom, adresse, email) | garder un compte à jour | MVP |
@@ -62,10 +63,11 @@
 | US40 | Admin | me connecter à un espace d'administration protégé | être le seul à pouvoir gérer le site | MVP |
 | US41 | Admin | ajouter un arbre au catalogue (nom, catégorie, description, prix, image, lieu) | proposer de nouveaux arbres à la vente | MVP |
 | US42 | Admin | modifier un arbre existant | corriger ou mettre à jour ses informations | MVP |
-| US43 | Admin | supprimer un arbre du catalogue | retirer un arbre qui n'est plus disponible | MVP |
+| US43 | Admin | supprimer un arbre jamais commandé | nettoyer le catalogue | MVP |
+| US43b | Admin | changer la disponibilité d'un arbre (disponible, épuisé, retiré du catalogue) | ne proposer à la vente que les arbres commandables, sans perdre l'historique | MVP |
 | US44 | Admin | choisir les arbres mis en avant sur la page d'accueil | valoriser certains arbres ou partenaires | Évo |
 | US45 | Admin | consulter et gérer la liste des utilisateurs | modérer et assister les clients | MVP |
-| US46 | Admin | consulter toutes les commandes et changer leur statut (ex. « planté ») | tenir les clients informés du suivi | Évo |
+| US46 | Admin | consulter toutes les commandes et changer leur statut (payée à réception du paiement, plantée, annulée si non payée sous 10 jours) | suivre les paiements et tenir les clients informés | MVP |
 | US47 | Admin | créer une campagne de plantation avec un objectif collectif | mobiliser la communauté sur un projet | Évo |
 
 ## Partenaire (Évo)
@@ -80,5 +82,5 @@
 ## Points à trancher en équipe
 
 - ~~**Panier visiteur** (US05) : stocké où tant que la personne n'est pas connectée ?~~ **Tranché le 2026-10-20** : pas de panier visiteur, le clic sur « Ajouter au panier » redirige vers l'inscription.
-- **« Gestion carte bleue »** (wireframe) : stocker une carte implique des obligations fortes (PCI-DSS). Pour le MVP le tunnel est factice ; en Évo, c'est Stripe qui garde les cartes, pas notre BDD.
-- **Suivi de commande** (US27) : qui fait évoluer le statut ? Sans l'admin US46 (Évo), le statut reste figé au MVP → garder US27 en MVP ou la repousser ?
+- ~~**« Gestion carte bleue »** (wireframe) : stocker une carte implique des obligations fortes (PCI-DSS).~~ **Tranché le 2026-10-21** : page de paiement avec choix du mode (virement, carte, chèque, PayPal) et engagement de payer sous 10 jours ; rien n'est encaissé en ligne. En Évo, c'est Stripe qui garde les cartes, pas notre BDD.
+- **Suivi de commande** (US27) : qui fait évoluer le statut ? **Le 2026-10-21**, US46 passe en MVP (l'admin change le statut à réception du paiement) → US27 (le client suit le statut) peut aussi passer en MVP : à trancher.
