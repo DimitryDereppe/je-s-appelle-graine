@@ -241,37 +241,37 @@ Les formulaires d’inscription, de connexion, de gestion du compte, de commande
 
 | Méthode | Endpoint                            | Fonction                                                  | Accès                       |
 | :------ | :---------------------------------- | :-------------------------------------------------------- | :-------------------------- |
-| GET     | `/api/arbres`                       | Lister les arbres disponibles ou épuisés                  | Public                      |
-| GET     | `/api/arbres?categorie=:categorie`  | Filtrer ces arbres par catégorie                          | Public                      |
-| GET     | `/api/arbres/:id`                   | Consulter le détail d’un arbre (sauf retiré du catalogue) | Public                      |
-| POST    | `/api/utilisateurs`                 | Créer un compte client                                    | Public                      |
+| GET     | `/api/trees`                       | Lister les arbres disponibles ou épuisés                  | Public                      |
+| GET     | `/api/trees?category=:category`  | Filtrer ces arbres par catégorie                          | Public                      |
+| GET     | `/api/trees/:id`                   | Consulter le détail d’un arbre (sauf retiré du catalogue) | Public                      |
+| POST    | `/api/users`                 | Créer un compte client                                    | Public                      |
 | POST    | `/api/sessions`                     | Vérifier les identifiants et ouvrir une session           | Public                      |
 | DELETE  | `/api/sessions/current`             | Fermer la session du client                               | Client connecté             |
-| GET     | `/api/utilisateurs/me`              | Consulter les informations du compte connecté             | Client connecté             |
-| PATCH   | `/api/utilisateurs/me`              | Modifier les informations du compte connecté              | Client connecté             |
-| PATCH   | `/api/utilisateurs/me/mot-de-passe` | Modifier le mot de passe du compte connecté               | Client connecté             |
-| DELETE  | `/api/utilisateurs/me`              | Supprimer le compte du client connecté                    | Client connecté             |
-| GET     | `/api/panier`                       | Consulter le panier du client connecté                    | Client connecté             |
-| POST    | `/api/panier/articles`              | Ajouter un arbre au panier avec la quantité choisie       | Client connecté             |
-| PATCH   | `/api/panier/articles/:id`          | Modifier la quantité d’un article du panier               | Client connecté             |
-| DELETE  | `/api/panier/articles/:id`          | Retirer un article du panier                              | Client connecté             |
-| POST    | `/api/commandes`                    | Créer la commande (mode de paiement + engagement 10 jours) et envoyer l’email de confirmation | Client connecté |
-| GET     | `/api/commandes`                    | Lister les commandes du client connecté                   | Client connecté             |
-| GET     | `/api/commandes/:id`                | Consulter une commande                                    | Propriétaire de la commande ou administrateur |
-| GET     | `/api/admin/commandes`              | Lister toutes les commandes (filtrables par statut)       | Administrateur              |
-| PATCH   | `/api/admin/commandes/:id/statut`   | Changer le statut ; `paid` envoie l’email de réception du paiement | Administrateur     |
-| POST    | `/api/arbres`                       | Ajouter un arbre au catalogue                             | Administrateur              |
-| PATCH   | `/api/arbres/:id`                   | Modifier un arbre, dont son état de disponibilité         | Administrateur              |
-| DELETE  | `/api/arbres/:id`                   | Supprimer un arbre jamais commandé (sinon refus : le passer à « retiré ») | Administrateur  |
-| GET     | `/api/disponibilites`               | Lister les états de disponibilité (formulaire arbre)      | Administrateur              |
-| GET     | `/api/utilisateurs`                 | Lister les comptes clients                                | Administrateur              |
-| GET     | `/api/utilisateurs/:id`             | Consulter un compte client                                | Administrateur              |
-| PATCH   | `/api/utilisateurs/:id`             | Modifier l’état d’un compte client                        | Administrateur              |
-| DELETE  | `/api/utilisateurs/:id`             | Supprimer un compte client                                | Administrateur              |
+| GET     | `/api/users/me`              | Consulter les informations du compte connecté             | Client connecté             |
+| PATCH   | `/api/users/me`              | Modifier les informations du compte connecté              | Client connecté             |
+| PATCH   | `/api/users/me/password` | Modifier le mot de passe du compte connecté               | Client connecté             |
+| DELETE  | `/api/users/me`              | Supprimer le compte du client connecté                    | Client connecté             |
+| GET     | `/api/cart`                       | Consulter le panier du client connecté                    | Client connecté             |
+| POST    | `/api/cart/items`              | Ajouter un arbre au panier avec la quantité choisie       | Client connecté             |
+| PATCH   | `/api/cart/items/:id`          | Modifier la quantité d’un article du panier               | Client connecté             |
+| DELETE  | `/api/cart/items/:id`          | Retirer un article du panier                              | Client connecté             |
+| POST    | `/api/orders`                    | Créer la commande (mode de paiement + engagement 10 jours) et envoyer l’email de confirmation | Client connecté |
+| GET     | `/api/orders`                    | Lister les commandes du client connecté                   | Client connecté             |
+| GET     | `/api/orders/:id`                | Consulter une commande                                    | Propriétaire de la commande ou administrateur |
+| GET     | `/api/admin/orders`              | Lister toutes les commandes (filtrables par statut)       | Administrateur              |
+| PATCH   | `/api/admin/orders/:id/status`   | Changer le statut ; `paid` envoie l’email de réception du paiement | Administrateur     |
+| POST    | `/api/trees`                       | Ajouter un arbre au catalogue                             | Administrateur              |
+| PATCH   | `/api/trees/:id`                   | Modifier un arbre, dont son état de disponibilité         | Administrateur              |
+| DELETE  | `/api/trees/:id`                   | Supprimer un arbre jamais commandé (sinon refus : le passer à « retiré ») | Administrateur  |
+| GET     | `/api/availabilities`               | Lister les états de disponibilité (formulaire arbre)      | Administrateur              |
+| GET     | `/api/users`                 | Lister les comptes clients                                | Administrateur              |
+| GET     | `/api/users/:id`             | Consulter un compte client                                | Administrateur              |
+| PATCH   | `/api/users/:id`             | Modifier l’état d’un compte client                        | Administrateur              |
+| DELETE  | `/api/users/:id`             | Supprimer un compte client                                | Administrateur              |
 
 &nbsp;
 
-L’API répond en JSON. Les entrées sont validées côté serveur. Les endpoints privés contrôlent l’authentification et les droits, même si les pages du site masquent les actions non autorisées. L’authentification utilisera une session protégée par cookie `httpOnly` ; les détails de durée et de renouvellement de session restent à préciser. Le client ne peut consulter ou modifier que les informations de son propre compte. Après suppression du compte, sa session est invalidée. `POST /api/commandes` refuse la commande si le mode de paiement n’est pas dans la liste prévue, si l’engagement de payer sous 10 jours n’est pas coché ou si un arbre du panier n’est pas disponible. Les commandes déjà passées sont conservées selon les règles de conservation définies pour le projet ; les données personnelles qui ne sont plus nécessaires devront être supprimées ou anonymisées.
+L’API répond en JSON. Les entrées sont validées côté serveur. Les endpoints privés contrôlent l’authentification et les droits, même si les pages du site masquent les actions non autorisées. L’authentification utilisera une session protégée par cookie `httpOnly` ; les détails de durée et de renouvellement de session restent à préciser. Le client ne peut consulter ou modifier que les informations de son propre compte. Après suppression du compte, sa session est invalidée. `POST /api/orders` refuse la commande si le mode de paiement n’est pas dans la liste prévue, si l’engagement de payer sous 10 jours n’est pas coché ou si un arbre du panier n’est pas disponible. Les commandes déjà passées sont conservées selon les règles de conservation définies pour le projet ; les données personnelles qui ne sont plus nécessaires devront être supprimées ou anonymisées.
 
 ## 9\. User stories
 

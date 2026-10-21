@@ -33,7 +33,7 @@ Les tables sont donc renommées : `user` → `account`, `order` → `purchase`, 
 | address | VARCHAR(255) | | Adresse postale (facultative) |
 | account_type | VARCHAR(20) | NOT NULL, DEFAULT 'individual', CHECK (account_type IN ('individual', 'association', 'company')) | Type de compte : `individual` (particulier), `association`, `company` (entreprise) |
 | organization_name | VARCHAR(150) | | Nom de l'association ou de l'entreprise (facultatif, même si le compte n'est pas `individual`) |
-| is_active | BOOLEAN | NOT NULL, DEFAULT TRUE | Compte actif : `TRUE` dès l'inscription ; seul l'admin peut le passer à `FALSE` (`PATCH /api/utilisateurs/:id`). Un compte désactivé reçoit un **403** à la connexion |
+| is_active | BOOLEAN | NOT NULL, DEFAULT TRUE | Compte actif : `TRUE` dès l'inscription ; seul l'admin peut le passer à `FALSE` (`PATCH /api/users/:id`). Un compte désactivé reçoit un **403** à la connexion |
 | role_id | INT | NOT NULL, FK(role.id) | Rôle de l'utilisateur (relation **Avoir**) ; `customer` à l'inscription |
 
 ## category
@@ -88,7 +88,7 @@ Les tables sont donc renommées : `user` → `account`, `order` → `purchase`, 
 
 | Champ | Type | Spécificités | Description |
 | --- | --- | --- | --- |
-| id | INT | PRIMARY KEY, GENERATED ALWAYS AS IDENTITY | Identifiant de la ligne de panier (utilisé par `/api/panier/articles/:id`) |
+| id | INT | PRIMARY KEY, GENERATED ALWAYS AS IDENTITY | Identifiant de la ligne de panier (utilisé par `/api/cart/items/:id`) |
 | cart_id | INT | NOT NULL, FK(cart.id) ON DELETE CASCADE | Panier concerné |
 | tree_id | INT | NOT NULL, FK(tree.id) | Arbre ajouté |
 | quantity | INT | NOT NULL, DEFAULT 1, CHECK (quantity > 0) | Quantité de cet arbre dans le panier |

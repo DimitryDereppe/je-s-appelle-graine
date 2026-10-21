@@ -77,14 +77,15 @@ class TreeService {
 - Nommer les ressources au pluriel, en `kebab-case` et sans verbe.
 - Laisser la méthode HTTP porter l’action : `GET`, `POST`, `PATCH` ou `DELETE`.
 - Utiliser les paramètres d’URL pour identifier une ressource et la query string pour filtrer ou trier.
+- Nommer le paramètre d’URL `:id` : le segment qui le précède indique déjà la ressource (`/api/trees/:id` = l’id d’un arbre).
 
 ```text
 GET    /api/trees
-GET    /api/trees/:treeId
+GET    /api/trees/:id
 POST   /api/trees
-PATCH  /api/trees/:treeId
-DELETE /api/trees/:treeId
-GET    /api/users/:userId/orders
+PATCH  /api/trees/:id
+DELETE /api/trees/:id
+GET    /api/trees?category=:category
 ```
 
 ## Base de données

@@ -43,7 +43,7 @@ Le cahier des charges sépare le back-end en couches : chaque couche a un seul r
 
 ```mermaid
 flowchart TB
-    REQ["Requête HTTP<br/>(ex. POST /api/commandes)"]
+    REQ["Requête HTTP<br/>(ex. POST /api/orders)"]
 
     subgraph API["API REST Je s’appelle Graine — Express"]
         R["Routeur<br/>associe l'URL et la méthode à un contrôleur"]

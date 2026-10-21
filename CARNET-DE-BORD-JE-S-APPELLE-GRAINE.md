@@ -23,7 +23,7 @@
 
 ### À poursuivre
 
-- Valider : modes de paiement en colonne `CHECK` (ou table), engagement « 10 jours » non stocké, annulation manuelle par l'admin, routes `/api/admin/commandes`.
+- Valider : modes de paiement en colonne `CHECK` (ou table), engagement « 10 jours » non stocké, annulation manuelle par l'admin, routes `/api/admin/orders`.
 - Choisir le fournisseur du VPS, le serveur web (HTTPS), le prestataire d'envoi d'emails et la politique de sauvegarde.
 - Refaire l'image `01b-diagramme-architecture.png` (montre encore Vercel et Neon) et vérifier les autres PNG (ancien nom).
 - Trancher US27 (le client suit le statut de sa commande) : MVP ou évolution.

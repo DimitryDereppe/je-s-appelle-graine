@@ -17,7 +17,7 @@ Suivi de mon travail sur Je s’appelle Graine. Les décisions notées ici ont �
 
 - **Lieu de plantation = simple champ texte** pour le MVP. Il pourra devenir une entité **Lieu** plus tard, si la carte interactive (US33, évolution) a besoin de coordonnées.
 - **Lieu figé dans la commande**, comme le nom et le prix : si l'admin modifie le lieu d'un arbre, l'historique des commandes ne change pas.
-- **Compte actif (`is_active`)** : géré par l'admin (`PATCH /api/utilisateurs/:id`, « Modifier l'état d'un compte client »). Un compte est actif dès l'inscription. Un utilisateur désactivé qui se connecte reçoit un **403** : il est bien identifié, mais n'a pas le droit d'accéder au service.
+- **Compte actif (`is_active`)** : géré par l'admin (`PATCH /api/users/:id`, « Modifier l'état d'un compte client »). Un compte est actif dès l'inscription. Un utilisateur désactivé qui se connecte reçoit un **403** : il est bien identifié, mais n'a pas le droit d'accéder au service.
 
 ### À poursuivre
 
@@ -36,4 +36,4 @@ Suivi de mon travail sur Je s’appelle Graine. Les décisions notées ici ont �
 ### Décisions (prises avec l'équipe sur Discord)
 
 - L'authentification sera **moins poussée** que dans la première version du diagramme de séquence.
-- La séquence la plus complexe du projet est la **validation du panier en commande** (`POST /api/commandes`) : 5 tables touchées, règles métier, transaction.
+- La séquence la plus complexe du projet est la **validation du panier en commande** (`POST /api/orders`) : 5 tables touchées, règles métier, transaction.
