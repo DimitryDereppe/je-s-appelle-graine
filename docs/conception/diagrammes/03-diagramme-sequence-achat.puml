@@ -1,0 +1,72 @@
+@startuml 03-diagramme-sequence-achat
+title Je s’appelle Graine — Du panier à la confirmation de commande
+
+actor Client
+participant "Site Je s’appelle Graine\n(Next.js)" as Site
+participant "API REST\n(Express, middleware JWT)" as API
+participant "Services métier" as Services
+participant "DataMappers" as DM
+database "PostgreSQL" as DB
+participant "Service d'envoi\nd'emails (SMTP)" as Mail
+
+Client -> Site : Consulte son panier
+Site -> API : GET /api/cart (cookie JWT)
+API -> Services : Charger le panier du compte du jeton
+Services -> DM : Rechercher le panier
+DM -> DB : Lire le panier, ses articles\net leur disponibilité
+DB --> DM : Articles, quantités, prix
+DM --> Services : Contenu du panier
+Services --> API : Panier du client
+API --> Site : Panier (JSON)
+Site --> Client : Affiche les articles et le total
+
+opt Le client modifie le panier
+  Client -> Site : Change une quantité ou retire un article
+  Site -> API : PATCH ou DELETE /api/cart/items/:id
+  API -> Services : Vérifier et modifier\n(article de son panier, quantité > 0)
+  Services -> DM : Enregistrer la modification
+  DM -> DB : Mettre à jour le panier
+  DB --> DM : Modification enregistrée
+  DM --> Services : Panier mis à jour
+  Services --> API : Nouveau contenu
+  API --> Site : Panier actualisé
+  Site --> Client : Affiche le panier mis à jour
+end
+
+Client -> Site : Vérifie le récapitulatif (/commande)
+Site --> Client : Page de paiement (/commande/paiement)
+Client -> Site : Choisit le mode de paiement,\ncoche l'engagement de payer sous 10 jours\net confirme
+Site -> API : POST /api/orders\n(mode de paiement, engagement)
+API -> API : Vérifier le jeton JWT (sinon 401)
+API -> Services : Créer la commande du compte connecté
+
+alt Mode de paiement invalide ou engagement non coché
+  Services --> API : Refus (400)
+  API --> Site : Erreur compréhensible
+  Site --> Client : Invite à compléter la page de paiement
+else Données de paiement valides
+  Services -> DM : Ouvrir une transaction et verrouiller le panier
+  DM -> DB : BEGIN ; lire le panier, les arbres et le compte
+  DB --> DM : Articles, disponibilités, prix actuels, acheteur
+
+  alt Panier vide ou arbre épuisé ou retiré
+    DM -> DB : ROLLBACK
+    DM --> Services : Échec de vérification
+    Services --> API : Refuser la commande (409)
+    API --> Site : Erreur compréhensible
+    Site --> Client : Invite à corriger le panier
+  else Panier valide
+    Services -> Services : Recalculer le total côté serveur
+    Services -> DM : Enregistrer la commande et ses lignes
+    DM -> DB : Créer la commande (pending)\navec l'identité de l'acheteur
+    DM -> DB : Créer les lignes\n(nom, prix payé et lieu de plantation)
+    DM -> DB : Vider le panier ; COMMIT
+    DB --> DM : Commande enregistrée
+    DM --> Services : Commande créée
+    Services -> Mail : Email de confirmation\n(adresse enregistrée dans la commande)
+    Services --> API : Commande créée sans paiement en ligne
+    API --> Site : 201 Commande (JSON)
+    Site --> Client : Affiche la confirmation (/commande/confirmation)\net la date limite de paiement
+  end
+end
+@enduml

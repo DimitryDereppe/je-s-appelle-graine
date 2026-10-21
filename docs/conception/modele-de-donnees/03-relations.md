@@ -14,4 +14,4 @@ Quelles entités possèdent des liens logiques entre elles ?
 
 **Utilisateur** -- Passer -- **Commande**
 
-**Commande** -- Composer (quantité, prix unitaire) -- **Arbre**
+**Commande** -- Composer (quantité, nom de l'arbre, prix unitaire, lieu de plantation) -- **Arbre**

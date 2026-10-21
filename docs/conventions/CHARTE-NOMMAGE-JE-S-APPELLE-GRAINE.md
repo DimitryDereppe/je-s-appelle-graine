@@ -78,14 +78,15 @@ class TreeService {
 - Laisser la méthode HTTP porter l’action : `GET`, `POST`, `PATCH` ou `DELETE`.
 - Utiliser les paramètres d’URL pour identifier une ressource et la query string pour filtrer ou trier.
 - Nommer le paramètre d’URL `:id` : le segment qui le précède indique déjà la ressource (`/api/trees/:id` = l’id d’un arbre).
+- Regrouper les routes réservées à l’administrateur sous le préfixe `/api/admin/`, protégé par un seul middleware de rôle.
 
 ```text
 GET    /api/trees
 GET    /api/trees/:id
-POST   /api/trees
-PATCH  /api/trees/:id
-DELETE /api/trees/:id
 GET    /api/trees?category=:category
+POST   /api/admin/trees
+PATCH  /api/admin/trees/:id
+DELETE /api/admin/trees/:id
 ```
 
 ## Base de données

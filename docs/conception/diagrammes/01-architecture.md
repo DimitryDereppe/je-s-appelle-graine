@@ -8,7 +8,7 @@
 
 ## 1. Vue d'ensemble (environnement distant : le VPS)
 
-Toute l'application est hébergée sur un **VPS** (serveur privé virtuel loué), chaque brique dans son conteneur Docker. Un serveur web placé devant reçoit toutes les requêtes HTTPS, envoie celles qui commencent par `/api` à l'API et les autres au front-end : le site et l'API partagent ainsi le même nom de domaine.
+Toute l'application est hébergée sur un **VPS** (serveur privé virtuel fourni par O'Clock), chaque brique dans son conteneur Docker. Un serveur web placé devant reçoit toutes les requêtes HTTPS, envoie celles qui commencent par `/api` à l'API et les autres au front-end : le site et l'API partagent ainsi le même nom de domaine.
 
 ```mermaid
 flowchart TB
@@ -29,7 +29,7 @@ flowchart TB
     BOX["Boîte mail du client"]
 
     U --> P
-    P -- "HTTPS : pages et requêtes /api/...<br/>+ cookie de session" --> W
+    P -- "HTTPS : pages et requêtes /api/...<br/>+ cookie httpOnly (jeton JWT)" --> W
     W -- "pages" --> F
     W -- "/api/..." --> API
     API -- "réseau Docker interne<br/>(base non exposée sur Internet)" --> DB
@@ -47,7 +47,7 @@ flowchart TB
 
     subgraph API["API REST Je s’appelle Graine — Express"]
         R["Routeur<br/>associe l'URL et la méthode à un contrôleur"]
-        M["Middlewares<br/>validation des données, vérification<br/>de la session et du rôle (401 / 403)"]
+        M["Middlewares<br/>validation des données, vérification<br/>du jeton JWT et du rôle (401 / 403)"]
         C["Contrôleurs<br/>lisent la requête, renvoient la réponse JSON"]
         S["Services métier<br/>règles du projet (disponibilité des arbres,<br/>engagement de paiement, calcul du total,<br/>mot de passe Argon2, envoi des emails...)"]
         D["DataMappers<br/>requêtes SQL paramétrées"]
@@ -92,12 +92,11 @@ flowchart LR
 | API REST | Node.js + Express | VPS (conteneur Docker) | Conteneur Docker (Docker Compose) |
 | Base de données | PostgreSQL | VPS (conteneur Docker + volume sauvegardé) | Conteneur Docker (Docker Compose) |
 | Envoi d'emails | Prestataire SMTP (Nodemailer côté API) | Service externe | Prestataire de test ou boîte de test |
-| Accès aux données | DataMapper (ou ORM) | — | — |
+| Accès aux données | DataMapper (requêtes SQL paramétrées) | — | — |
 | Hooks Git | Husky | — | Poste de chaque développeur |
 
 ## Points à valider avec l'équipe
 
-- **DataMapper ou Sequelize** : le DataMapper est privilégié, à confirmer.
-- **Fournisseur du VPS** et **serveur web** (HTTPS, aiguillage `/api`) : à choisir.
+- **Serveur web** (HTTPS, aiguillage `/api`) : à choisir.
 - **Sauvegardes de la base** : fréquence et lieu de stockage (hors du VPS).
 - **Prestataire d'envoi d'emails** : à choisir.

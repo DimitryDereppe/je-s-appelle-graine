@@ -1,0 +1,66 @@
+@startuml 02-diagramme-cas-utilisation
+!pragma layout smetana
+left to right direction
+title Je s’appelle Graine — Cas d'utilisation (MVP)
+
+actor Visiteur as visitor
+actor Client as client
+actor Administrateur as admin
+client -up-|> visitor
+
+rectangle "Je s’appelle Graine" {
+  usecase "Consulter la page d'accueil" as UC_home
+  usecase "Consulter les pages d'information\n(qui sommes-nous, mentions légales,\nconfidentialité)" as UC_info
+  usecase "Consulter le catalogue" as UC_catalog
+  usecase "Rechercher un arbre par nom\net filtrer par catégorie" as UC_search
+  usecase "Consulter la fiche d'un arbre" as UC_tree
+  usecase "Créer un compte" as UC_signup
+  usecase "Se connecter" as UC_login
+
+  usecase "Ajouter un arbre au panier\n(quantité choisie)" as UC_add
+  usecase "Consulter et modifier le panier" as UC_cart
+  usecase "Passer commande\n(mode de paiement,\nengagement de payer sous 10 jours)" as UC_order
+  usecase "Recevoir les emails de commande\n(confirmation, paiement reçu)" as UC_mail
+  usecase "Consulter ses commandes\net leur statut" as UC_history
+  usecase "Supprimer une commande\nen attente de paiement" as UC_cancel
+  usecase "Consulter et modifier son compte\n(informations, mot de passe)" as UC_account
+  usecase "Se déconnecter" as UC_logout
+  usecase "Supprimer son compte" as UC_delete
+
+  usecase "Gérer le catalogue\n(ajouter, modifier, supprimer\nun arbre jamais commandé)" as UC_admin_trees
+  usecase "Changer la disponibilité d'un arbre\n(disponible, épuisé, retiré)" as UC_admin_avail
+  usecase "Gérer les commandes\n(consulter, changer le statut :\npayée, plantée, annulée)" as UC_admin_orders
+  usecase "Gérer les comptes clients\n(consulter, activer ou désactiver,\nsupprimer)" as UC_admin_users
+}
+
+visitor --> UC_home
+visitor --> UC_info
+visitor --> UC_catalog
+visitor --> UC_search
+visitor --> UC_tree
+visitor --> UC_signup
+visitor --> UC_login
+
+client --> UC_add
+client --> UC_cart
+client --> UC_order
+client --> UC_mail
+client --> UC_history
+client --> UC_cancel
+client --> UC_account
+client --> UC_logout
+client --> UC_delete
+
+admin --> UC_login
+admin --> UC_admin_trees
+admin --> UC_admin_avail
+admin --> UC_admin_orders
+admin --> UC_admin_users
+
+note right of UC_add
+  Un visiteur non connecté est redirigé
+  vers la page de connexion, qui propose
+  aussi de créer un compte. Une fois
+  connecté, il devient client.
+end note
+@enduml

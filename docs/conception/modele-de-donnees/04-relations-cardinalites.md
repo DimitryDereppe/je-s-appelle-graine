@@ -10,7 +10,7 @@ Pour chaque lien entre des entités, combien de représentations peut-il y avoir
 | Posséder | Utilisateur | 0,1 | Panier | 1,1 |
 | Avoir | Utilisateur | 1,1 | Rôle | 0,N |
 | Passer | Utilisateur | 0,N | Commande | 0,1 |
-| Composer (quantité, prix unitaire) | Commande | 1,N | Arbre | 0,N |
+| Composer (quantité, nom de l'arbre, prix unitaire, lieu de plantation) | Commande | 1,N | Arbre | 0,N |
 
 ## Lecture des cardinalités
 
@@ -24,8 +24,8 @@ Pour chaque lien entre des entités, combien de représentations peut-il y avoir
 
 ## Décisions
 
-- **Panier réservé aux comptes connectés** : un visiteur qui clique sur « Ajouter au panier » est redirigé vers l'inscription. Il n'y a donc pas de panier visiteur, d'où la cardinalité *Posséder* **1,1** côté Panier (au lieu de 0,1). L'API refuse tout accès au panier sans session (**401**).
+- **Panier réservé aux comptes connectés** : un visiteur qui clique sur « Ajouter au panier » est redirigé vers la page de connexion, qui propose aussi de créer un compte (il est peut-être déjà client). Il n'y a donc pas de panier visiteur, d'où la cardinalité *Posséder* **1,1** côté Panier (au lieu de 0,1). L'API refuse tout accès au panier sans jeton JWT valide (**401**).
 - **Création du panier** : le panier (vide) est créé **à l'inscription** du client. *Posséder* reste **0,1** côté Utilisateur, car un administrateur n'a pas forcément de panier.
-- **Suppression d'un compte** (droit à l'effacement RGPD) : le compte est réellement supprimé et ses commandes sont **conservées**, sans propriétaire. D'où la cardinalité *Passer* **0,1** côté Commande (au lieu de 1,1). L'autre piste, anonymiser le compte au lieu de le supprimer, a été écartée.
-- **Suppression d'une commande** : le client **n'a pas le droit** de supprimer une commande finalisée et payée (statut payée ou plantée) ; seules les commandes en attente peuvent l'être. Le statut est changé **manuellement par l'admin**. C'est une règle de gestion, vérifiée par l'API : elle ne change pas les cardinalités.
-- **Historique des commandes** : *Composer* ne garde que la quantité et le prix unitaire payé. Le nom et le lieu de plantation sont lus dans l'arbre : un arbre déjà commandé ne peut donc **jamais être supprimé**, seulement passé à l'état « retiré du catalogue ».
+- **Suppression d'un compte** (droit à l'effacement RGPD) : le compte est réellement supprimé et ses commandes sont **conservées**, sans propriétaire. L'identité de l'acheteur reste figée dans la commande (obligation comptable). D'où la cardinalité *Passer* **0,1** côté Commande (au lieu de 1,1). L'autre piste, anonymiser le compte au lieu de le supprimer, a été écartée.
+- **Suppression d'une commande** : le client **n'a pas le droit** de supprimer une commande payée, plantée ou annulée (les annulations restent tracées) ; seules les commandes en attente peuvent l'être. Le statut est changé **manuellement par l'admin**. C'est une règle de gestion, vérifiée par l'API : elle ne change pas les cardinalités.
+- **Historique des commandes** : *Composer* garde la quantité, le nom de l'arbre, le prix unitaire payé et le lieu de plantation au moment de l'achat : l'historique ne change pas si l'arbre est modifié. Un arbre déjà commandé ne peut **jamais être supprimé**, seulement passé à l'état « retiré du catalogue ».

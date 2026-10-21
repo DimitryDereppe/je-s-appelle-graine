@@ -22,8 +22,8 @@ Même MCD au format texte Mocodo (à coller sur [mocodo.net](https://www.mocodo.
 
 ```text
 CATÉGORIE: code catégorie, nom
-COMPOSER, 1N COMMANDE, 0N ARBRE: quantité, prix unitaire
-COMMANDE: code commande, date de commande, total, statut, mode de paiement
+COMPOSER, 1N COMMANDE, 0N ARBRE: quantité, nom de l'arbre, prix unitaire, lieu de plantation
+COMMANDE: code commande, date de commande, total, statut, mode de paiement, prénom acheteur, nom acheteur, email acheteur, structure acheteur, adresse acheteur, date de paiement, date de plantation, date d'annulation
 PASSER, 0N UTILISATEUR, 01 COMMANDE
 UTILISATEUR: code utilisateur, nom, prénom, email, mot de passe, adresse, type de compte, raison sociale, actif
 AVOIR, 11 UTILISATEUR, 0N RÔLE

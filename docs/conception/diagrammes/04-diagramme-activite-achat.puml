@@ -1,0 +1,65 @@
+@startuml 04-diagramme-activite-achat
+title Je s’appelle Graine — Activité : confirmer une commande
+
+start
+:Afficher le panier;
+:Consulter les articles,
+les quantités et le total;
+
+while (Le client souhaite modifier le panier ?) is (oui)
+  if (Modifier une quantité ?) then (oui)
+    :Mettre à jour la quantité;
+  else (non)
+    :Retirer un article;
+  endif
+  :Recalculer et afficher le total;
+endwhile (non)
+
+if (Le panier est-il vide ?) then (oui)
+  :Afficher un message
+  « Le panier est vide »;
+  stop
+else (non)
+  :Le client vérifie le récapitulatif;
+endif
+
+:Afficher la page de paiement;
+:Le client choisit le mode de paiement
+(virement, carte, chèque, PayPal);
+:Le client coche l'engagement
+de payer sous 10 jours;
+:Le client confirme la commande;
+
+:Vérifier le jeton JWT du client;
+if (Client connecté ?) then (non)
+  :Rediriger vers la page de connexion;
+  stop
+else (oui)
+endif
+
+if (Mode de paiement valide
+et engagement coché ?) then (non)
+  :Afficher l'erreur sur la page de paiement;
+  stop
+else (oui)
+  :Vérifier la disponibilité des arbres;
+endif
+
+if (Tous les arbres sont disponibles ?) then (non)
+  :Refuser la commande;
+  :Afficher les articles épuisés ou retirés;
+  :Inviter le client à modifier son panier;
+  stop
+else (oui)
+  :Recalculer les prix et le total
+  côté serveur;
+  :Enregistrer la commande (en attente de paiement)
+  avec l'identité de l'acheteur,
+  le nom, le prix payé et le lieu de plantation;
+  :Vider le panier;
+  :Envoyer l'email de confirmation;
+  :Afficher la confirmation
+  et la date limite de paiement (10 jours);
+  stop
+endif
+@enduml

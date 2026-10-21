@@ -42,9 +42,11 @@
 
 - **code commande** (identifiant unique)
 - date de commande
-- statut : en attente, payée, plantée ou annulée. Changé **manuellement par l'admin** : payée à réception du paiement, annulée si le paiement n'est pas arrivé sous 10 jours. Une commande payée (ou plantée) ne peut plus être supprimée par le client.
+- statut : en attente, payée, plantée ou annulée. Changé **manuellement par l'admin** : payée à réception du paiement, annulée si le paiement n'est pas arrivé sous 10 jours. Une commande payée, plantée ou annulée ne peut plus être supprimée par le client (seules les commandes en attente peuvent l'être).
 - total (montant total de la commande)
 - mode de paiement : virement, carte, chèque ou PayPal (obligatoire)
+- acheteur au moment de la commande : prénom, nom et email (obligatoires), structure et adresse (facultatives). Copiés depuis l'utilisateur : la vente reste identifiable si le compte est supprimé
+- date de paiement, date de plantation, date d'annulation (facultatives : renseignées au changement de statut)
 
 ## Rôle
 

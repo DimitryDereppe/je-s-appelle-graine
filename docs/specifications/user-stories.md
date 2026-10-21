@@ -9,7 +9,7 @@
 |---|---|
 | **Visiteur** | Personne non connectée qui découvre le site |
 | **Client** | Utilisateur inscrit et connecté qui achète des arbres |
-| **Admin** | Membre de Je s’appelle Graine qui gère le catalogue et les utilisateurs |
+| **Admin** | Membre de Je s’appelle Graine qui gère le catalogue, les commandes et les utilisateurs |
 | **Partenaire** (Évo) | Association tierce qui propose ses propres lots d'arbres |
 
 ---
@@ -29,7 +29,8 @@
 | US03g | Visiteur | trier le catalogue par prix croissant ou décroissant | repérer rapidement les arbres les plus abordables | Évo |
 | US03h | Visiteur | combiner tous les critères (nom, catégorie, lieu, prix, tri) et les réinitialiser en un clic | trouver l'arbre idéal sans recommencer à chaque fois | Évo |
 | US04 | Visiteur | consulter la fiche détaillée d'un arbre (photo, description, prix, lieu de plantation) | décider en connaissance de cause avant d'acheter | MVP |
-| US05 | Visiteur | être redirigé vers l'inscription/connexion quand je clique sur « Ajouter au panier » | comprendre qu'un compte est nécessaire pour remplir un panier | MVP |
+| US05 | Visiteur | être redirigé vers la page de connexion, avec un lien pour créer un compte si je n'en ai pas, quand je clique sur « Ajouter au panier » | comprendre qu'un compte est nécessaire pour remplir un panier | MVP |
+| US05b | Visiteur | accéder au panier après avoir créé un compte ou m'être connecté | poursuivre ma commande | MVP |
 | US06 | Visiteur | revenir automatiquement sur la fiche de l'arbre après mon inscription/connexion | reprendre mon achat là où je l'avais laissé | Évo |
 | US07 | Visiteur | créer un compte avec mon prénom, mon nom, mon email et mon mot de passe, choisir mon type de compte (particulier par défaut, association ou entreprise) et, si je choisis association ou entreprise, renseigner éventuellement le nom de ma structure | pouvoir acheter et suivre mes commandes avec un compte adapté à mon profil | MVP |
 | US08 | Visiteur | consulter la page « Qui sommes-nous » | savoir qui est derrière Je s’appelle Graine et lui faire confiance | MVP |
@@ -52,7 +53,8 @@
 | US25 | Client | recevoir un email de confirmation après ma commande | être sûr que ma commande a bien été prise en compte | MVP |
 | US25b | Client | recevoir un email quand mon paiement a été reçu | savoir que ma commande est validée | MVP |
 | US26 | Client | consulter l'historique de mes commandes | retrouver mes achats passés | MVP |
-| US27 | Client | suivre le statut d'une commande (validée, arbre planté...) | savoir où en est la plantation de mes arbres | Évo  |
+| US26b | Client | supprimer une commande tant qu'elle est en attente de paiement | annuler un achat que je ne souhaite plus faire | MVP |
+| US27 | Client | suivre le statut d'une commande (en attente, payée, plantée, annulée) | savoir où en est la plantation de mes arbres | MVP |
 | US28 | Client | modifier mes informations personnelles (nom, adresse, email) | garder un compte à jour | MVP |
 | US29 | Client | changer mon mot de passe | sécuriser mon compte | MVP |
 | US30 | Client | supprimer mon compte | exercer mon droit à l'effacement (RGPD) | MVP |
@@ -74,7 +76,7 @@
 | US43b | Admin | changer la disponibilité d'un arbre (disponible, épuisé, retiré du catalogue) | ne proposer à la vente que les arbres commandables, sans perdre l'historique | MVP |
 | US44 | Admin | choisir les arbres mis en avant sur la page d'accueil | valoriser certains arbres ou partenaires | Évo |
 | US45 | Admin | consulter et gérer la liste des utilisateurs | modérer et assister les clients | MVP |
-| US46 | Admin | consulter toutes les commandes et changer leur statut (payée à réception du paiement, plantée, annulée si non payée sous 10 jours) | suivre les paiements et tenir les clients informés | MVP |
+| US46 | Admin | consulter toutes les commandes et changer leur statut (payée à réception du paiement, plantée, annulée si non payée sous 10 jours), la date de chaque changement étant enregistrée et les commandes en retard de paiement mises en évidence | suivre les paiements et tenir les clients informés | MVP |
 | US47 | Admin | créer une campagne de plantation avec un objectif collectif | mobiliser la communauté sur un projet | Évo |
 
 ## Partenaire (Évo)
@@ -88,8 +90,8 @@
 
 ## Points à trancher en équipe
 
-- ~~**Panier visiteur** (US05) : stocké où tant que la personne n'est pas connectée ?~~ **Tranché le 2026-10-20** : pas de panier visiteur, le clic sur « Ajouter au panier » redirige vers l'inscription.
+- ~~**Panier visiteur** (US05) : stocké où tant que la personne n'est pas connectée ?~~ **Tranché le 2026-10-20** : pas de panier visiteur, le clic sur « Ajouter au panier » redirige vers l'inscription. **Précisé le 2026-10-21** : la redirection se fait vers la page de connexion, qui propose aussi de créer un compte, car le visiteur est peut-être déjà client.
 - ~~**« Gestion carte bleue »** (wireframe) : stocker une carte implique des obligations fortes (PCI-DSS).~~ **Tranché le 2026-10-21** : page de paiement avec choix du mode (virement, carte, chèque, PayPal) et engagement de payer sous 10 jours ; rien n'est encaissé en ligne. En Évo, c'est Stripe qui garde les cartes, pas notre BDD.
-- **Suivi de commande** (US27) : qui fait évoluer le statut ? **Le 2026-10-21**, US46 passe en MVP (l'admin change le statut à réception du paiement) → US27 (le client suit le statut) peut aussi passer en MVP : à trancher.
+- ~~**Suivi de commande** (US27) : qui fait évoluer le statut ? **Le 2026-10-21**, US46 passe en MVP (l'admin change le statut à réception du paiement) → US27 (le client suit le statut) peut aussi passer en MVP : à trancher.~~ **Tranché le 2026-10-21** : US27 passe en MVP. Le client voit le statut de ses commandes dans son historique, comme le prévoit le cahier des charges ; l'admin le fait évoluer (US46).
 - ~~**Recherche par nom** (US03b) : la recherche ignore les majuscules, mais pas les accents (« chene » ne trouve pas « Chêne »).~~ **Tranché le 2026-10-21** : accents gérés dès le MVP avec l'extension PostgreSQL `unaccent` (`CREATE EXTENSION IF NOT EXISTS unaccent;`), appliquée des deux côtés de la comparaison : `unaccent(name) ILIKE unaccent('%' || $1 || '%')`. Pas de nouvelle colonne, le MCD ne change pas.
 - ~~**Filtre par lieu** (US03e, Évo) : texte libre dans `tree` ou table des lieux ?~~ **Tranché le 2026-10-21** : le lieu est défini par l'arbre (`tree.planting_location`), pas de table des lieux, le MCD ne change pas. La liste du filtre reprend les lieux des arbres visibles ; l'admin saisit donc toujours un même lieu de la même façon. Un arbre sans lieu n'apparaît pas quand ce filtre est utilisé.

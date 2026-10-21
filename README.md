@@ -1,6 +1,6 @@
 # Je s’appelle Graine
 
-Je s’appelle Graine est un projet de plateforme e-commerce autour de la reforestation. Le MVP permet de découvrir un catalogue d’arbres, de créer un compte, de passer une commande fictive et de consulter les informations associées.
+Je s’appelle Graine est un projet de plateforme e-commerce autour de la reforestation. Le MVP permet de découvrir un catalogue d’arbres, de créer un compte, de passer commande (paiement hors ligne : aucun paiement n’est encaissé sur le site) et de suivre ses commandes.
 
 ## Documentation
 
@@ -29,4 +29,4 @@ Les documents de conception du modèle se trouvent dans [`docs/conception/modele
 - [MCD](docs/conception/modele-de-donnees/05-mcd.md)
 - [MLD](docs/conception/modele-de-donnees/06-mld.md)
 - [MPD](docs/conception/modele-de-donnees/07-mpd.md)
-- [Dictionnaire de données](docs/conception/modele-de-donnees/08-dictionnaire-de-donnees.md)
+- [Dictionnaire de données](docs/conception/modele-de-donnees/00-dictionnaire-de-donnees.md)

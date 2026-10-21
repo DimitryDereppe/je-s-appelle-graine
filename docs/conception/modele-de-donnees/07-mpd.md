@@ -31,15 +31,16 @@ Notation : souligné = clé primaire, `#` = clé étrangère, `IDENTITY` = `GENE
 | --- | --- | --- | --- |
 | `cart.account_id` | `ON DELETE CASCADE` | un compte | son panier est supprimé aussi |
 | `cart_item.cart_id` | `ON DELETE CASCADE` | un panier | ses lignes de panier sont supprimées |
-| `purchase.account_id` | `ON DELETE SET NULL` | un compte | ses commandes sont **conservées**, sans propriétaire |
+| `cart_item.tree_id` | `ON DELETE CASCADE` | un arbre jamais commandé | il est retiré des paniers qui le contiennent |
+| `purchase.account_id` | `ON DELETE SET NULL` | un compte | ses commandes sont **conservées**, sans propriétaire ; l'identité de l'acheteur reste dans `buyer_*` |
 | `purchase_line.purchase_id` | `ON DELETE CASCADE` | une commande | ses lignes de commande sont supprimées |
-| `account.role_id`, `tree.category_id`, `tree.availability_id`, `cart_item.tree_id`, `purchase_line.tree_id` | aucune (par défaut) | un rôle, une catégorie, un état de disponibilité, un arbre encore utilisé (dans un panier ou une commande) | PostgreSQL **refuse** la suppression |
+| `account.role_id`, `tree.category_id`, `tree.availability_id`, `purchase_line.tree_id` | aucune (par défaut) | un rôle, une catégorie ou un état de disponibilité encore utilisé, un arbre déjà commandé | PostgreSQL **refuse** la suppression |
 
-> Un arbre déjà commandé n'est donc jamais supprimé : l'admin le passe à l'état « retiré du catalogue ». L'historique des commandes lit son nom et son lieu de plantation dans `tree`.
+> Un arbre déjà commandé n'est donc jamais supprimé : l'admin le passe à l'état « retiré du catalogue ». Le nom de l'arbre, le prix et le lieu de plantation sont copiés dans `purchase_line` à la création de la commande : l'historique ne dépend pas des modifications du catalogue.
 
 ## Règle de gestion non couverte par le MPD
 
-Le client **n'a pas le droit** de supprimer une commande. Le statut est changé **manuellement par l'admin**.
+Le client peut supprimer une commande **uniquement si elle est `pending`** (`DELETE /api/orders/:id`). Une commande `paid`, `planted` ou `cancelled` n'est jamais effacée : les annulations restent tracées. Le statut est changé **manuellement par l'admin**.
 
 Une contrainte `ON DELETE` ne regarde pas la valeur du statut : cette règle est donc vérifiée par l'**API**, avant le `DELETE`.
 
