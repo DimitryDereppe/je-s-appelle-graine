@@ -12,7 +12,7 @@ En relisant le cahier des charges et le parcours principal du MVP, on identifie 
 - Ce **rôle** (client, administrateur) détermine les droits de chaque utilisateur. On en fait une entité **Rôle** plutôt qu'un simple attribut : la liste des rôles est ainsi stockée une seule fois, et on pourra en ajouter un plus tard (ex. *partenaire*, prévu dans les évolutions) sans modifier la structure de la table des utilisateurs.
 - Le client connecté ajoute des arbres à un **panier**, avec une quantité. Le panier est **réservé aux comptes connectés** : un visiteur qui clique sur « Ajouter au panier » est redirigé vers l'inscription.
 - Le client connecté confirme une **commande** (sans paiement réel) et la retrouve dans son historique. Il faut une entité **Commande**.
-- Un arbre modifié ou retiré du catalogue ne doit pas changer l'historique. La commande doit donc **mémoriser** le nom et le prix des arbres au moment de l'achat.
+- Un arbre modifié ou retiré du catalogue ne doit pas changer l'historique. La commande doit donc **mémoriser** le nom, le prix et le lieu de plantation des arbres au moment de l'achat.
 
 ## Liste des entités
 

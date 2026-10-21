@@ -21,14 +21,14 @@ Même MCD au format texte Mocodo (à coller sur [mocodo.net](https://www.mocodo.
 
 ```text
 CATÉGORIE: code catégorie, nom
-COMPOSER, 1N COMMANDE, 0N ARBRE: quantité, prix unitaire, nom de l'arbre
+COMPOSER, 1N COMMANDE, 0N ARBRE: quantité, prix unitaire, nom de l'arbre, lieu de plantation
 COMMANDE: code commande, date de commande, total, statut
 PASSER, 0N UTILISATEUR, 01 COMMANDE
 UTILISATEUR: code utilisateur, nom, prénom, email, mot de passe, adresse, type de compte, raison sociale
 AVOIR, 11 UTILISATEUR, 0N RÔLE
 
 APPARTENIR, 0N CATÉGORIE, 11 ARBRE
-ARBRE: code arbre, nom, description, prix, photo, disponibilité
+ARBRE: code arbre, nom, description, prix, photo, lieu de plantation, disponibilité
 CONTENIR, 0N PANIER, 0N ARBRE: quantité
 PANIER: code panier
 POSSÉDER, 01 UTILISATEUR, 11 PANIER

@@ -25,7 +25,7 @@ Notation : souligné = clé primaire, `#` = clé étrangère, `IDENTITY` = `GENE
 | `cart_item.cart_id` | `ON DELETE CASCADE` | un panier | ses lignes de panier sont supprimées |
 | `purchase.account_id` | `ON DELETE SET NULL` | un compte | ses commandes sont **conservées**, sans propriétaire |
 | `purchase_line.purchase_id` | `ON DELETE CASCADE` | une commande | ses lignes de commande sont supprimées |
-| `purchase_line.tree_id` | `ON DELETE SET NULL` | un arbre | les lignes de commande restent (nom et prix déjà copiés) |
+| `purchase_line.tree_id` | `ON DELETE SET NULL` | un arbre | les lignes de commande restent (nom, prix et lieu de plantation déjà copiés) |
 | `account.role_id`, `tree.category_id`, `cart_item.tree_id` | aucune (par défaut) | un rôle, une catégorie, un arbre encore utilisé | PostgreSQL **refuse** la suppression |
 
 ## Règle de gestion non couverte par le MPD

@@ -55,6 +55,7 @@ Les tables sont donc renommées : `user` → `account`, `order` → `purchase`, 
 | description | TEXT | | Description affichée sur la fiche |
 | price | NUMERIC(10,2) | NOT NULL, CHECK (price >= 0) | Prix unitaire actuel |
 | photo_url | VARCHAR(255) | | Chemin de la photo |
+| planting_location | VARCHAR(150) | | Lieu de plantation (facultatif, affiché sur la fiche) |
 | is_available | BOOLEAN | NOT NULL, DEFAULT TRUE | Disponibilité : `FALSE` = retiré du catalogue (l'arbre n'est pas effacé) |
 | category_id | INT | NOT NULL, FK(category.id) | Catégorie de l'arbre (relation **Appartenir**) |
 
@@ -98,7 +99,7 @@ Les tables sont donc renommées : `user` → `account`, `order` → `purchase`, 
 
 ## purchase_line
 
-*Table de liaison pour la relation **Composer** (Commande 1,N — Arbre 0,N). Elle fige le nom et le prix au moment de l'achat.*
+*Table de liaison pour la relation **Composer** (Commande 1,N — Arbre 0,N). Elle fige le nom, le prix et le lieu de plantation au moment de l'achat.*
 
 | Champ | Type | Spécificités | Description |
 | --- | --- | --- | --- |
@@ -107,4 +108,5 @@ Les tables sont donc renommées : `user` → `account`, `order` → `purchase`, 
 | tree_id | INT | FK(tree.id) ON DELETE SET NULL | Arbre commandé (peut devenir `NULL` si l'arbre est un jour réellement supprimé) |
 | tree_name | VARCHAR(150) | NOT NULL | Nom de l'arbre **au moment de l'achat** |
 | unit_price | NUMERIC(10,2) | NOT NULL, CHECK (unit_price >= 0) | Prix unitaire **au moment de l'achat** |
+| planting_location | VARCHAR(150) | | Lieu de plantation **au moment de l'achat** (facultatif : `NULL` si l'arbre n'en avait pas) |
 | quantity | INT | NOT NULL, CHECK (quantity > 0) | Quantité commandée |

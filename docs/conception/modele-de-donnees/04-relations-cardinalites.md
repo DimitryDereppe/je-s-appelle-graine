@@ -9,7 +9,7 @@ Pour chaque lien entre des entités, combien de représentations peut-il y avoir
 | Posséder | Utilisateur | 0,1 | Panier | 1,1 |
 | Avoir | Utilisateur | 1,1 | Rôle | 0,N |
 | Passer | Utilisateur | 0,N | Commande | 0,1 |
-| Composer (quantité, prix unitaire, nom de l'arbre) | Commande | 1,N | Arbre | 0,N |
+| Composer (quantité, prix unitaire, nom de l'arbre, lieu de plantation) | Commande | 1,N | Arbre | 0,N |
 
 ## Lecture des cardinalités
 

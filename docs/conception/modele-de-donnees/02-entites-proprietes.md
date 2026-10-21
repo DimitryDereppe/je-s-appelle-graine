@@ -21,6 +21,7 @@
 - description
 - prix
 - photo
+- lieu de plantation (facultatif)
 - disponibilité (oui/non : un arbre retiré du catalogue n'est pas effacé)
 
 ## Catégorie
