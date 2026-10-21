@@ -1,4 +1,4 @@
-# Architecture de l'application — GreenRoots
+# Architecture de l'application — Je s’appelle Graine
 
 ## Lire le diagramme
 
@@ -21,7 +21,7 @@ flowchart TB
     end
 
     subgraph SERVEUR["Serveur de Dimitry — conteneur Docker"]
-        API["API REST GreenRoots<br/>Node.js + Express"]
+        API["API REST Je s’appelle Graine<br/>Node.js + Express"]
     end
 
     subgraph NEON["Neon"]
@@ -42,7 +42,7 @@ Le cahier des charges sépare le back-end en couches : chaque couche a un seul r
 flowchart TB
     REQ["Requête HTTP<br/>(ex. POST /api/commandes)"]
 
-    subgraph API["API REST GreenRoots — Express"]
+    subgraph API["API REST Je s’appelle Graine — Express"]
         R["Routeur<br/>associe l'URL et la méthode à un contrôleur"]
         M["Middlewares<br/>validation des données, vérification<br/>de la session et du rôle (401 / 403)"]
         C["Contrôleurs<br/>lisent la requête, renvoient la réponse JSON"]

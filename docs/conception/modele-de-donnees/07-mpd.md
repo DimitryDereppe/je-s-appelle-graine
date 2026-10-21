@@ -1,14 +1,14 @@
-# Modèle physique de données — GreenRoots
+# Modèle physique de données — Je s’appelle Graine
 
 ## Schéma
 
-![MPD GreenRoots](07b-mpd.drawio.svg)
+![MPD Je s’appelle Graine](07b-mpd.drawio.svg)
 
 Notation : souligné = clé primaire, `#` = clé étrangère, `IDENTITY` = `GENERATED ALWAYS AS IDENTITY` (id numéroté automatiquement par PostgreSQL).
 
 ## Du MLD au MPD
 
-| Ce que le MPD ajoute | Exemple dans GreenRoots | À quoi ça sert |
+| Ce que le MPD ajoute | Exemple dans Je s’appelle Graine | À quoi ça sert |
 | --- | --- | --- |
 | **Type** | `price NUMERIC(10,2)`, `purchase_date TIMESTAMPTZ` | Stocker la donnée au bon format (montant exact, date avec fuseau) |
 | **NOT NULL** | `email VARCHAR(255) NOT NULL`, `cart.account_id INT NOT NULL` (pas de panier sans compte) | Rendre la colonne obligatoire |

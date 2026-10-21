@@ -1,4 +1,4 @@
-# Entités et propriétés du projet GreenRoots
+# Entités et propriétés du projet Je s’appelle Graine
 
 - De quelles données est composée chaque entité ?
 - Quelles propriétés permettent d'identifier de façon unique chaque entité ?

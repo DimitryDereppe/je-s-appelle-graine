@@ -1,4 +1,4 @@
-# Relations et cardinalités du projet GreenRoots
+# Relations et cardinalités du projet Je s’appelle Graine
 
 Pour chaque lien entre des entités, combien de représentations peut-il y avoir de la première entité vers la seconde ? Et inversement ?
 

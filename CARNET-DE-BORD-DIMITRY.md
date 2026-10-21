@@ -1,6 +1,6 @@
 # Carnet de bord — Dimitry (Tech Lead Back)
 
-Suivi de mon travail sur GreenRoots. Les décisions notées ici ont été prises avec l'équipe sur Discord ; le suivi de l'équipe est dans le [[Apothéose/apo-greenroots/CARNET-DE-BORD-GREENROOTS|carnet de bord GreenRoots]].
+Suivi de mon travail sur Je s’appelle Graine. Les décisions notées ici ont été prises avec l'équipe sur Discord ; le suivi de l'équipe est dans le [[Apothéose/apo-greenroots/CARNET-DE-BORD-JE-S-APPELLE-GRAINE|carnet de bord Je s’appelle Graine]].
 
 ## 2026-10-21 — Lieu de plantation et compte actif
 

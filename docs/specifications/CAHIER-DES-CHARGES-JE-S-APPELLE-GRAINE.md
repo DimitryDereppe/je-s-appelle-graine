@@ -1,13 +1,13 @@
-# Cahier des charges — GreenRoots V1
+# Cahier des charges — Je s’appelle Graine V1
 
 **Date :** 2026-10-19  
 **Statut :** proposition de cadrage
 
 ## 1\. Présentation du projet
 
-GreenRoots est une plateforme e-commerce qui permet de contribuer à la reforestation en achetant des arbres à planter. Le site présente la mission de GreenRoots, les arbres proposés et les informations disponibles sur chaque offre. Un client peut passer une commande\* et la retrouver dans son espace personnel.
+Je s’appelle Graine est une plateforme e-commerce qui permet de contribuer à la reforestation en achetant des arbres à planter. Le site présente la mission de Je s’appelle Graine, les arbres proposés et les informations disponibles sur chaque offre. Un client peut passer une commande\* et la retrouver dans son espace personnel.
 
-La plateforme vise à réunir dans un même service la présentation du projet, la découverte des arbres, la gestion du catalogue et le suivi des commandes. À terme, GreenRoots pourra aussi accueillir des offres proposées par des associations partenaires.
+La plateforme vise à réunir dans un même service la présentation du projet, la découverte des arbres, la gestion du catalogue et le suivi des commandes. À terme, Je s’appelle Graine pourra aussi accueillir des offres proposées par des associations partenaires.
 
 \*La première version n’encaisse aucun paiement et ne collecte aucune donnée bancaire. Elle doit néanmoins permettre de parcourir un parcours d’achat complet avec une confirmation et une commande enregistrée.
 
@@ -15,7 +15,7 @@ La plateforme vise à réunir dans un même service la présentation du projet, 
 
 ### Besoins
 
-- Les visiteurs qui souhaitent soutenir la reforestation ont besoin de comprendre la démarche de GreenRoots et de découvrir les arbres proposés.
+- Les visiteurs qui souhaitent soutenir la reforestation ont besoin de comprendre la démarche de Je s’appelle Graine et de découvrir les arbres proposés.
 - Les visiteurs ont besoin d’informations suffisamment claires pour choisir un arbre avant de passer une commande.
 - Les clients ont besoin de retrouver les commandes qu’ils ont passées sur la plateforme.
 - L’administrateur a besoin d’ajouter, de modifier et de retirer les offres d’arbres sans intervenir directement dans la base de données.
@@ -23,12 +23,12 @@ La plateforme vise à réunir dans un même service la présentation du projet, 
 
 ### Objectifs
 
-- Présenter GreenRoots et sa mission dès la page d’accueil.
+- Présenter Je s’appelle Graine et sa mission dès la page d’accueil.
 - Permettre la consultation du catalogue et des fiches détaillées des arbres.
 - Proposer la création d’un compte et l’authentification des clients.
 - Enregistrer une commande pour un client connect (sans paiement réel).
 - Permettre à chaque client de consulter uniquement son propre historique de commandes.
-- Permettre aux administrateurs GreenRoots de gérer les offres du catalogue depuis des pages protégées par authentification.
+- Permettre aux administrateurs Je s’appelle Graine de gérer les offres du catalogue depuis des pages protégées par authentification.
 - Concevoir une application utilisable sur mobile et ordinateur et pouvant évoluer vers un paiement réel et des partenaires.
 
 ## 3\. Fonctionnalités
@@ -37,7 +37,7 @@ La plateforme vise à réunir dans un même service la présentation du projet, 
 
 Le MVP couvre le parcours d’achat, les fonctions essentielles du compte et l’administration du catalogue et des comptes :
 
-1. **Accueil** : présenter GreenRoots et mettre en avant quelques arbres.
+1. **Accueil** : présenter Je s’appelle Graine et mettre en avant quelques arbres.
 2. **Pages de présentation et d’information** : proposer les pages « Qui sommes-nous », mentions légales et politique de confidentialité.
 3. **Catalogue** : afficher les arbres disponibles et filtrer par catégorie (résineux, feuillage caduc, feuillage persistant).
 4. **Fiche arbre** : présenter la photo, la description, le prix et le lieu de plantation lorsqu’il est renseigné. Choisir la quantité souhaitée (1 par défaut) avant d’ajouter l’arbre au panier.
@@ -50,7 +50,7 @@ Le MVP couvre le parcours d’achat, les fonctions essentielles du compte et l�
 
 #### Parcours principal du MVP
 
-1. Le visiteur découvre GreenRoots, parcourt le catalogue et filtre les arbres par catégorie.
+1. Le visiteur découvre Je s’appelle Graine, parcourt le catalogue et filtre les arbres par catégorie.
 2. Il consulte la fiche d’un arbre, choisit la quantité souhaitée et clique sur « Ajouter au panier ».
 3. S’il n’est pas connecté, le système lui demande de créer un compte ou de se connecter avant d’ajouter l’arbre.
 4. Une fois connecté, le client ajoute l’arbre au panier dans la quantité choisie, consulte son contenu et peut ajuster les quantités ou retirer des articles.
@@ -69,14 +69,14 @@ Ces fonctionnalités sont envisagées, mais ne sont pas nécessaires pour que le
 - Sélection des arbres mis en avant par l’administrateur.
 - Carte interactive permettant de visualiser les lieux de plantation des arbres achetés.
 - Back-office étendu pour administrer les profils utilisateurs, les arbres et le suivi des commandes.
-- Espace partenaire permettant aux associations de proposer des arbres ou des lots, avec validation par GreenRoots.
+- Espace partenaire permettant aux associations de proposer des arbres ou des lots, avec validation par Je s’appelle Graine.
 - Version anglaise en complément du français..
 
 ## 4\. Architecture et technologies
 
 ### Architecture proposée
 
-L’application comprend un front-end, un back-end et une base de données, hébergés sur trois services distincts. Le front-end présente le site et envoie les demandes au back-end. Le back-end applique les règles de GreenRoots et lit ou enregistre les données dans la base.
+L’application comprend un front-end, un back-end et une base de données, hébergés sur trois services distincts. Le front-end présente le site et envoie les demandes au back-end. Le back-end applique les règles de Je s’appelle Graine et lit ou enregistre les données dans la base.
 
 ```
 Visiteur dans son navigateur
@@ -86,7 +86,7 @@ FRONT-END : Next.js / React
 Hébergement : Vercel
         │ envoie et reçoit des données via l’API REST (HTTPS / JSON)
         ▼
-BACK-END : API REST GreenRoots
+BACK-END : API REST Je s’appelle Graine
 Hébergement : serveur personnel de Dimitry
         │ lit et enregistre les données via une connexion PostgreSQL sécurisée
         ▼
@@ -96,14 +96,14 @@ Hébergement : Neon
 
 &nbsp;
 
-- **Front-end — Next.js et React, déployé sur Vercel :** affiche les pages publiques, le catalogue, le panier, les pages client et les pages d’administration. Il envoie les demandes de lecture ou de modification à **l’API REST GreenRoots**.
-- **Back-end — API REST GreenRoots avec Node.js et Express :** reçoit les requêtes du front-end, valide les données, vérifie les droits, applique les règles métier et renvoie des réponses JSON. L’API sera exécutée dans un conteneur Docker en développement et déployée sur le serveur personnel de Dimitry.
+- **Front-end — Next.js et React, déployé sur Vercel :** affiche les pages publiques, le catalogue, le panier, les pages client et les pages d’administration. Il envoie les demandes de lecture ou de modification à **l’API REST Je s’appelle Graine**.
+- **Back-end — API REST Je s’appelle Graine avec Node.js et Express :** reçoit les requêtes du front-end, valide les données, vérifie les droits, applique les règles métier et renvoie des réponses JSON. L’API sera exécutée dans un conteneur Docker en développement et déployée sur le serveur personnel de Dimitry.
 - **Services métier :** modules du back-end qui appliquent les règles du projet. Par exemple, le service d’authentification vérifie les identifiants et gère les sessions ; le service de commande vérifie la disponibilité des arbres avant d’enregistrer une commande.
 - **DataMappers :** modules utilisés par les services métier pour accéder aux données. Ils isolent les requêtes SQL paramétrées du reste du back-end. Le DataMapper est l’option privilégiée ; un ORM tel que Sequelize reste une alternative \- **A valider avec l'équipe \!\!\!**
 - **Base de données — PostgreSQL :** conserve les comptes, les offres d’arbres, les paniers et les commandes. Pendant le développement, PostgreSQL tourne dans un conteneur Docker local. Pour l’environnement distant, PostgreSQL sera hébergée chez Neon. Seul le back-end se connecte à la base ; les identifiants de connexion ne sont pas exposés au navigateur ni au front-end.
 - **Docker :** utilisé pendant le développement pour lancer l’API et une base PostgreSQL locale avec une configuration reproductible via Docker Compose. Sur le serveur de Dimitry, seul le conteneur de l’API sera déployé ; il se connectera à la base distante chez Neon. PostgreSQL locale reste réservée au développement.
 
-Dans cette architecture, les endpoints REST sont fournis par le back-end hébergé sur le serveur de Dimitry. Ce sont des routes de l’API GreenRoots, pas des Route Handlers Next.js. Le front-end déployé sur Vercel communique avec l’API via HTTPS.
+Dans cette architecture, les endpoints REST sont fournis par le back-end hébergé sur le serveur de Dimitry. Ce sont des routes de l’API Je s’appelle Graine, pas des Route Handlers Next.js. Le front-end déployé sur Vercel communique avec l’API via HTTPS.
 
 ### Justification des choix
 
@@ -201,8 +201,8 @@ Les routes des pages web sont servies par le site Next.js. Les routes `/api/...`
 
 | Méthode | Route                           | Fonction                                                         | Accès                       |
 | :------ | :------------------------------ | :--------------------------------------------------------------- | :-------------------------- |
-| GET     | `/`                             | Présenter GreenRoots et les arbres mis en avant                  | Public                      |
-| GET     | `/qui-sommes-nous`              | Présenter GreenRoots et sa mission                               | Public                      |
+| GET     | `/`                             | Présenter Je s’appelle Graine et les arbres mis en avant                  | Public                      |
+| GET     | `/qui-sommes-nous`              | Présenter Je s’appelle Graine et sa mission                               | Public                      |
 | GET     | `/arbres`                       | Afficher les arbres disponibles                                  | Public                      |
 | GET     | `/arbres?categorie=:categorie`  | Filtrer les arbres par catégorie                                 | Public                      |
 | GET     | `/arbres/:id`                   | Afficher la fiche d’un arbre, son prix et son lieu de plantation | Public                      |
@@ -267,7 +267,7 @@ L’API répond en JSON. Les entrées sont validées côté serveur. Les endpoin
 | :----------- | :------------------------------------------------------------- |
 | **Visiteur** | Personne non connectée qui découvre le site                    |
 | **Client**   | Utilisateur inscrit et connecté qui achète des arbres          |
-| **Admin**    | Membre de GreenRoots qui gère le catalogue et les utilisateurs |
+| **Admin**    | Membre de Je s’appelle Graine qui gère le catalogue et les utilisateurs |
 
 &nbsp;
 
@@ -277,14 +277,14 @@ L’API répond en JSON. Les entrées sont validées côté serveur. Les endpoin
 
 | ID   | En tant que | Je veux                                                                                | Afin de                                                    | Priorité |
 | :--- | :---------- | :------------------------------------------------------------------------------------- | :--------------------------------------------------------- | :------- |
-| US01 | Visiteur    | voir une page d'accueil présentant GreenRoots et quelques arbres mis en avant          | comprendre la mission du site et avoir envie de participer | MVP      |
+| US01 | Visiteur    | voir une page d'accueil présentant Je s’appelle Graine et quelques arbres mis en avant          | comprendre la mission du site et avoir envie de participer | MVP      |
 | US02 | Visiteur    | consulter le catalogue des arbres                                                      | voir tout ce qui est disponible à l'achat                  | MVP      |
 | US03 | Visiteur    | filtrer le catalogue par catégorie (résineux, feuillage caduc, feuillage persistant)   | trouver rapidement le type d'arbre qui m'intéresse         | MVP      |
 | US04 | Visiteur    | consulter la fiche détaillée d'un arbre (photo, description, prix, lieu de plantation) | décider en connaissance de cause avant d'acheter           | MVP      |
 | US05 | Visiteur    | être invité à créer un compte ou à me connecter lorsque je clique sur « Ajouter au panier » | pouvoir ajouter l'arbre à mon panier et préparer ma commande | MVP      |
 | US06 | Visiteur    | accéder au panier après avoir créé un compte ou m'être connecté                       | poursuivre ma commande                                      | MVP      |
 | US07 | Visiteur    | créer un compte avec mon prénom, mon nom, mon email et mon mot de passe, choisir mon type de compte (particulier par défaut, association ou entreprise) et, si je choisis association ou entreprise, renseigner éventuellement le nom de ma structure | pouvoir acheter et suivre mes commandes avec un compte adapté à mon profil | MVP      |
-| US08 | Visiteur    | consulter la page « Qui sommes-nous »                                                  | savoir qui est derrière GreenRoots et lui faire confiance  | MVP      |
+| US08 | Visiteur    | consulter la page « Qui sommes-nous »                                                  | savoir qui est derrière Je s’appelle Graine et lui faire confiance  | MVP      |
 | US09 | Visiteur    | consulter les mentions légales et la politique de confidentialité (RGPD)               | savoir comment mes données sont utilisées                  | MVP      |
 
 &nbsp;
@@ -340,7 +340,7 @@ L’API répond en JSON. Les entrées sont validées côté serveur. Les endpoin
 
 | Rôle | Responsable | Responsabilités principales |
 | :--- | :--- | :--- |
-| Product Owner | Shanna | Définit et priorise les besoins du produit. Tranche les questions liées au périmètre fonctionnel, aux objectifs et aux priorités de GreenRoots. |
+| Product Owner | Shanna | Définit et priorise les besoins du produit. Tranche les questions liées au périmètre fonctionnel, aux objectifs et aux priorités de Je s’appelle Graine. |
 | Scrum Master | Fabrice | Organise le fonctionnement de l’équipe et facilite sa collaboration. Tranche les questions d’organisation, aide à résoudre les blocages et veille au respect des pratiques de travail convenues. |
 | Lead devs | Loic (Front) <br> Dimitry (Back) | Encadrent les décisions techniques et la cohérence de l’architecture. Tranchent les questions liées aux choix techniques, à l’organisation du code et aux pratiques de développement. |
 

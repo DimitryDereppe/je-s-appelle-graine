@@ -1,4 +1,4 @@
-# Entités du projet GreenRoots
+# Entités du projet Je s’appelle Graine
 
 Quels sont les groupes de données qui interviennent dans le projet ?
 

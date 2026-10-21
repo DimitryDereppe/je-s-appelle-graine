@@ -1,4 +1,4 @@
-# Dictionnaire de données — GreenRoots
+# Dictionnaire de données — Je s’appelle Graine
 
 > SGBD : **PostgreSQL** (conteneur Docker en développement, Neon pour la base distante).
 

@@ -1,4 +1,4 @@
-# GreenRoots — User Stories
+# Je s’appelle Graine — User Stories
 
 > Format : **En tant que** _rôle_, **je veux** _action_, **afin de** _bénéfice_.
 > Priorité : **MVP** = indispensable pour que le produit fonctionne ; **Évo** = évolution potentielle.
@@ -9,7 +9,7 @@
 |---|---|
 | **Visiteur** | Personne non connectée qui découvre le site |
 | **Client** | Utilisateur inscrit et connecté qui achète des arbres |
-| **Admin** | Membre de GreenRoots qui gère le catalogue et les utilisateurs |
+| **Admin** | Membre de Je s’appelle Graine qui gère le catalogue et les utilisateurs |
 | **Partenaire** (Évo) | Association tierce qui propose ses propres lots d'arbres |
 
 ---
@@ -18,18 +18,18 @@
 
 | ID | En tant que | Je veux | Afin de | Priorité |
 |---|---|---|---|---|
-| US01 | Visiteur | voir une page d'accueil présentant GreenRoots et quelques arbres mis en avant | comprendre la mission du site et avoir envie de participer | MVP |
+| US01 | Visiteur | voir une page d'accueil présentant Je s’appelle Graine et quelques arbres mis en avant | comprendre la mission du site et avoir envie de participer | MVP |
 | US02 | Visiteur | consulter le catalogue des arbres | voir tout ce qui est disponible à l'achat | MVP |
 | US03 | Visiteur | filtrer le catalogue par catégorie (résineux, feuillage caduc, feuillage persistant) | trouver rapidement le type d'arbre qui m'intéresse | MVP |
 | US04 | Visiteur | consulter la fiche détaillée d'un arbre (photo, description, prix, lieu de plantation) | décider en connaissance de cause avant d'acheter | MVP |
 | US05 | Visiteur | être redirigé vers l'inscription/connexion quand je clique sur « Ajouter au panier » | comprendre qu'un compte est nécessaire pour remplir un panier | MVP |
 | US06 | Visiteur | revenir automatiquement sur la fiche de l'arbre après mon inscription/connexion | reprendre mon achat là où je l'avais laissé | Évo |
 | US07 | Visiteur | créer un compte avec mon prénom, mon nom, mon email et mon mot de passe, choisir mon type de compte (particulier par défaut, association ou entreprise) et, si je choisis association ou entreprise, renseigner éventuellement le nom de ma structure | pouvoir acheter et suivre mes commandes avec un compte adapté à mon profil | MVP |
-| US08 | Visiteur | consulter la page « Qui sommes-nous » | savoir qui est derrière GreenRoots et lui faire confiance | MVP |
+| US08 | Visiteur | consulter la page « Qui sommes-nous » | savoir qui est derrière Je s’appelle Graine et lui faire confiance | MVP |
 | US09 | Visiteur | consulter les mentions légales et la politique de confidentialité (RGPD) | savoir comment mes données sont utilisées | MVP |
 | US10 | Visiteur | voir les partenaires / associations soutenues | connaître les projets que je peux financer | Évo |
 | US11 | Visiteur | m'abonner à la newsletter | être informé des nouvelles campagnes de plantation | Évo |
-| US12 | Visiteur | envoyer un message via un formulaire de contact | poser une question à GreenRoots | Évo |
+| US12 | Visiteur | envoyer un message via un formulaire de contact | poser une question à Je s’appelle Graine | Évo |
 | US13 | Visiteur | choisir la langue du site (FR / EN) | naviguer dans ma langue | Évo |
 
 ## Client
@@ -48,7 +48,7 @@
 | US28 | Client | modifier mes informations personnelles (nom, adresse, email) | garder un compte à jour | MVP |
 | US29 | Client | changer mon mot de passe | sécuriser mon compte | MVP |
 | US30 | Client | supprimer mon compte | exercer mon droit à l'effacement (RGPD) | MVP |
-| US31 | Client | choisir si j'achète un arbre proposé par GreenRoots ou par une association tierce | soutenir le projet qui me tient à cœur | Évo |
+| US31 | Client | choisir si j'achète un arbre proposé par Je s’appelle Graine ou par une association tierce | soutenir le projet qui me tient à cœur | Évo |
 | US32 | Client | payer réellement par carte via un service sécurisé (Stripe) | acheter en toute sécurité | Évo |
 | US33 | Client | voir sur une carte interactive où mes arbres ont été plantés | visualiser concrètement mon impact | Évo |
 | US34 | Client | parrainer un ami ou une entreprise | les inciter à planter à leur tour | Évo |

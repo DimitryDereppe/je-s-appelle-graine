@@ -1,8 +1,8 @@
-# Modèle conceptuel de données — GreenRoots
+# Modèle conceptuel de données — Je s’appelle Graine
 
 Schéma complet (périmètre MVP) :
 
-![MCD GreenRoots](05b-mcd.drawio.svg)
+![MCD Je s’appelle Graine](05b-mcd.drawio.svg)
 
 ## Entités
 

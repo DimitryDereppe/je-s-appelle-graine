@@ -1,14 +1,14 @@
-# GreenRoots
+# Je s’appelle Graine
 
-GreenRoots est un projet de plateforme e-commerce autour de la reforestation. Le MVP permet de découvrir un catalogue d’arbres, de créer un compte, de passer une commande fictive et de consulter les informations associées.
+Je s’appelle Graine est un projet de plateforme e-commerce autour de la reforestation. Le MVP permet de découvrir un catalogue d’arbres, de créer un compte, de passer une commande fictive et de consulter les informations associées.
 
 ## Documentation
 
 ### Cadrage du projet
 
-- [Cahier des charges](docs/CAHIER-DES-CHARGES-GREENROOTS.md)
-- [Charte de nommage](docs/CHARTE-NOMMAGE-GREENROOTS.md)
-- [User stories](docs/conception/user-stories.md)
+- [Cahier des charges](docs/specifications/CAHIER-DES-CHARGES-JE-S-APPELLE-GRAINE.md)
+- [Charte de nommage](docs/conventions/CHARTE-NOMMAGE-JE-S-APPELLE-GRAINE.md)
+- [User stories](docs/specifications/user-stories.md)
 
 ### Diagrammes
 

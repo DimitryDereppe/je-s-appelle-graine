@@ -1,4 +1,4 @@
-# Relations entre les entités du projet GreenRoots
+# Relations entre les entités du projet Je s’appelle Graine
 
 Quelles entités possèdent des liens logiques entre elles ?
 

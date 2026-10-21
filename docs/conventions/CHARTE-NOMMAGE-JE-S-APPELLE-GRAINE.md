@@ -1,8 +1,8 @@
-# Charte de nommage — GreenRoots
+# Charte de nommage — Je s’appelle Graine
 
 ## Objectif
 
-Cette charte définit les conventions de nommage du projet GreenRoots. Elle vise à rendre les fichiers, le code et les données faciles à comprendre et à maintenir par toute l’équipe.
+Cette charte définit les conventions de nommage du projet Je s’appelle Graine. Elle vise à rendre les fichiers, le code et les données faciles à comprendre et à maintenir par toute l’équipe.
 
 ## Règles générales
 
@@ -11,7 +11,7 @@ Cette charte définit les conventions de nommage du projet GreenRoots. Elle vise
 - Éviter les abréviations obscures, les accents et les caractères spéciaux dans les noms techniques.
 - Ne pas utiliser d’espace dans les noms de fichiers et de dossiers.
 - Réutiliser les conventions déjà établies par le framework et le projet.
-- Utiliser les termes du domaine GreenRoots de façon constante : `tree`, `category`, `cart`, `order`, `user`.
+- Utiliser les termes du domaine Je s’appelle Graine de façon constante : `tree`, `category`, `cart`, `order`, `user`.
 
 ## Fichiers et dossiers
 
@@ -22,7 +22,7 @@ Cette charte définit les conventions de nommage du projet GreenRoots. Elle vise
 | Fichiers de composants UI et Class | `PascalCase`                               | `TreeCard.tsx`                              |
 | Fichiers de types dédiés           | `camelCase` avec suffixe explicite         | `tree.types.ts`                             |
 | Fichiers HTML et CSS               | `kebab-case`                               | `tree-details.html`, `catalogue-layout.css` |
-| Documents Markdown                 | Majuscules pour les documents de référence | `README.md`, `CHARTE-NOMMAGE-GREENROOTS.md` |
+| Documents Markdown                 | Majuscules pour les documents de référence | `README.md`, `CHARTE-NOMMAGE-JE-S-APPELLE-GRAINE.md` |
 | Variables d’environnement          | `UPPER_SNAKE_CASE`                         | `DATABASE_URL`                              |
 
 Les conventions du framework priment lorsque celui-ci impose un format particulier.
@@ -64,7 +64,7 @@ class TreeService {
 - Nommer les classes CSS en `kebab-case`.
 - Décrire la fonction ou le contenu de l’élément, plutôt que son apparence seule.
 - Privilégier les balises HTML sémantiques et réserver les classes aux besoins de présentation ou de comportement.
-- Utiliser des noms cohérents pour les composants GreenRoots, par exemple `tree-card`, `tree-list` ou `order-summary`.
+- Utiliser des noms cohérents pour les composants Je s’appelle Graine, par exemple `tree-card`, `tree-list` ou `order-summary`.
 
 ```html
 <section class="tree-catalogue" aria-labelledby="catalogue-title">
@@ -120,13 +120,13 @@ docs/naming-charter
 ```text
 feat: ajouter le catalogue des arbres
 fix: corriger la validation d’une commande
-docs: rédiger la charte de nommage GreenRoots
+docs: rédiger la charte de nommage Je s’appelle Graine
 ```
 
 ## Documents du projet
 
 - Utiliser des noms explicites et stables pour les documents de référence.
-- Nommer le carnet de bord `CARNET-DE-BORD-GREENROOTS.md`.
+- Nommer le carnet de bord `CARNET-DE-BORD-JE-S-APPELLE-GRAINE.md`.
 - Ajouter les nouvelles entrées du carnet en tête du fichier, en ordre anti-chronologique, sans créer plusieurs entrées pour une même date.
 
 ## Application de la charte

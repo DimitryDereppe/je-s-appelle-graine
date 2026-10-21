@@ -1,4 +1,4 @@
-# Carnet de bord — GreenRoots
+# Carnet de bord — Je s’appelle Graine
 
 ## 2026-10-20 — Conception de la base de données
 
@@ -29,7 +29,7 @@
 
 ### Travail réalisé
 
-- Le cahier des charges de GreenRoots a été établi (à valider).
+- Le cahier des charges de Je s’appelle Graine a été établi (à valider).
 - Les rôles de l’équipe restent à définir et à répartir.
 
 ### À poursuivre

@@ -1,10 +1,10 @@
-# Modèle logique de données — GreenRoots
+# Modèle logique de données — Je s’appelle Graine
 
 Notation : `__id__` = clé primaire, `#` = clé étrangère.
 
 ## Schéma
 
-![MLD GreenRoots](06b-mld.drawio.svg)
+![MLD Je s’appelle Graine](06b-mld.drawio.svg)
 
 ## Tableau
 
