@@ -17,6 +17,14 @@ Notation : souligné = clé primaire, `#` = clé étrangère, `IDENTITY` = `GENE
 | **CHECK** | `quantity > 0`, `status IN ('pending', 'paid', 'planted', 'cancelled')`, `payment_method IN ('transfer', 'card', 'check', 'paypal')` | Refuser les valeurs incohérentes |
 | **ON DELETE** | `CASCADE`, `SET NULL` | Dire ce que deviennent les lignes liées quand on supprime la ligne visée |
 
+## Extension PostgreSQL
+
+| Extension | Activation | À quoi ça sert |
+| --- | --- | --- |
+| `unaccent` | `CREATE EXTENSION IF NOT EXISTS unaccent;` (une fois par base, en tête du script de création, avant les tables) | Fournit la fonction `unaccent()`, qui retire les accents d'un texte. La recherche par nom (US03b, `GET /api/trees?search=`) l'applique des deux côtés : `unaccent(name) ILIKE unaccent('%' || $1 || '%')`, donc « chene » trouve « Chêne pédonculé » |
+
+> L'extension ne crée ni table ni colonne : le schéma ci-dessus ne change pas.
+
 ## Comportements à la suppression
 
 | Clé étrangère | Règle | Quand on supprime... | Résultat |

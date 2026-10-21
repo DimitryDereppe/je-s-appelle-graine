@@ -39,7 +39,7 @@ Le MVP couvre le parcours d’achat, les fonctions essentielles du compte et l�
 
 1. **Accueil** : présenter Je s’appelle Graine et mettre en avant quelques arbres.
 2. **Pages de présentation et d’information** : proposer les pages « Qui sommes-nous », mentions légales et politique de confidentialité.
-3. **Catalogue** : afficher les arbres et filtrer par catégorie (résineux, feuillage caduc, feuillage persistant). Chaque arbre a un état de disponibilité : *disponible* (visible et commandable), *épuisé* (visible, non commandable) ou *retiré du catalogue* (masqué).
+3. **Catalogue** : afficher les arbres, les rechercher par nom et les filtrer par catégorie (résineux, feuillage caduc, feuillage persistant) ; les deux critères peuvent être combinés. Chaque arbre a un état de disponibilité : *disponible* (visible et commandable), *épuisé* (visible, non commandable) ou *retiré du catalogue* (masqué).
 4. **Fiche arbre** : présenter la photo, la description, le prix et le lieu de plantation lorsqu’il est renseigné. Choisir la quantité souhaitée (1 par défaut) avant d’ajouter l’arbre au panier.
 5. **Panier** : un utilisateur doit créer un compte ou se connecter avant d’ajouter un arbre au panier. Le client connecté peut consulter le panier, voir les quantités, les prix unitaires et le total, modifier les quantités et retirer des articles.
 6. **Compte client** : inscription, connexion, déconnexion, consultation et modification des informations, changement de mot de passe et suppression du compte.
@@ -165,6 +165,7 @@ Site public
 ├── Accueil
 ├── Qui sommes-nous
 ├── Catalogue des arbres
+│   ├── Recherche par nom
 │   ├── Filtre par catégorie
 │   └── Fiche d’un arbre
 ├── Inscription
@@ -212,6 +213,7 @@ Les routes des pages web sont servies par le site Next.js. Les routes `/api/...`
 | GET     | `/qui-sommes-nous`              | Présenter Je s’appelle Graine et sa mission                               | Public                      |
 | GET     | `/arbres`                       | Afficher les arbres disponibles ou épuisés                       | Public                      |
 | GET     | `/arbres?categorie=:categorie`  | Filtrer les arbres par catégorie                                 | Public                      |
+| GET     | `/arbres?recherche=:recherche`  | Rechercher les arbres par nom (combinable avec la catégorie)     | Public                      |
 | GET     | `/arbres/:id`                   | Afficher la fiche d’un arbre, son prix et son lieu de plantation | Public                      |
 | GET     | `/panier`                       | Consulter le panier et modifier les articles                     | Client connecté             |
 | GET     | `/inscription`                  | Afficher le formulaire d’inscription                             | Public                      |
@@ -243,6 +245,7 @@ Les formulaires d’inscription, de connexion, de gestion du compte, de commande
 | :------ | :---------------------------------- | :-------------------------------------------------------- | :-------------------------- |
 | GET     | `/api/trees`                       | Lister les arbres disponibles ou épuisés                  | Public                      |
 | GET     | `/api/trees?category=:category`  | Filtrer ces arbres par catégorie                          | Public                      |
+| GET     | `/api/trees?search=:search`      | Rechercher ces arbres par nom, même partiel (combinable avec `category`) | Public       |
 | GET     | `/api/trees/:id`                   | Consulter le détail d’un arbre (sauf retiré du catalogue) | Public                      |
 | POST    | `/api/users`                 | Créer un compte client                                    | Public                      |
 | POST    | `/api/sessions`                     | Vérifier les identifiants et ouvrir une session           | Public                      |
@@ -294,6 +297,9 @@ L’API répond en JSON. Les entrées sont validées côté serveur. Les endpoin
 | US01 | Visiteur    | voir une page d'accueil présentant Je s’appelle Graine et quelques arbres mis en avant          | comprendre la mission du site et avoir envie de participer | MVP      |
 | US02 | Visiteur    | consulter le catalogue des arbres                                                      | voir tout ce qui est disponible à l'achat                  | MVP      |
 | US03 | Visiteur    | filtrer le catalogue par catégorie (résineux, feuillage caduc, feuillage persistant)   | trouver rapidement le type d'arbre qui m'intéresse         | MVP      |
+| US03b | Visiteur   | rechercher un arbre par son nom, même partiel et sans tenir compte des majuscules      | trouver directement l'arbre que je cherche                 | MVP      |
+| US03c | Visiteur   | combiner la recherche par nom et le filtre par catégorie                               | affiner ma recherche                                       | MVP      |
+| US03d | Visiteur   | voir un message clair quand aucun arbre ne correspond, avec un lien pour tout réafficher | ne pas croire que le catalogue est vide                  | MVP      |
 | US04 | Visiteur    | consulter la fiche détaillée d'un arbre (photo, description, prix, lieu de plantation) | décider en connaissance de cause avant d'acheter           | MVP      |
 | US05 | Visiteur    | être invité à créer un compte ou à me connecter lorsque je clique sur « Ajouter au panier » | pouvoir ajouter l'arbre à mon panier et préparer ma commande | MVP      |
 | US06 | Visiteur    | accéder au panier après avoir créé un compte ou m'être connecté                       | poursuivre ma commande                                      | MVP      |

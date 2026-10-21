@@ -21,6 +21,13 @@
 | US01 | Visiteur | voir une page d'accueil présentant Je s’appelle Graine et quelques arbres mis en avant | comprendre la mission du site et avoir envie de participer | MVP |
 | US02 | Visiteur | consulter le catalogue des arbres | voir tout ce qui est disponible à l'achat | MVP |
 | US03 | Visiteur | filtrer le catalogue par catégorie (résineux, feuillage caduc, feuillage persistant) | trouver rapidement le type d'arbre qui m'intéresse | MVP |
+| US03b | Visiteur | rechercher un arbre par son nom, même partiel et sans tenir compte des majuscules (ex. « chêne » trouve « Chêne pédonculé ») | trouver directement l'arbre que je cherche | MVP |
+| US03c | Visiteur | combiner la recherche par nom et le filtre par catégorie | affiner ma recherche | MVP |
+| US03d | Visiteur | voir un message clair quand aucun arbre ne correspond à ma recherche, avec un lien pour réafficher tout le catalogue | ne pas croire que le catalogue est vide | MVP |
+| US03e | Visiteur | filtrer le catalogue par lieu de plantation | soutenir la reforestation d'une région qui me tient à cœur | Évo |
+| US03f | Visiteur | filtrer le catalogue par fourchette de prix (minimum et maximum) | rester dans mon budget | Évo |
+| US03g | Visiteur | trier le catalogue par prix croissant ou décroissant | repérer rapidement les arbres les plus abordables | Évo |
+| US03h | Visiteur | combiner tous les critères (nom, catégorie, lieu, prix, tri) et les réinitialiser en un clic | trouver l'arbre idéal sans recommencer à chaque fois | Évo |
 | US04 | Visiteur | consulter la fiche détaillée d'un arbre (photo, description, prix, lieu de plantation) | décider en connaissance de cause avant d'acheter | MVP |
 | US05 | Visiteur | être redirigé vers l'inscription/connexion quand je clique sur « Ajouter au panier » | comprendre qu'un compte est nécessaire pour remplir un panier | MVP |
 | US06 | Visiteur | revenir automatiquement sur la fiche de l'arbre après mon inscription/connexion | reprendre mon achat là où je l'avais laissé | Évo |
@@ -84,3 +91,5 @@
 - ~~**Panier visiteur** (US05) : stocké où tant que la personne n'est pas connectée ?~~ **Tranché le 2026-10-20** : pas de panier visiteur, le clic sur « Ajouter au panier » redirige vers l'inscription.
 - ~~**« Gestion carte bleue »** (wireframe) : stocker une carte implique des obligations fortes (PCI-DSS).~~ **Tranché le 2026-10-21** : page de paiement avec choix du mode (virement, carte, chèque, PayPal) et engagement de payer sous 10 jours ; rien n'est encaissé en ligne. En Évo, c'est Stripe qui garde les cartes, pas notre BDD.
 - **Suivi de commande** (US27) : qui fait évoluer le statut ? **Le 2026-10-21**, US46 passe en MVP (l'admin change le statut à réception du paiement) → US27 (le client suit le statut) peut aussi passer en MVP : à trancher.
+- ~~**Recherche par nom** (US03b) : la recherche ignore les majuscules, mais pas les accents (« chene » ne trouve pas « Chêne »).~~ **Tranché le 2026-10-21** : accents gérés dès le MVP avec l'extension PostgreSQL `unaccent` (`CREATE EXTENSION IF NOT EXISTS unaccent;`), appliquée des deux côtés de la comparaison : `unaccent(name) ILIKE unaccent('%' || $1 || '%')`. Pas de nouvelle colonne, le MCD ne change pas.
+- ~~**Filtre par lieu** (US03e, Évo) : texte libre dans `tree` ou table des lieux ?~~ **Tranché le 2026-10-21** : le lieu est défini par l'arbre (`tree.planting_location`), pas de table des lieux, le MCD ne change pas. La liste du filtre reprend les lieux des arbres visibles ; l'admin saisit donc toujours un même lieu de la même façon. Un arbre sans lieu n'apparaît pas quand ce filtre est utilisé.
