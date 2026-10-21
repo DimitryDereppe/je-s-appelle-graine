@@ -1,13 +1,8 @@
 # Modèle physique de données — GreenRoots
 
-Le MPD traduit le [[07-MLD|MLD]] pour un SGBD précis, ici **PostgreSQL** : chaque colonne reçoit un **type**, des **contraintes** et, pour les clés étrangères, un comportement **à la suppression**.
-Le détail colonne par colonne est dans le [[06-dictionnaire-de-donnees|dictionnaire de données]].
-
 ## Schéma
 
-![MPD GreenRoots](08b-MPD.drawio.svg)
-
-> Le fichier [08b-MPD.drawio.svg](08b-MPD.drawio.svg) est à la fois une image et un schéma **Draw.io** : l'ouvrir dans VS Code (extension Draw.io) pour le modifier, l'image se met à jour à l'enregistrement.
+![MPD GreenRoots](07b-mpd.drawio.svg)
 
 Notation : souligné = clé primaire, `#` = clé étrangère, `IDENTITY` = `GENERATED ALWAYS AS IDENTITY` (id numéroté automatiquement par PostgreSQL).
 
@@ -35,6 +30,6 @@ Notation : souligné = clé primaire, `#` = clé étrangère, `IDENTITY` = `GENE
 
 ## Règle de gestion non couverte par le MPD
 
-Le client **n'a pas le droit** de supprimer une commande `paid` ou `planted` : seules les commandes `pending` peuvent l'être. Le statut est changé **manuellement par l'admin**.
+Le client **n'a pas le droit** de supprimer une commande. Le statut est changé **manuellement par l'admin**.
 
-Une contrainte `ON DELETE` ne regarde pas la valeur du statut : cette règle est donc vérifiée par l'**API**, avant le `DELETE` (cf. [[04-relations-cardinalites|04-relations-cardinalites]], décisions).
+Une contrainte `ON DELETE` ne regarde pas la valeur du statut : cette règle est donc vérifiée par l'**API**, avant le `DELETE`.

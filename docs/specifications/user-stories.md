@@ -1,6 +1,5 @@
 # GreenRoots — User Stories
 
-> Sources : sujet [[Projects-CDA/topics/GreenRoots|GreenRoots]] (MVP + évolutions) et wireframe Excalidraw de l'équipe (19/10/2026).
 > Format : **En tant que** _rôle_, **je veux** _action_, **afin de** _bénéfice_.
 > Priorité : **MVP** = indispensable pour que le produit fonctionne ; **Évo** = évolution potentielle.
 
@@ -25,7 +24,7 @@
 | US04 | Visiteur | consulter la fiche détaillée d'un arbre (photo, description, prix, lieu de plantation) | décider en connaissance de cause avant d'acheter | MVP |
 | US05 | Visiteur | être redirigé vers l'inscription/connexion quand je clique sur « Ajouter au panier » | comprendre qu'un compte est nécessaire pour remplir un panier | MVP |
 | US06 | Visiteur | revenir automatiquement sur la fiche de l'arbre après mon inscription/connexion | reprendre mon achat là où je l'avais laissé | Évo |
-| US07 | Visiteur | créer un compte (email + mot de passe) | pouvoir acheter et suivre mes commandes | MVP |
+| US07 | Visiteur | créer un compte avec mon prénom, mon nom, mon email et mon mot de passe, choisir mon type de compte (particulier par défaut, association ou entreprise) et, si je choisis association ou entreprise, renseigner éventuellement le nom de ma structure | pouvoir acheter et suivre mes commandes avec un compte adapté à mon profil | MVP |
 | US08 | Visiteur | consulter la page « Qui sommes-nous » | savoir qui est derrière GreenRoots et lui faire confiance | MVP |
 | US09 | Visiteur | consulter les mentions légales et la politique de confidentialité (RGPD) | savoir comment mes données sont utilisées | MVP |
 | US10 | Visiteur | voir les partenaires / associations soutenues | connaître les projets que je peux financer | Évo |
@@ -44,7 +43,7 @@
 | US24 | Client | valider mon panier via un (faux) tunnel de paiement | passer commande | MVP |
 | US25 | Client | recevoir une confirmation après ma commande | être sûr que ma commande a bien été prise en compte | MVP |
 | US26 | Client | consulter l'historique de mes commandes | retrouver mes achats passés | MVP |
-| US27 | Client | suivre le statut d'une commande (validée, arbre planté...) | savoir où en est la plantation de mes arbres | MVP |
+| US27 | Client | suivre le statut d'une commande (validée, arbre planté...) | savoir où en est la plantation de mes arbres | Évo  |
 | US28 | Client | modifier mes informations personnelles (nom, adresse, email) | garder un compte à jour | MVP |
 | US29 | Client | changer mon mot de passe | sécuriser mon compte | MVP |
 | US30 | Client | supprimer mon compte | exercer mon droit à l'effacement (RGPD) | MVP |
@@ -64,7 +63,7 @@
 | US42 | Admin | modifier un arbre existant | corriger ou mettre à jour ses informations | MVP |
 | US43 | Admin | supprimer un arbre du catalogue | retirer un arbre qui n'est plus disponible | MVP |
 | US44 | Admin | choisir les arbres mis en avant sur la page d'accueil | valoriser certains arbres ou partenaires | Évo |
-| US45 | Admin | consulter et gérer la liste des utilisateurs | modérer et assister les clients | Évo |
+| US45 | Admin | consulter et gérer la liste des utilisateurs | modérer et assister les clients | MVP |
 | US46 | Admin | consulter toutes les commandes et changer leur statut (ex. « planté ») | tenir les clients informés du suivi | Évo |
 | US47 | Admin | créer une campagne de plantation avec un objectif collectif | mobiliser la communauté sur un projet | Évo |
 

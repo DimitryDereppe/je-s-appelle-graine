@@ -1,7 +1,7 @@
 # Cahier des charges — GreenRoots V1
 
 **Date :** 2026-10-19  
-**Statut :** proposition de cadrage **à valider par l’équipe**
+**Statut :** proposition de cadrage
 
 ## 1\. Présentation du projet
 
@@ -283,7 +283,7 @@ L’API répond en JSON. Les entrées sont validées côté serveur. Les endpoin
 | US04 | Visiteur    | consulter la fiche détaillée d'un arbre (photo, description, prix, lieu de plantation) | décider en connaissance de cause avant d'acheter           | MVP      |
 | US05 | Visiteur    | être invité à créer un compte ou à me connecter lorsque je clique sur « Ajouter au panier » | pouvoir ajouter l'arbre à mon panier et préparer ma commande | MVP      |
 | US06 | Visiteur    | accéder au panier après avoir créé un compte ou m'être connecté                       | poursuivre ma commande                                      | MVP      |
-| US07 | Visiteur    | créer un compte (email \+ mot de passe)                                                | pouvoir acheter et suivre mes commandes                    | MVP      |
+| US07 | Visiteur    | créer un compte avec mon prénom, mon nom, mon email et mon mot de passe, choisir mon type de compte (particulier par défaut, association ou entreprise) et, si je choisis association ou entreprise, renseigner éventuellement le nom de ma structure | pouvoir acheter et suivre mes commandes avec un compte adapté à mon profil | MVP      |
 | US08 | Visiteur    | consulter la page « Qui sommes-nous »                                                  | savoir qui est derrière GreenRoots et lui faire confiance  | MVP      |
 | US09 | Visiteur    | consulter les mentions légales et la politique de confidentialité (RGPD)               | savoir comment mes données sont utilisées                  | MVP      |
 
@@ -336,10 +336,11 @@ L’API répond en JSON. Les entrées sont validées côté serveur. Les endpoin
 
 ## 11\. Rôles de l’équipe
 
-| Rôle                                      | Responsable | Responsabilités principales                                                                                                                                                                      |
-| :---------------------------------------- | :---------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Product Owner                             | Shanna   | Définit et priorise les besoins du produit. Tranche les questions liées au périmètre fonctionnel, aux objectifs et aux priorités de GreenRoots.                                                  |
-| Scrum Master                              | Fabrice  | Organise le fonctionnement de l’équipe et facilite sa collaboration. Tranche les questions d’organisation, aide à résoudre les blocages et veille au respect des pratiques de travail convenues. |
-| Lead devs | Dimitry/Loic  | Encadrent les décisions techniques et la cohérence de l’architecture. Tranchent les questions liées aux choix techniques, à l’organisation du code et aux pratiques de développement.            |
+
+| Rôle | Responsable | Responsabilités principales |
+| :--- | :--- | :--- |
+| Product Owner | Shanna | Définit et priorise les besoins du produit. Tranche les questions liées au périmètre fonctionnel, aux objectifs et aux priorités de GreenRoots. |
+| Scrum Master | Fabrice | Organise le fonctionnement de l’équipe et facilite sa collaboration. Tranche les questions d’organisation, aide à résoudre les blocages et veille au respect des pratiques de travail convenues. |
+| Lead devs | Loic (Front) <br> Dimitry (Back) | Encadrent les décisions techniques et la cohérence de l’architecture. Tranchent les questions liées aux choix techniques, à l’organisation du code et aux pratiques de développement. |
 
 &nbsp;

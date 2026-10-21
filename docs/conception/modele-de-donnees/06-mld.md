@@ -1,15 +1,10 @@
 # Modèle logique de données — GreenRoots
 
-Le MLD traduit le [[05-mcd|MCD]] en tables, colonnes et clés.
-Noms des tables et colonnes : ceux du [[06-dictionnaire-de-donnees|dictionnaire de données]] (charte de nommage : anglais, singulier, `snake_case`, clé étrangère = `<table>_id`).
-
 Notation : `__id__` = clé primaire, `#` = clé étrangère.
 
 ## Schéma
 
-![MLD GreenRoots](07b-MLD.drawio.svg)
-
-> Le fichier [07b-MLD.drawio.svg](07b-MLD.drawio.svg) est à la fois une image et un schéma **Draw.io** : l'ouvrir dans VS Code (extension Draw.io) pour le modifier, l'image se met à jour à l'enregistrement.
+![MLD GreenRoots](06b-mld.drawio.svg)
 
 ## Tableau
 
@@ -46,8 +41,8 @@ purchase_line ( __id__, tree_name, unit_price, quantity, #purchase_id, #tree_id 
 ## Notes de traduction
 
 - **Posséder (0,1 / 1,1)** : la clé étrangère est placée dans `cart`, du côté **1,1** : chaque panier a obligatoirement un propriétaire (`account_id` NOT NULL), alors qu'un utilisateur peut ne pas avoir de panier. Le `UNIQUE` sur `account_id` garantit un seul panier par utilisateur.
-- **Tables de liaison** : comme dans le projet Pokédex, on utilise un `id` auto-incrémenté en clé primaire plutôt qu'une clé composite (les deux FK). `cart_item` ajoute `UNIQUE (cart_id, tree_id)` : un même arbre n'apparaît qu'une fois par panier, on augmente sa quantité.
-- **purchase_line** garde `tree_name` et `unit_price` en plus de `tree_id` : l'historique des commandes ne doit pas changer si l'arbre est modifié ou retiré du catalogue (cf. [[01-entites|01-entites]]).
-- **Passer (0,N / 0,1)** : `purchase.account_id` peut être NULL. Si un compte est supprimé, ses commandes sont conservées sans propriétaire (cf. [[04-relations-cardinalites|04-relations-cardinalites]], décisions).
+- **Tables de liaison** : on utilise un `id` auto-incrémenté en clé primaire plutôt qu'une clé composite (les deux FK). `cart_item` ajoute `UNIQUE (cart_id, tree_id)` : un même arbre n'apparaît qu'une fois par panier, on augmente sa quantité.
+- **purchase_line** garde `tree_name` et `unit_price` en plus de `tree_id` : l'historique des commandes ne doit pas changer si l'arbre est modifié ou retiré du catalogue.
+- **Passer (0,N / 0,1)** : `purchase.account_id` peut être NULL. Si un compte est supprimé, ses commandes sont conservées sans propriétaire.
 - **Statut d'une commande** (`pending`, `paid`, `planted`) : changé manuellement par l'admin. Le client ne peut supprimer une commande que si elle est `pending` : règle de gestion vérifiée par l'API, pas par le MLD.
-- **`account` et `purchase`** : `user` et `order` sont des mots réservés en PostgreSQL, les tables ont été renommées (cf. [[06-dictionnaire-de-donnees|dictionnaire de données]]).
+- **`account` et `purchase`** : `user` et `order` sont des mots réservés en PostgreSQL, les tables ont été renommées.

@@ -1,8 +1,6 @@
 # Dictionnaire de données — GreenRoots
 
 > SGBD : **PostgreSQL** (conteneur Docker en développement, Neon pour la base distante).
-> Nommage selon la [[Apothéose/doc_ext/CHARTE-NOMMAGE-GREENROOTS|charte de nommage]] : tables au singulier, `snake_case`, en anglais ; clé étrangère = `<table>_id`.
-> Périmètre : MVP du [[Apothéose/doc_ext/CAHIER-DES-CHARGES-GREENROOTS - a valider avec la team|cahier des charges]].
 
 ## Décision : `account` et `purchase` au lieu de `user` et `order`
 
@@ -56,7 +54,7 @@ Les tables sont donc renommées : `user` → `account`, `order` → `purchase`, 
 | name | VARCHAR(150) | NOT NULL | Nom de l'arbre |
 | description | TEXT | | Description affichée sur la fiche |
 | price | NUMERIC(10,2) | NOT NULL, CHECK (price >= 0) | Prix unitaire actuel |
-| photo_url | VARCHAR(255) | | Chemin ou URL de la photo |
+| photo_url | VARCHAR(255) | | Chemin de la photo |
 | is_available | BOOLEAN | NOT NULL, DEFAULT TRUE | Disponibilité : `FALSE` = retiré du catalogue (l'arbre n'est pas effacé) |
 | category_id | INT | NOT NULL, FK(category.id) | Catégorie de l'arbre (relation **Appartenir**) |
 
@@ -95,8 +93,7 @@ Les tables sont donc renommées : `user` → `account`, `order` → `purchase`, 
 | total_amount | NUMERIC(10,2) | NOT NULL, CHECK (total_amount >= 0) | Montant total calculé à la confirmation |
 | account_id | INT | FK(account.id) ON DELETE SET NULL | Client ayant passé la commande (relation **Passer**) ; devient `NULL` si le compte est supprimé |
 
-> Suppression de compte : le compte est supprimé, ses commandes sont **conservées** et leur `account_id` passe à `NULL` (voir [[04-relations-cardinalites|04-relations-cardinalites]], décisions).
->
+> Suppression de compte : le compte est supprimé, ses commandes sont **conservées** et leur `account_id` passe à `NULL`.
 > Suppression d'une commande : autorisée **uniquement** si `status = 'pending'`. Une commande `paid` ou `planted` ne doit jamais être effacée. Règle vérifiée par l'API avant le `DELETE` : une contrainte de clé étrangère ne regarde pas la valeur du statut.
 
 ## purchase_line

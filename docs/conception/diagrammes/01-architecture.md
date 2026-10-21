@@ -1,7 +1,5 @@
 # Architecture de l'application — GreenRoots
 
-Ce document montre comment s'organisent les briques de GreenRoots : front-end, API REST (back-end), base de données, et où chacune est hébergée. Il reprend la section architecture du [[Apothéose/apo-greenroots/CAHIER-DES-CHARGES-GREENROOTS - a valider avec la team|cahier des charges]].
-
 ## Lire le diagramme
 
 - Chaque **rectangle** est une brique de l'application ; les **cadres** regroupent ce qui tourne au même endroit (hébergeur).
@@ -87,7 +85,7 @@ flowchart LR
 | Front-end | Next.js / React | Vercel | Serveur de dev Next.js |
 | API REST | Node.js + Express | Serveur de Dimitry (conteneur Docker) | Conteneur Docker (Docker Compose) |
 | Base de données | PostgreSQL | Neon | Conteneur Docker (Docker Compose) |
-| Accès aux données | DataMapper (ORM Sequelize : à valider avec l'équipe) | — | — |
+| Accès aux données | DataMapper (ou ORM)| — | — |
 | Hooks Git | Husky | — | Poste de chaque développeur |
 
 ## Points à valider avec l'équipe

@@ -2,13 +2,9 @@
 
 Schéma complet (périmètre MVP) :
 
-![MCD GreenRoots](05b-MCD.drawio.svg)
-
-> Le fichier [05b-MCD.drawio.svg](05b-MCD.drawio.svg) est à la fois une image et un schéma **Draw.io** : l'ouvrir dans VS Code (extension Draw.io) pour le modifier, l'image se met à jour à l'enregistrement.
+![MCD GreenRoots](05b-mcd.drawio.svg)
 
 ## Entités
-
-Voir [[01-entites|01-entites]] et [[02-entites-proprietes|02-entites-proprietes]].
 
 - Utilisateur
 - Rôle
@@ -18,8 +14,6 @@ Voir [[01-entites|01-entites]] et [[02-entites-proprietes|02-entites-proprietes]
 - Commande
 
 ## Relations et cardinalités
-
-Voir [[03-relations|03-relations]] pour la liste des relations et [[04-relations-cardinalites|04-relations-cardinalites]] pour leurs cardinalités.
 
 ## Source Mocodo
 
