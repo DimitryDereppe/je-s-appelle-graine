@@ -40,7 +40,7 @@ Le MVP couvre le parcours d’achat, les fonctions essentielles du compte et l�
 1. **Accueil** : présenter GreenRoots et mettre en avant quelques arbres.
 2. **Pages de présentation et d’information** : proposer les pages « Qui sommes-nous », mentions légales et politique de confidentialité.
 3. **Catalogue** : afficher les arbres disponibles et filtrer par catégorie (résineux, feuillage caduc, feuillage persistant).
-4. **Fiche arbre** : présenter la photo, la description, le prix et le lieu de plantation lorsqu’il est renseigné.
+4. **Fiche arbre** : présenter la photo, la description, le prix et le lieu de plantation lorsqu’il est renseigné. Choisir la quantité souhaitée (1 par défaut) avant d’ajouter l’arbre au panier.
 5. **Panier** : un utilisateur doit créer un compte ou se connecter avant d’ajouter un arbre au panier. Le client connecté peut consulter le panier, voir les quantités, les prix unitaires et le total, modifier les quantités et retirer des articles.
 6. **Compte client** : inscription, connexion, déconnexion, consultation et modification des informations, changement de mot de passe et suppression du compte.
 7. **Commande** : le client connecté poursuit depuis son panier et confirme sa commande (sans encaissement ni saisie de données bancaires).
@@ -51,9 +51,9 @@ Le MVP couvre le parcours d’achat, les fonctions essentielles du compte et l�
 #### Parcours principal du MVP
 
 1. Le visiteur découvre GreenRoots, parcourt le catalogue et filtre les arbres par catégorie.
-2. Il consulte la fiche d’un arbre et clique sur « Ajouter au panier ».
+2. Il consulte la fiche d’un arbre, choisit la quantité souhaitée et clique sur « Ajouter au panier ».
 3. S’il n’est pas connecté, le système lui demande de créer un compte ou de se connecter avant d’ajouter l’arbre.
-4. Une fois connecté, le client ajoute l’arbre au panier, consulte son contenu et peut ajuster les quantités ou retirer des articles.
+4. Une fois connecté, le client ajoute l’arbre au panier dans la quantité choisie, consulte son contenu et peut ajuster les quantités ou retirer des articles.
 5. Il vérifie le récapitulatif et confirme la commande.
 6. Le système enregistre la commande sans effectuer de paiement et affiche une confirmation.
 7. Le client retrouve sa commande dans son historique.
@@ -241,7 +241,7 @@ Les formulaires d’inscription, de connexion, de gestion du compte, de commande
 | PATCH   | `/api/utilisateurs/me/mot-de-passe` | Modifier le mot de passe du compte connecté               | Client connecté             |
 | DELETE  | `/api/utilisateurs/me`              | Supprimer le compte du client connecté                    | Client connecté             |
 | GET     | `/api/panier`                       | Consulter le panier du client connecté                    | Client connecté             |
-| POST    | `/api/panier/articles`              | Ajouter un arbre au panier                                | Client connecté             |
+| POST    | `/api/panier/articles`              | Ajouter un arbre au panier avec la quantité choisie       | Client connecté             |
 | PATCH   | `/api/panier/articles/:id`          | Modifier la quantité d’un article du panier               | Client connecté             |
 | DELETE  | `/api/panier/articles/:id`          | Retirer un article du panier                              | Client connecté             |
 | POST    | `/api/commandes`                    | Créer une commande simulée                                | Client connecté             |
@@ -297,6 +297,7 @@ L’API répond en JSON. Les entrées sont validées côté serveur. Les endpoin
 | US11 | Client      | me déconnecter                                                         | sécuriser mon compte sur un appareil partagé                | MVP      |
 | US12 | Client      | voir le détail de mon panier (arbres, quantités, prix unitaire, total) | vérifier ma commande avant de confirmer la commande simulée | MVP      |
 | US13 | Client      | modifier la quantité d'un arbre ou le retirer du panier                | ajuster ma commande                                         | MVP      |
+| US13b | Client     | choisir la quantité d'un arbre sur sa fiche (1 par défaut) avant de l'ajouter au panier | acheter plusieurs arbres identiques en une seule fois       | MVP      |
 | US14 | Client      | valider mon panier via un faux tunnel de commande                      | enregistrer ma commande sans effectuer de paiement réel     | MVP      |
 | US15 | Client      | recevoir une confirmation après ma commande                            | être sûr que ma commande a bien été prise en compte         | MVP      |
 | US16 | Client      | consulter l'historique de mes commandes                                | retrouver mes achats passés                                 | MVP      |

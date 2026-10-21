@@ -40,6 +40,7 @@
 | US21 | Client | me déconnecter | sécuriser mon compte sur un appareil partagé | MVP |
 | US22 | Client | voir le détail de mon panier (arbres, quantités, prix unitaire, total) | vérifier ma commande avant de payer | MVP |
 | US23 | Client | modifier la quantité d'un arbre ou le retirer du panier | ajuster ma commande | MVP |
+| US23b | Client | choisir la quantité d'un arbre sur sa fiche (1 par défaut) avant de l'ajouter au panier | acheter plusieurs arbres identiques en une seule fois | MVP |
 | US24 | Client | valider mon panier via un (faux) tunnel de paiement | passer commande | MVP |
 | US25 | Client | recevoir une confirmation après ma commande | être sûr que ma commande a bien été prise en compte | MVP |
 | US26 | Client | consulter l'historique de mes commandes | retrouver mes achats passés | MVP |
