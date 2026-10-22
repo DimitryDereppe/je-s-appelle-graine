@@ -33,7 +33,7 @@ flowchart TB
     W -- "pages" --> F
     W -- "/api/..." --> API
     API -- "réseau Docker interne<br/>(base non exposée sur Internet)" --> DB
-    API -- "SMTP : confirmation de commande,<br/>réception du paiement" --> MAIL
+    API -- "SMTP (Nodemailer) : confirmation de commande,<br/>réception du paiement, annulation" --> MAIL
     MAIL --> BOX
 ```
 
@@ -91,7 +91,7 @@ flowchart LR
 | Front-end | Next.js / React (TypeScript) | VPS (conteneur Docker) | Conteneur Docker (Docker Compose) |
 | API REST | Node.js + Express (TypeScript) | VPS (conteneur Docker) | Conteneur Docker (Docker Compose) |
 | Base de données | PostgreSQL | VPS (conteneur Docker + volume sauvegardé) | Conteneur Docker (Docker Compose) |
-| Envoi d'emails | Prestataire SMTP (Nodemailer côté API) | Service externe | Prestataire de test ou boîte de test |
+| Envoi d'emails | Nodemailer côté API, via le serveur SMTP d'un prestataire | Service externe | Prestataire de test ou boîte de test |
 | Accès aux données | DataMapper (requêtes SQL paramétrées) | — | — |
 | Hooks Git | Husky | — | Poste de chaque développeur |
 
@@ -99,4 +99,3 @@ flowchart LR
 
 - **Serveur web** (HTTPS, aiguillage `/api`) : à choisir.
 - **Sauvegardes de la base** : fréquence et lieu de stockage (hors du VPS).
-- **Prestataire d'envoi d'emails** : à choisir.

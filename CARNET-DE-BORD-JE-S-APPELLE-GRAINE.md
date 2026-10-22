@@ -26,7 +26,9 @@
 - **Premier compte admin** créé avec les données de départ de la base.
 - **Informations modifiables par le client** (US28) : tout (prénom, nom, adresse, email, type de compte, structure) sauf le rôle ; l'activation du compte reste gérée par l'admin.
 - **Durée du JWT** : 24 heures, puis le client se reconnecte.
+- **Envoi des emails** : Nodemailer côté API, via le serveur SMTP d'un prestataire (choix retenu).
 - **CGV** : classées en évolution (page `/cgv` et case à cocher sur la page de paiement).
+- **Rôle administrateur des ventes** : classé en évolution. Il gérera les commandes et le catalogue sans accès aux comptes ni à la partie technique ; l'administrateur actuel devient le super-administrateur. La table `role` permet de l'ajouter sans changer la structure de la base (US49, US55, US56).
 - **Évolutions ajoutées** : mot de passe oublié (US37), pagination des listes, envoi des photos (US48), retour automatique sur la fiche, panier enrichi.
 - **Fin du sprint 0** : Préparation ensemble en cours, Loïc fera la présentation
 - **Maquette et charte graphique** : analyse avec l'équipe, modification en cours. Reste à valider la finalisation.

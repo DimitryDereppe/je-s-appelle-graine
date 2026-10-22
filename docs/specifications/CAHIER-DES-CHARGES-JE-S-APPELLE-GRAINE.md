@@ -81,6 +81,7 @@ Ces fonctionnalités sont envisagées, mais ne sont pas nécessaires pour que le
 - Sélection des arbres mis en avant par l’administrateur.
 - Carte interactive permettant de visualiser les lieux de plantation des arbres achetés.
 - Back-office étendu (statistiques, export des commandes, gestion avancée des profils utilisateurs).
+- Rôle **administrateur des ventes** : il gère les commandes (statuts, paiements reçus) et le catalogue, sans accès aux comptes des clients ni aux réglages techniques. L’administrateur actuel devient le **super-administrateur**, qui garde tous les droits, y compris l’aspect technique et l’attribution des rôles. Le modèle de données le permet déjà sans changer de structure : il suffit d’ajouter une ligne dans la table `role`, et l’API vérifie le rôle route par route.
 - Espace partenaire permettant aux associations de proposer des arbres ou des lots, avec validation par Je s’appelle Graine.
 - Conditions générales de vente (CGV) : page `/cgv` et case « J’ai lu et j’accepte les CGV » obligatoire sur la page de paiement.
 - Version anglaise en complément du français.
@@ -111,7 +112,7 @@ BACK-END ──SMTP──▶ Service d’envoi d’emails ──▶ boîte mail 
 - **Front-end — Next.js et React, dans un conteneur sur le VPS :** affiche les pages publiques, le catalogue, le panier, les pages client et les pages d’administration. Il envoie les demandes de lecture ou de modification à **l’API REST Je s’appelle Graine**.
 - **Back-end — API REST Je s’appelle Graine avec Node.js et Express :** reçoit les requêtes du front-end, valide les données, vérifie les droits, applique les règles métier et renvoie des réponses JSON. L’API est exécutée dans un conteneur Docker, en développement comme sur le VPS.
 - **Services métier :** modules du back-end qui appliquent les règles du projet. Par exemple, le service d’authentification vérifie les identifiants, émet et vérifie le jeton JWT ; le service de commande vérifie la disponibilité des arbres et l’engagement de paiement avant d’enregistrer une commande, puis demande l’envoi de l’email de confirmation.
-- **Envoi d’emails :** l’API envoie les emails automatiques (confirmation de commande, réception du paiement, annulation) en se connectant à un serveur d’envoi (SMTP) ; prestataire et bibliothèque à choisir (ex. Nodemailer côté Node.js).
+- **Envoi d’emails :** l’API envoie les emails automatiques (confirmation de commande, réception du paiement, annulation) en se connectant à un serveur d’envoi (SMTP) : Nodemailer côté Node.js.
 - **DataMappers :** modules utilisés par les services métier pour accéder aux données. Ils isolent les requêtes SQL paramétrées du reste du back-end.
 - **Base de données — PostgreSQL :** conserve les comptes, les offres d’arbres, les paniers et les commandes. Les tables des comptes et des commandes s’appellent `account` et `purchase`, car `user` et `order` sont des mots réservés de PostgreSQL (exception à la charte de nommage). PostgreSQL tourne dans un conteneur Docker, en local pendant le développement et sur le VPS. Sur le VPS, les données sont conservées dans un volume Docker et sauvegardées régulièrement. Seul le back-end se connecte à la base, par le réseau Docker interne ; la base n’est pas exposée sur Internet et ses identifiants ne sont pas exposés au navigateur ni au front-end.
 - **Docker :** Docker Compose lance les mêmes conteneurs (front-end, API, PostgreSQL) en développement et sur le VPS, avec une configuration reproductible.
@@ -129,7 +130,7 @@ Dans cette architecture, les endpoints REST sont fournis par le back-end. Ce son
 - **Husky** est retenu pour automatiser les vérifications définies par l’équipe avant les commits et détecter plus tôt les erreurs courantes. Les commandes associées seront documentées et maintenues rapides.
 - **HTTPS et JSON** sont retenus pour les échanges entre le front-end et l’API : HTTPS protège les données pendant leur transmission et JSON sert de format commun aux requêtes et réponses de l’API.
 - **Un VPS** est retenu pour héberger toute l’application : un seul serveur à administrer, le même environnement Docker qu’en développement, et le front-end et l’API sur le même domaine. En contrepartie, l’équipe gère elle-même les mises à jour, la sécurité (pare-feu, certificat HTTPS) et les sauvegardes de la base.
-- **Un service d’envoi d’emails (SMTP)** est nécessaire pour que les emails automatiques arrivent bien dans la boîte de réception des clients, et non dans les indésirables. Le prestataire reste à choisir.
+- **Un service d’envoi d’emails (SMTP)** est nécessaire pour que les emails automatiques arrivent bien dans la boîte de réception des clients, et non dans les indésirables.
 
 ### Technologies retenues ou à confirmer
 
@@ -139,11 +140,11 @@ Dans cette architecture, les endpoints REST sont fournis par le back-end. Ce son
 | Hébergement                     | VPS : front-end, API et base de données                                      | Choix retenu (fournisseur : O'Clock)                                                                        |
 | API                             | Node.js et Express, en TypeScript ; API REST                                 | Choix retenu                                                                                                |
 | Base de données                 | PostgreSQL dans un conteneur Docker (développement et VPS)                   | Choix retenu                                                                                                |
-| Envoi d’emails                  | Serveur SMTP d’un prestataire, Nodemailer côté API                           | À choisir                                                                                                   |
+| Envoi d’emails                  | Serveur SMTP d’un prestataire avec Nodemailer côté API                       | Choix retenu                                                                                                |
 | Accès aux données               | DataMappers avec requêtes paramétrées                                        | Choix retenu                                                                                                |
 | Conteneurisation                | Docker et Docker Compose                                                     | Front-end, API et PostgreSQL conteneurisés, en développement et sur le VPS                                  |
 | Versionnement                   | Git et GitHub                                                                | Suivre les modifications et faciliter le travail en équipe                                                  |
-| Hooks Git                       | Husky                                                                        | Lancer automatiquement les vérifications prévues avant les commits ; commandes à définir                    |
+| Hooks Git                       | Husky                                                                        | Lancer automatiquement les vérifications prévues avant les commits                                          |
 | Protocole navigateur ↔ API      | HTTPS avec réponses JSON                                                     | Certificat HTTPS à mettre en place sur le VPS                                                               |
 
 &nbsp;

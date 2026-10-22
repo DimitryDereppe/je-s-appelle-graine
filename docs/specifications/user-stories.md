@@ -10,6 +10,7 @@
 | **Visiteur** | Personne non connectée qui découvre le site |
 | **Client** | Utilisateur inscrit et connecté qui achète des arbres |
 | **Admin** | Membre de Je s’appelle Graine qui gère le catalogue, les commandes et les utilisateurs |
+| **Administrateur des ventes** (Évo) | Membre de Je s’appelle Graine qui gère les commandes et le catalogue, sans accès aux comptes ni à la partie technique |
 | **Partenaire** (Évo) | Association tierce qui propose ses propres lots d'arbres |
 
 ---
@@ -83,6 +84,14 @@
 | US46 | Admin | consulter toutes les commandes et changer leur statut (payée à réception du paiement, plantée, annulée si non payée sous 10 jours), la date de chaque changement étant enregistrée et les commandes en retard de paiement mises en évidence | suivre les paiements et tenir les clients informés | MVP |
 | US47 | Admin | créer une campagne de plantation avec un objectif collectif | mobiliser la communauté sur un projet | Évo |
 | US48 | Admin | envoyer la photo d'un arbre depuis l'espace administrateur | ne plus dépendre d'un fichier ajouté à la main dans le projet | Évo |
+| US49 | Admin | attribuer le rôle d'administrateur des ventes à un compte | déléguer la gestion des ventes en gardant seul l'accès aux comptes et à la partie technique | Évo |
+
+## Administrateur des ventes (Évo)
+
+| ID | En tant que | Je veux | Afin de | Priorité |
+|---|---|---|---|---|
+| US55 | Administrateur des ventes | consulter les commandes et changer leur statut (payée, plantée, annulée) | suivre les ventes sans avoir accès aux comptes ni à la partie technique | Évo |
+| US56 | Administrateur des ventes | gérer le catalogue (ajouter, modifier un arbre, changer sa disponibilité) | tenir l'offre à jour | Évo |
 
 ## Partenaire (Évo)
 
