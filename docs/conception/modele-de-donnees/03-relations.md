@@ -6,9 +6,7 @@ Quelles entités possèdent des liens logiques entre elles ?
 
 **Arbre** -- Être -- **Disponibilité**
 
-**Panier** -- Contenir (quantité) -- **Arbre**
-
-**Utilisateur** -- Posséder -- **Panier**
+**Utilisateur** -- Contenir (quantité) -- **Arbre**
 
 **Utilisateur** -- Avoir -- **Rôle**
 

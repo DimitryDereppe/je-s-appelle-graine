@@ -15,8 +15,7 @@ Notation : `__id__` = clé primaire, `#` = clé étrangère.
 | **category** | `__id__` | name | — | Entité Catégorie | Entité → table |
 | **availability** | `__id__` | name | — | Entité Disponibilité | Entité → table |
 | **tree** | `__id__` | name, description, price, photo_url, planting_location | `#category_id` → category.id, `#availability_id` → availability.id | Entité Arbre + **Appartenir** (1,1 / 0,N) + **Être** (1,1 / 0,N) | Relation 1-N → FK côté **1,1** |
-| **cart** | `__id__` | — | `#account_id` → account.id (UNIQUE, NOT NULL) | Entité Panier + **Posséder** (0,1 / 1,1) | Relation 1-1 → FK d'un côté + `UNIQUE` |
-| **cart_item** | `__id__` | quantity | `#cart_id` → cart.id, `#tree_id` → tree.id | Relation **Contenir** (0,N / 0,N) | Relation N-N → **table de liaison** |
+| **cart_item** | `__id__` | quantity | `#account_id` → account.id, `#tree_id` → tree.id | Relation **Contenir** (0,N / 0,N) | Relation N-N → **table de liaison** |
 | **purchase** | `__id__` | purchase_date, status, total_amount, payment_method, buyer_firstname, buyer_lastname, buyer_email, buyer_organization, buyer_address, paid_at, planted_at, cancelled_at | `#account_id` → account.id (peut être NULL) | Entité Commande + **Passer** (0,N / 0,1) | Relation 1-N → FK côté **0,1** |
 | **purchase_line** | `__id__` | tree_name, unit_price, planting_location, quantity | `#purchase_id` → purchase.id, `#tree_id` → tree.id (NOT NULL) | Relation **Composer** (1,N / 0,N) | Relation N-N → **table de liaison** (avec ses attributs) |
 
@@ -28,8 +27,7 @@ account       ( __id__, email, password, firstname, lastname, address, account_t
 category      ( __id__, name )
 availability  ( __id__, name )
 tree          ( __id__, name, description, price, photo_url, planting_location, #category_id, #availability_id )
-cart          ( __id__, #account_id )
-cart_item     ( __id__, quantity, #cart_id, #tree_id )
+cart_item     ( __id__, quantity, #account_id, #tree_id )
 purchase      ( __id__, purchase_date, status, total_amount, payment_method, buyer_firstname, buyer_lastname, buyer_email, buyer_organization, buyer_address, paid_at, planted_at, cancelled_at, #account_id )
 purchase_line ( __id__, tree_name, unit_price, planting_location, quantity, #purchase_id, #tree_id )
 ```
@@ -42,11 +40,11 @@ purchase_line ( __id__, tree_name, unit_price, planting_location, quantity, #pur
 
 ## Notes de traduction
 
-- **Posséder (0,1 / 1,1)** : la clé étrangère est placée dans `cart`, du côté **1,1** : chaque panier a obligatoirement un propriétaire (`account_id` NOT NULL), alors qu'un utilisateur peut ne pas avoir de panier. Le `UNIQUE` sur `account_id` garantit un seul panier par utilisateur.
-- **Tables de liaison** : on utilise un `id` auto-incrémenté en clé primaire plutôt qu'une clé composite (les deux FK). `cart_item` ajoute `UNIQUE (cart_id, tree_id)` : un même arbre n'apparaît qu'une fois par panier, on augmente sa quantité.
+- **Contenir (0,N / 0,N)** : relie directement l'utilisateur et l'arbre. `cart_item.account_id` est obligatoire : pas de panier sans compte. Il n'y a pas de table `cart`, car le panier n'a aucune information propre.
+- **Tables de liaison** : on utilise un `id` auto-incrémenté en clé primaire plutôt qu'une clé composite (les deux FK). `cart_item` ajoute `UNIQUE (account_id, tree_id)` : un même arbre n'apparaît qu'une fois dans le panier d'un client, on augmente sa quantité.
 - **purchase_line** garde `tree_name`, `unit_price` et `planting_location` : le nom, le prix payé et le lieu de plantation ne changent pas si l'arbre est modifié. `tree_id` est obligatoire et un arbre déjà commandé ne peut pas être supprimé (il passe à l'état « retiré du catalogue »).
 - **Être (1,1 / 0,N)** : comme *Appartenir*, la clé étrangère `availability_id` est placée dans `tree`.
 - **Passer (0,N / 0,1)** : `purchase.account_id` peut être NULL. Si un compte est supprimé, ses commandes sont conservées sans propriétaire.
 - **purchase** fige l'identité de l'acheteur (`buyer_firstname`, `buyer_lastname`, `buyer_email`, `buyer_organization`, `buyer_address`), copiée depuis `account` à la création de la commande : la vente reste identifiable après la suppression du compte. `paid_at`, `planted_at` et `cancelled_at` gardent la date de chaque changement de statut.
-- **Statut d'une commande** (`pending`, `paid`, `planted`, `cancelled`) : changé manuellement par l'admin (`paid` à réception du paiement, `cancelled` si le paiement n'est pas arrivé sous 10 jours). Le client ne peut supprimer une commande que si elle est `pending` : règle de gestion vérifiée par l'API, pas par le MLD.
+- **Statut d'une commande** (`pending`, `paid`, `planted`, `cancelled`) : changé manuellement par l'admin (`paid` à réception du paiement, `cancelled` si le paiement n'est pas arrivé sous 10 jours). Le client peut seulement annuler sa commande quand elle est `pending`. Aucune commande n'est supprimée. Règles de gestion vérifiées par l'API, pas par le MLD.
 - **`account` et `purchase`** : `user` et `order` sont des mots réservés en PostgreSQL, les tables ont été renommées.

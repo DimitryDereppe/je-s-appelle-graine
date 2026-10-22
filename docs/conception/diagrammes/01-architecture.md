@@ -88,8 +88,8 @@ flowchart LR
 | Brique | Technologie | Hébergement (distant) | En développement |
 | --- | --- | --- | --- |
 | Serveur web | À choisir | VPS (conteneur Docker) | — |
-| Front-end | Next.js / React | VPS (conteneur Docker) | Conteneur Docker (Docker Compose) |
-| API REST | Node.js + Express | VPS (conteneur Docker) | Conteneur Docker (Docker Compose) |
+| Front-end | Next.js / React (TypeScript) | VPS (conteneur Docker) | Conteneur Docker (Docker Compose) |
+| API REST | Node.js + Express (TypeScript) | VPS (conteneur Docker) | Conteneur Docker (Docker Compose) |
 | Base de données | PostgreSQL | VPS (conteneur Docker + volume sauvegardé) | Conteneur Docker (Docker Compose) |
 | Envoi d'emails | Prestataire SMTP (Nodemailer côté API) | Service externe | Prestataire de test ou boîte de test |
 | Accès aux données | DataMapper (requêtes SQL paramétrées) | — | — |

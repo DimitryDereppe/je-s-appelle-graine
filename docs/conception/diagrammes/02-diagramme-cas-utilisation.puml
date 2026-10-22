@@ -20,9 +20,9 @@ rectangle "Je s’appelle Graine" {
   usecase "Ajouter un arbre au panier\n(quantité choisie)" as UC_add
   usecase "Consulter et modifier le panier" as UC_cart
   usecase "Passer commande\n(mode de paiement,\nengagement de payer sous 10 jours)" as UC_order
-  usecase "Recevoir les emails de commande\n(confirmation, paiement reçu)" as UC_mail
+  usecase "Recevoir les emails de commande\n(confirmation, paiement reçu, annulation)" as UC_mail
   usecase "Consulter ses commandes\net leur statut" as UC_history
-  usecase "Supprimer une commande\nen attente de paiement" as UC_cancel
+  usecase "Annuler une commande\nen attente de paiement" as UC_cancel
   usecase "Consulter et modifier son compte\n(informations, mot de passe)" as UC_account
   usecase "Se déconnecter" as UC_logout
   usecase "Supprimer son compte" as UC_delete

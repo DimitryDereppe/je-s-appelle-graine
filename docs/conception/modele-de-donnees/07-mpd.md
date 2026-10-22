@@ -11,10 +11,10 @@ Notation : souligné = clé primaire, `#` = clé étrangère, `IDENTITY` = `GENE
 | Ce que le MPD ajoute | Exemple dans Je s’appelle Graine | À quoi ça sert |
 | --- | --- | --- |
 | **Type** | `price NUMERIC(10,2)`, `purchase_date TIMESTAMPTZ` | Stocker la donnée au bon format (montant exact, date avec fuseau) |
-| **NOT NULL** | `email VARCHAR(255) NOT NULL`, `cart.account_id INT NOT NULL` (pas de panier sans compte) | Rendre la colonne obligatoire |
-| **UNIQUE** | `email`, `cart.account_id`, `(cart_id, tree_id)` | Interdire les doublons |
+| **NOT NULL** | `email VARCHAR(255) NOT NULL`, `cart_item.account_id INT NOT NULL` (pas de panier sans compte) | Rendre la colonne obligatoire |
+| **UNIQUE** | `email`, `(account_id, tree_id)` dans `cart_item` | Interdire les doublons |
 | **DEFAULT** | `status DEFAULT 'pending'`, `account_type DEFAULT 'individual'`, `is_active DEFAULT TRUE` | Valeur mise automatiquement si on n'en donne pas |
-| **CHECK** | `quantity > 0`, `status IN ('pending', 'paid', 'planted', 'cancelled')`, `payment_method IN ('transfer', 'card', 'check', 'paypal')` | Refuser les valeurs incohérentes |
+| **CHECK** | `quantity > 0`, `status IN ('pending', 'paid', 'planted', 'cancelled')`, `payment_method IN ('transfer', 'check', 'paypal')` | Refuser les valeurs incohérentes |
 | **ON DELETE** | `CASCADE`, `SET NULL` | Dire ce que deviennent les lignes liées quand on supprime la ligne visée |
 
 ## Extension PostgreSQL
@@ -29,8 +29,7 @@ Notation : souligné = clé primaire, `#` = clé étrangère, `IDENTITY` = `GENE
 
 | Clé étrangère | Règle | Quand on supprime... | Résultat |
 | --- | --- | --- | --- |
-| `cart.account_id` | `ON DELETE CASCADE` | un compte | son panier est supprimé aussi |
-| `cart_item.cart_id` | `ON DELETE CASCADE` | un panier | ses lignes de panier sont supprimées |
+| `cart_item.account_id` | `ON DELETE CASCADE` | un compte | son panier (ses lignes `cart_item`) est supprimé aussi |
 | `cart_item.tree_id` | `ON DELETE CASCADE` | un arbre jamais commandé | il est retiré des paniers qui le contiennent |
 | `purchase.account_id` | `ON DELETE SET NULL` | un compte | ses commandes sont **conservées**, sans propriétaire ; l'identité de l'acheteur reste dans `buyer_*` |
 | `purchase_line.purchase_id` | `ON DELETE CASCADE` | une commande | ses lignes de commande sont supprimées |
@@ -40,8 +39,8 @@ Notation : souligné = clé primaire, `#` = clé étrangère, `IDENTITY` = `GENE
 
 ## Règle de gestion non couverte par le MPD
 
-Le client peut supprimer une commande **uniquement si elle est `pending`** (`DELETE /api/orders/:id`). Une commande `paid`, `planted` ou `cancelled` n'est jamais effacée : les annulations restent tracées. Le statut est changé **manuellement par l'admin**.
+Le client peut annuler une commande **uniquement si elle est `pending`** (`PATCH /api/orders/:id/status`) : elle passe à `cancelled`. Aucune commande n'est supprimée : les annulations restent tracées. Les autres changements de statut sont faits **manuellement par l'admin**.
 
-Une contrainte `ON DELETE` ne regarde pas la valeur du statut : cette règle est donc vérifiée par l'**API**, avant le `DELETE`.
+Une contrainte `CHECK` ne connaît pas l'ancien statut : ces transitions sont donc vérifiées par l'**API**.
 
 De même, l'**API** vérifie que le client a coché l'engagement de payer sous 10 jours avant de créer la commande. Passé ce délai sans paiement, l'admin passe la commande à `cancelled`.

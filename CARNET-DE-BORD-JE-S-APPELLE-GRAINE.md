@@ -1,5 +1,40 @@
 # Carnet de bord — Je s’appelle Graine
 
+## 2026-10-22 — Relecture complète de la documentation et simplification du panier
+
+### Travail réalisé
+
+- Relecture complète du cahier des charges, des user stories, de la charte et des documents de conception pour corriger les incohérences (routes au singulier et au pluriel mélangées, langage, routes manquantes).
+- Modèle de données mis à jour (textes, dictionnaire et schémas MCD, MLD, MPD) : suppression de la table `cart`, mode de paiement sans carte.
+- Diagrammes PlantUML mis à jour (cas d'utilisation, séquence et activité de l'achat, architecture).
+- Cahier des charges : choix de modélisation du panier documenté, nouvelles routes, précisions sur le paiement, les photos et la page d'accueil.
+
+### Décisions
+
+- **Table `cart` supprimée** (validé en équipe) : le panier n'a aucune information propre (réservé aux comptes connectés, un seul panier en cours par client, pas de suivi des paniers abandonnés). _Contenir_ relie directement l'utilisateur et l'arbre : `cart_item` est rattaché au compte (`account_id`, `UNIQUE (account_id, tree_id)`). Plus de panier à créer à l'inscription. Un panier enrichi (visiteur, paniers abandonnés, codes promo) est noté en évolution.
+- **Paiement par carte retiré du MVP** : aucun moyen de payer par carte sans paiement en ligne. Modes acceptés : virement, chèque, PayPal (`payment_method`). La carte arrivera avec Stripe.
+- **Référence et instructions de paiement** : la page de confirmation et l'email donnent la référence de la commande, le montant TTC, la date limite et les instructions du mode choisi (IBAN, adresse d'envoi du chèque, adresse PayPal). Les coordonnées sont dans la configuration de l'API.
+- **Annulation par le client** : le client annule sa commande en attente (`PATCH /api/orders/:id/status`, passage à `cancelled`) au lieu de la supprimer. Aucune commande n'est jamais supprimée.
+- **Email d'annulation** quand l'admin annule une commande non payée (US25c).
+- **Routes** : connexion et déconnexion sur `/api/auth` (cohérent avec le JWT, sans session) ; pages de commande au pluriel (`/commandes/nouvelle`, `/commandes/nouvelle/paiement`, `/commandes/:id/confirmation`) ; ajout de `GET /api/categories`, `GET /api/admin/trees` et `GET /api/admin/trees/:id` (l'admin voit aussi les arbres retirés). Les ressources uniques de l'utilisateur connecté restent au singulier (`/panier`, `/compte`, `/api/cart`).
+- **Filtre par catégorie** : la catégorie se choisit dans une liste et le site envoie son identifiant (`?category=2`) ; seul le nom de l'arbre se tape dans la recherche.
+- **Après la connexion** : le client revient sur la fiche de l'arbre et clique de nouveau sur « Ajouter au panier » ; le retour automatique reste une évolution (US06).
+- **TypeScript** pour le front-end et l'API.
+- **Prix TTC** partout ; quantité de 1 à 100 par arbre dans le panier.
+- **Accueil** : les 3 derniers arbres disponibles ajoutés au catalogue (`GET /api/trees/featured`).
+- **Photos** stockées en dur dans le projet : l'admin renseigne le chemin, l'envoi de fichier est une évolution.
+- **Premier compte admin** créé avec les données de départ de la base.
+- **Informations modifiables par le client** (US28) : tout (prénom, nom, adresse, email, type de compte, structure) sauf le rôle ; l'activation du compte reste gérée par l'admin.
+- **Durée du JWT** : 24 heures, puis le client se reconnecte.
+- **CGV** : classées en évolution (page `/cgv` et case à cocher sur la page de paiement).
+- **Évolutions ajoutées** : mot de passe oublié (US37), pagination des listes, envoi des photos (US48), retour automatique sur la fiche, panier enrichi.
+- **Fin du sprint 0** : Préparation ensemble en cours, Loïc fera la présentation
+- **Maquette et charte graphique** : analyse avec l'équipe, modification en cours. Reste à valider la finalisation.
+
+### À poursuivre
+
+- Valider en équipe la sécurité de la connexion (limite de tentatives, longueur du mot de passe, protection CSRF).
+
 ## 2026-10-21 — Nom du projet, paiement, disponibilité, hébergement et vérification du modèle de données
 
 ### Travail réalisé
@@ -24,14 +59,15 @@
 - **Historique des commandes** : `purchase_line` fige le **nom de l'arbre**, la quantité, le prix payé et le **lieu de plantation** (`tree_name` et `planting_location`, copiés à la création de la commande) : si l'admin modifie un arbre, l'historique ne change pas. Un arbre déjà commandé n'est jamais supprimé (`purchase_line.tree_id` NOT NULL), il passe à « retiré du catalogue ».
 - **Acheteur figé dans la commande** : `purchase` copie à sa création le prénom, le nom, l'email, la structure et l'adresse du compte (`buyer_*`). Si le compte est supprimé, la vente reste identifiable (comptabilité, facturation des associations et entreprises, pièces conservées 10 ans) et les emails de la commande peuvent encore être envoyés.
 - **Dates de statut** : `paid_at`, `planted_at` et `cancelled_at` sont renseignées par l'API au changement de statut.
-- **Suppression d'une commande** : le client ne peut supprimer une commande que si elle est `pending` (`DELETE /api/orders/:id`). Une commande `paid`, `planted` ou `cancelled` n'est jamais effacée : les annulations restent tracées.
+- **Suppression d'une commande** : ~~le client ne peut supprimer une commande que si elle est `pending` (`DELETE /api/orders/:id`)~~. Révisé le 2026-10-22 : le client annule sa commande au lieu de la supprimer. Une commande `paid`, `planted` ou `cancelled` n'est jamais effacée : les annulations restent tracées.
 - **Suivi du statut par le client** (US27) : passe en MVP ; le client voit le statut de ses commandes dans son historique, l'admin le fait évoluer (US46).
-- **Paiement** : page de paiement avec choix du mode (virement, carte, chèque, PayPal) et case obligatoire « Je m'engage à effectuer mon paiement sous 10 jours ou ma commande sera annulée ». Rien n'est encaissé en ligne (nouveau statut `cancelled`).
+- **Paiement** : page de paiement avec choix du mode (virement, ~~carte,~~ chèque, PayPal ; carte retirée le 2026-10-22) et case obligatoire « Je m'engage à effectuer mon paiement sous 10 jours ou ma commande sera annulée ». Rien n'est encaissé en ligne (nouveau statut `cancelled`).
 - **Emails automatiques** : confirmation à la création de la commande ; avis de réception quand l'admin passe la commande à `paid`. Le suivi des commandes par l'admin (US46) passe en MVP.
 - **Hébergement** : tout sur un **VPS fourni par O'Clock** (front, API, PostgreSQL en conteneurs Docker), sur un seul nom de domaine.
 - **Authentification par JWT** : jeton signé (id du compte et rôle) dans un cookie `httpOnly`, aucune session stockée côté serveur. Un jeton ne peut pas être révoqué avant son expiration : en V1, `is_active` est contrôlé à la connexion ; la révocation (relecture du compte à chaque requête ou `token_version`) est prévue en V2.
-- **Rôles** : les droits sont contrôlés par un middleware de rôles dans l'API. Les règles que la base ne peut pas garantir sont gérées par l'API : vérification du propriétaire d'une ressource, transitions de statut autorisées, refus de supprimer ou désactiver le dernier admin, nom d'un arbre déjà commandé.
+- **Rôles** : les droits sont contrôlés par un middleware de rôles dans l'API. Les règles que la base ne peut pas garantir sont gérées par l'API : vérification du propriétaire d'une ressource, transitions de statut autorisées, refus de supprimer ou désactiver le dernier admin.
 - **Recherche par nom** : `unaccent(name) ILIKE unaccent('%' || $1 || '%')`, sans nouvelle colonne.
+- **Arbre jamais commandé** : supprimé directement ; il disparaît des paniers qui le contiennent (`cart_item.tree_id` en `ON DELETE CASCADE`).
 - **DataMapper** : choix validé
 - Échange de vision pour valider les wireframes (contenu, mise en forme, etc.)
 

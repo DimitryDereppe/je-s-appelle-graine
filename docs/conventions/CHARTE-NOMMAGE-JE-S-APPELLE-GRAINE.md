@@ -79,11 +79,13 @@ class TreeService {
 - Utiliser les paramètres d’URL pour identifier une ressource et la query string pour filtrer ou trier.
 - Nommer le paramètre d’URL `:id` : le segment qui le précède indique déjà la ressource (`/api/trees/:id` = l’id d’un arbre).
 - Regrouper les routes réservées à l’administrateur sous le préfixe `/api/admin/`, protégé par un seul middleware de rôle.
+- Exception au pluriel : une ressource unique pour l’utilisateur connecté reste au singulier (`/api/cart`, `/api/users/me`, `/api/auth`, pages `/panier` et `/compte`).
+- Pages web (en français) : les formulaires d’ajout et de modification suivent la convention habituelle `…/nouveau` et `…/:id/modifier` ; la règle « sans verbe » s’applique aux routes de l’API.
 
 ```text
 GET    /api/trees
 GET    /api/trees/:id
-GET    /api/trees?category=:category
+GET    /api/trees?category=2
 POST   /api/admin/trees
 PATCH  /api/admin/trees/:id
 DELETE /api/admin/trees/:id
@@ -93,18 +95,19 @@ DELETE /api/admin/trees/:id
 
 - Utiliser `snake_case` pour les tables, colonnes et contraintes.
 - Choisir le singulier pour les tables.
-- Nommer une clé étrangère avec le nom de l’entité référencée suivi de `_id`, par exemple `user_id` ou `tree_id`.
-- Utiliser des noms précis et cohérents pour les dates et états, par exemple `created_at`, `order_date` et `status`.
+- Nommer une clé étrangère avec le nom de la table référencée suivi de `_id`, par exemple `account_id` ou `tree_id`.
+- Utiliser des noms précis et cohérents pour les dates et états, par exemple `purchase_date`, `paid_at` et `status`.
+- Exception : `user` et `order` sont des mots réservés de PostgreSQL. Les tables correspondantes s’appellent `account`, `purchase` et `purchase_line`.
 - Concevoir les nouvelles données en suivant la chaîne dictionnaire de données → MCD → MLD → MPD.
 
 Exemples :
 
 ```text
 tree
-user
-order
+account
+purchase
 tree_id
-order_date
+purchase_date
 ```
 
 ## Git

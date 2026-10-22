@@ -11,7 +11,6 @@ Schéma complet (périmètre MVP) :
 - Arbre
 - Catégorie
 - Disponibilité
-- Panier
 - Commande
 
 ## Relations et cardinalités
@@ -30,9 +29,7 @@ AVOIR, 11 UTILISATEUR, 0N RÔLE
 
 APPARTENIR, 0N CATÉGORIE, 11 ARBRE
 ARBRE: code arbre, nom, description, prix, photo, lieu de plantation
-CONTENIR, 0N PANIER, 0N ARBRE: quantité
-PANIER: code panier
-POSSÉDER, 01 UTILISATEUR, 11 PANIER
+CONTENIR, 0N UTILISATEUR, 0N ARBRE: quantité
 RÔLE: code rôle, rôle
 
 ÊTRE, 11 ARBRE, 0N DISPONIBILITÉ

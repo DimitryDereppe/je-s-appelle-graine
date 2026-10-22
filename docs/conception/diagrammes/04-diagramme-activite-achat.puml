@@ -25,7 +25,7 @@ endif
 
 :Afficher la page de paiement;
 :Le client choisit le mode de paiement
-(virement, carte, chèque, PayPal);
+(virement, chèque, PayPal);
 :Le client coche l'engagement
 de payer sous 10 jours;
 :Le client confirme la commande;
@@ -57,9 +57,11 @@ else (oui)
   avec l'identité de l'acheteur,
   le nom, le prix payé et le lieu de plantation;
   :Vider le panier;
-  :Envoyer l'email de confirmation;
-  :Afficher la confirmation
-  et la date limite de paiement (10 jours);
+  :Envoyer l'email de confirmation
+  (référence et instructions de paiement);
+  :Afficher la confirmation : référence,
+  montant, date limite (10 jours)
+  et instructions de paiement;
   stop
 endif
 @enduml

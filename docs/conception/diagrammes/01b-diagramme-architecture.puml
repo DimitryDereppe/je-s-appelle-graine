@@ -10,8 +10,8 @@ node "Appareil utilisateur" {
 
 node "VPS O'Clock — conteneurs Docker (Docker Compose)" as vps {
   rectangle "Serveur web\n(HTTPS)" as web
-  rectangle "Front-end\nNext.js / React" as front
-  node "API REST — Node.js / Express" as api {
+  rectangle "Front-end\nNext.js / React (TypeScript)" as front
+  node "API REST — Node.js / Express (TypeScript)" as api {
     rectangle "Routes et middlewares\n(validation, JWT, rôles)" as routes
     rectangle "Contrôleurs" as ctrl
     rectangle "Services métier" as services
@@ -31,7 +31,7 @@ routes --> ctrl
 ctrl --> services
 services --> mappers
 mappers --> db : requêtes SQL paramétrées\n(réseau Docker interne)
-services --> smtp : confirmation de commande,\nréception du paiement
+services --> smtp : confirmation, paiement reçu,\nannulation
 smtp --> mailbox
 
 note right of web

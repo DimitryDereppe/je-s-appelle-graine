@@ -23,7 +23,7 @@ Site --> Client : Affiche les articles et le total
 opt Le client modifie le panier
   Client -> Site : Change une quantité ou retire un article
   Site -> API : PATCH ou DELETE /api/cart/items/:id
-  API -> Services : Vérifier et modifier\n(article de son panier, quantité > 0)
+  API -> Services : Vérifier et modifier\n(article de son panier, quantité de 1 à 100)
   Services -> DM : Enregistrer la modification
   DM -> DB : Mettre à jour le panier
   DB --> DM : Modification enregistrée
@@ -33,8 +33,8 @@ opt Le client modifie le panier
   Site --> Client : Affiche le panier mis à jour
 end
 
-Client -> Site : Vérifie le récapitulatif (/commande)
-Site --> Client : Page de paiement (/commande/paiement)
+Client -> Site : Vérifie le récapitulatif (/commandes/nouvelle)
+Site --> Client : Page de paiement (/commandes/nouvelle/paiement)
 Client -> Site : Choisit le mode de paiement,\ncoche l'engagement de payer sous 10 jours\net confirme
 Site -> API : POST /api/orders\n(mode de paiement, engagement)
 API -> API : Vérifier le jeton JWT (sinon 401)
@@ -63,10 +63,10 @@ else Données de paiement valides
     DM -> DB : Vider le panier ; COMMIT
     DB --> DM : Commande enregistrée
     DM --> Services : Commande créée
-    Services -> Mail : Email de confirmation\n(adresse enregistrée dans la commande)
+    Services -> Mail : Email de confirmation : référence, montant,\ndate limite et instructions de paiement
     Services --> API : Commande créée sans paiement en ligne
     API --> Site : 201 Commande (JSON)
-    Site --> Client : Affiche la confirmation (/commande/confirmation)\net la date limite de paiement
+    Site --> Client : Redirige vers /commandes/:id/confirmation :\nréférence, montant, date limite\net instructions de paiement
   end
 end
 @enduml
