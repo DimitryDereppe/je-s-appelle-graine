@@ -25,7 +25,7 @@ endif
 
 :Afficher la page de paiement;
 :Le client choisit le mode de paiement
-(virement, chèque, PayPal);
+(virement ou chèque);
 :Le client coche l'engagement
 de payer sous 10 jours;
 :Le client confirme la commande;

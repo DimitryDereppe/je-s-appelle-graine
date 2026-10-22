@@ -50,7 +50,7 @@
 | US22 | Client | voir le détail de mon panier (arbres, quantités, prix unitaire, total) | vérifier ma commande avant de payer | MVP |
 | US23 | Client | modifier la quantité d'un arbre ou le retirer du panier | ajuster ma commande | MVP |
 | US23b | Client | choisir la quantité d'un arbre sur sa fiche (1 par défaut) avant de l'ajouter au panier | acheter plusieurs arbres identiques en une seule fois | MVP |
-| US24 | Client | choisir mon mode de paiement (virement, chèque, PayPal) et m'engager à payer sous 10 jours avant de confirmer ma commande | passer commande et régler par le moyen qui me convient | MVP |
+| US24 | Client | choisir mon mode de paiement (virement ou chèque) et m'engager à payer sous 10 jours avant de confirmer ma commande | passer commande et régler par le moyen qui me convient | MVP |
 | US25 | Client | recevoir un email de confirmation avec la référence de ma commande et les instructions de paiement | être sûr que ma commande a bien été prise en compte | MVP |
 | US25b | Client | recevoir un email quand mon paiement a été reçu | savoir que ma commande est validée | MVP |
 | US25c | Client | recevoir un email si ma commande est annulée faute de paiement | savoir que je n'ai plus rien à payer | MVP |
@@ -61,7 +61,7 @@
 | US29 | Client | changer mon mot de passe | sécuriser mon compte | MVP |
 | US30 | Client | supprimer mon compte | exercer mon droit à l'effacement (RGPD) | MVP |
 | US31 | Client | choisir si j'achète un arbre proposé par Je s’appelle Graine ou par une association tierce | soutenir le projet qui me tient à cœur | Évo |
-| US32 | Client | payer réellement par carte via un service sécurisé (Stripe) | acheter en toute sécurité | Évo |
+| US32 | Client | payer en ligne par carte bancaire ou par PayPal via un service sécurisé (Stripe) | acheter en toute sécurité | Évo |
 | US33 | Client | voir sur une carte interactive où mes arbres ont été plantés | visualiser concrètement mon impact | Évo |
 | US34 | Client | parrainer un ami ou une entreprise | les inciter à planter à leur tour | Évo |
 | US35 | Client | gagner des badges selon mes contributions | être récompensé de mon engagement | Évo |
@@ -96,7 +96,7 @@
 ## Points à trancher en équipe
 
 - ~~**Panier visiteur** (US05) : stocké où tant que la personne n'est pas connectée ?~~ **Tranché le 2026-10-20** : pas de panier visiteur, le clic sur « Ajouter au panier » redirige vers l'inscription. **Précisé le 2026-10-21** : la redirection se fait vers la page de connexion, qui propose aussi de créer un compte, car le visiteur est peut-être déjà client.
-- ~~**« Gestion carte bleue »** (wireframe) : stocker une carte implique des obligations fortes (PCI-DSS).~~ **Tranché le 2026-10-21** : page de paiement avec choix du mode (virement, carte, chèque, PayPal) et engagement de payer sous 10 jours ; rien n'est encaissé en ligne. En Évo, c'est Stripe qui garde les cartes, pas notre BDD. **Précisé le 2026-10-22** : la carte bancaire est retirée des modes de paiement du MVP (aucun moyen de payer par carte hors ligne) ; elle arrivera avec Stripe.
+- ~~**« Gestion carte bleue »** (wireframe) : stocker une carte implique des obligations fortes (PCI-DSS).~~ **Tranché le 2026-10-21** : page de paiement avec choix du mode (virement, carte, chèque, PayPal) et engagement de payer sous 10 jours ; rien n'est encaissé en ligne. En Évo, c'est Stripe qui garde les cartes, pas notre BDD. **Précisé le 2026-10-22** : la carte bancaire est retirée des modes de paiement du MVP (aucun moyen de payer par carte hors ligne) ; elle arrivera avec Stripe. PayPal est aussi retiré du MVP et arrivera avec le paiement en ligne : le MVP accepte le virement et le chèque.
 - ~~**Suivi de commande** (US27) : qui fait évoluer le statut ? **Le 2026-10-21**, US46 passe en MVP (l'admin change le statut à réception du paiement) → US27 (le client suit le statut) peut aussi passer en MVP : à trancher.~~ **Tranché le 2026-10-21** : US27 passe en MVP. Le client voit le statut de ses commandes dans son historique, comme le prévoit le cahier des charges ; l'admin le fait évoluer (US46).
 - ~~**Recherche par nom** (US03b) : la recherche ignore les majuscules, mais pas les accents (« chene » ne trouve pas « Chêne »).~~ **Tranché le 2026-10-21** : accents gérés dès le MVP avec l'extension PostgreSQL `unaccent` (`CREATE EXTENSION IF NOT EXISTS unaccent;`), appliquée des deux côtés de la comparaison : `unaccent(name) ILIKE unaccent('%' || $1 || '%')`. Pas de nouvelle colonne, le MCD ne change pas.
 - ~~**Filtre par lieu** (US03e, Évo) : texte libre dans `tree` ou table des lieux ?~~ **Tranché le 2026-10-21** : le lieu est défini par l'arbre (`tree.planting_location`), pas de table des lieux, le MCD ne change pas. La liste du filtre reprend les lieux des arbres visibles ; l'admin saisit donc toujours un même lieu de la même façon. Un arbre sans lieu n'apparaît pas quand ce filtre est utilisé.

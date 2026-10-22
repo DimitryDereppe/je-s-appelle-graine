@@ -40,7 +40,7 @@
 - date de commande
 - statut : en attente, payée, plantée ou annulée. Changé **manuellement par l'admin** : payée à réception du paiement, annulée si le paiement n'est pas arrivé sous 10 jours. Le client peut aussi annuler sa commande tant qu'elle est en attente. Aucune commande n'est supprimée.
 - total (montant total TTC de la commande)
-- mode de paiement : virement, chèque ou PayPal (obligatoire)
+- mode de paiement : virement ou chèque (obligatoire)
 - acheteur au moment de la commande : prénom, nom et email (obligatoires), structure et adresse (facultatives). Copiés depuis l'utilisateur : la vente reste identifiable si le compte est supprimé
 - date de paiement, date de plantation, date d'annulation (facultatives : renseignées au changement de statut)
 

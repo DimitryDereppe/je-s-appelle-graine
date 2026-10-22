@@ -14,7 +14,7 @@ Notation : souligné = clé primaire, `#` = clé étrangère, `IDENTITY` = `GENE
 | **NOT NULL** | `email VARCHAR(255) NOT NULL`, `cart_item.account_id INT NOT NULL` (pas de panier sans compte) | Rendre la colonne obligatoire |
 | **UNIQUE** | `email`, `(account_id, tree_id)` dans `cart_item` | Interdire les doublons |
 | **DEFAULT** | `status DEFAULT 'pending'`, `account_type DEFAULT 'individual'`, `is_active DEFAULT TRUE` | Valeur mise automatiquement si on n'en donne pas |
-| **CHECK** | `quantity > 0`, `status IN ('pending', 'paid', 'planted', 'cancelled')`, `payment_method IN ('transfer', 'check', 'paypal')` | Refuser les valeurs incohérentes |
+| **CHECK** | `quantity > 0`, `status IN ('pending', 'paid', 'planted', 'cancelled')`, `payment_method IN ('transfer', 'check')` | Refuser les valeurs incohérentes |
 | **ON DELETE** | `CASCADE`, `SET NULL` | Dire ce que deviennent les lignes liées quand on supprime la ligne visée |
 
 ## Extension PostgreSQL

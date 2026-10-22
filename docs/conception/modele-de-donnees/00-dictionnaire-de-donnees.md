@@ -95,7 +95,7 @@ Les tables sont donc renommées : `user` → `account`, `order` → `purchase`, 
 | purchase_date | TIMESTAMPTZ | NOT NULL, DEFAULT now() | Date de confirmation de la commande |
 | status | VARCHAR(20) | NOT NULL, DEFAULT 'pending', CHECK (status IN ('pending', 'paid', 'planted', 'cancelled')) | Statut, changé **manuellement par l'admin** (le client peut seulement annuler) : `pending` (en attente de paiement, à la création), `paid` (paiement reçu), `planted` (arbre planté), `cancelled` (annulée par le client tant qu'elle était en attente, ou par l'admin si le paiement n'est pas arrivé sous 10 jours) |
 | total_amount | NUMERIC(10,2) | NOT NULL, CHECK (total_amount >= 0) | Montant total TTC, calculé à la confirmation |
-| payment_method | VARCHAR(20) | NOT NULL, CHECK (payment_method IN ('transfer', 'check', 'paypal')) | Mode de paiement choisi : `transfer` (virement), `check` (chèque), `paypal`. Rien n'est encaissé en ligne |
+| payment_method | VARCHAR(20) | NOT NULL, CHECK (payment_method IN ('transfer', 'check')) | Mode de paiement choisi : `transfer` (virement) ou `check` (chèque). Rien n'est encaissé en ligne ; la carte bancaire et PayPal arriveront avec le paiement en ligne (évolution) |
 | buyer_firstname | VARCHAR(100) | NOT NULL | Prénom de l'acheteur **au moment de la commande**, copié depuis `account.firstname` |
 | buyer_lastname | VARCHAR(100) | NOT NULL | Nom de l'acheteur **au moment de la commande**, copié depuis `account.lastname` |
 | buyer_email | VARCHAR(255) | NOT NULL | Email de l'acheteur **au moment de la commande**, copié depuis `account.email` : destinataire des emails de la commande, même si le compte est supprimé |
