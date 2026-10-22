@@ -27,6 +27,8 @@
 - **Informations modifiables par le client** (US28) : tout (prénom, nom, adresse, email, type de compte, structure) sauf le rôle ; l'activation du compte reste gérée par l'admin.
 - **Durée du JWT** : 24 heures, puis le client se reconnecte.
 - **Envoi des emails** : Nodemailer côté API, via le serveur SMTP d'un prestataire (choix retenu).
+- **Sécurité de la connexion** : en MVP, mot de passe d'au moins 12 caractères et protection CSRF (cookie `SameSite=Lax` et requêtes JSON uniquement sur les routes qui modifient des données). La limitation des tentatives de connexion est classée en évolution.
+- **Serveur web** : Nginx, placé devant le front-end et l'API sur le VPS (HTTPS avec Certbot, aiguillage des requêtes `/api`).
 - **CGV** : classées en évolution (page `/cgv` et case à cocher sur la page de paiement).
 - **Rôle administrateur des ventes** : classé en évolution. Il gérera les commandes et le catalogue sans accès aux comptes ni à la partie technique ; l'administrateur actuel devient le super-administrateur. La table `role` permet de l'ajouter sans changer la structure de la base (US49, US55, US56).
 - **Évolutions ajoutées** : mot de passe oublié (US37), pagination des listes, envoi des photos (US48), retour automatique sur la fiche, panier enrichi.
@@ -35,7 +37,8 @@
 
 ### À poursuivre
 
-- Valider en équipe la sécurité de la connexion (limite de tentatives, longueur du mot de passe, protection CSRF).
+- **Fin du sprint 0** : Simulation de la présentation.
+- **Maquette et charte graphique** : Valider les maquettes finalisées.
 
 ## 2026-10-21 — Nom du projet, paiement, disponibilité, hébergement et vérification du modèle de données
 

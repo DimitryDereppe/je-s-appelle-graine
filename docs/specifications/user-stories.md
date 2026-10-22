@@ -33,7 +33,7 @@
 | US05 | Visiteur | être redirigé vers la page de connexion, avec un lien pour créer un compte si je n'en ai pas, quand je clique sur « Ajouter au panier » | comprendre qu'un compte est nécessaire pour remplir un panier | MVP |
 | US05b | Visiteur | accéder au panier après avoir créé un compte ou m'être connecté | poursuivre ma commande | MVP |
 | US06 | Visiteur | revenir automatiquement sur la fiche de l'arbre après mon inscription/connexion | reprendre mon achat là où je l'avais laissé | Évo |
-| US07 | Visiteur | créer un compte avec mon prénom, mon nom, mon email et mon mot de passe, choisir mon type de compte (particulier par défaut, association ou entreprise) et, si je choisis association ou entreprise, renseigner éventuellement le nom de ma structure | pouvoir acheter et suivre mes commandes avec un compte adapté à mon profil | MVP |
+| US07 | Visiteur | créer un compte avec mon prénom, mon nom, mon email et mon mot de passe (au moins 12 caractères), choisir mon type de compte (particulier par défaut, association ou entreprise) et, si je choisis association ou entreprise, renseigner éventuellement le nom de ma structure | pouvoir acheter et suivre mes commandes avec un compte adapté à mon profil | MVP |
 | US08 | Visiteur | consulter la page « Qui sommes-nous » | savoir qui est derrière Je s’appelle Graine et lui faire confiance | MVP |
 | US09 | Visiteur | consulter les mentions légales et la politique de confidentialité (RGPD) | savoir comment mes données sont utilisées | MVP |
 | US10 | Visiteur | voir les partenaires / associations soutenues | connaître les projets que je peux financer | Évo |
@@ -59,7 +59,7 @@
 | US26b | Client | annuler une commande tant qu'elle est en attente de paiement | annuler un achat que je ne souhaite plus faire | MVP |
 | US27 | Client | suivre le statut d'une commande (en attente, payée, plantée, annulée) | savoir où en est la plantation de mes arbres | MVP |
 | US28 | Client | modifier toutes mes informations (prénom, nom, adresse, email, type de compte, structure), sauf mon rôle | garder un compte à jour | MVP |
-| US29 | Client | changer mon mot de passe | sécuriser mon compte | MVP |
+| US29 | Client | changer mon mot de passe (au moins 12 caractères) | sécuriser mon compte | MVP |
 | US30 | Client | supprimer mon compte | exercer mon droit à l'effacement (RGPD) | MVP |
 | US31 | Client | choisir si j'achète un arbre proposé par Je s’appelle Graine ou par une association tierce | soutenir le projet qui me tient à cœur | Évo |
 | US32 | Client | payer en ligne par carte bancaire ou par PayPal via un service sécurisé (Stripe) | acheter en toute sécurité | Évo |

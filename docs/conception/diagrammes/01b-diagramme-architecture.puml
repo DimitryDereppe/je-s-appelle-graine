@@ -9,7 +9,7 @@ node "Appareil utilisateur" {
 }
 
 node "VPS O'Clock — conteneurs Docker (Docker Compose)" as vps {
-  rectangle "Serveur web\n(HTTPS)" as web
+  rectangle "Serveur web Nginx\n(HTTPS)" as web
   rectangle "Front-end\nNext.js / React (TypeScript)" as front
   node "API REST — Node.js / Express (TypeScript)" as api {
     rectangle "Routes et middlewares\n(validation, JWT, rôles)" as routes

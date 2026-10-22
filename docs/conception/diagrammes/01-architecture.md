@@ -8,7 +8,7 @@
 
 ## 1. Vue d'ensemble (environnement distant : le VPS)
 
-Toute l'application est hébergée sur un **VPS** (serveur privé virtuel fourni par O'Clock), chaque brique dans son conteneur Docker. Un serveur web placé devant reçoit toutes les requêtes HTTPS, envoie celles qui commencent par `/api` à l'API et les autres au front-end : le site et l'API partagent ainsi le même nom de domaine.
+Toute l'application est hébergée sur un **VPS** (serveur privé virtuel fourni par O'Clock), chaque brique dans son conteneur Docker. Un serveur web **Nginx** placé devant reçoit toutes les requêtes HTTPS, envoie celles qui commencent par `/api` à l'API et les autres au front-end : le site et l'API partagent ainsi le même nom de domaine.
 
 ```mermaid
 flowchart TB
@@ -19,7 +19,7 @@ flowchart TB
     end
 
     subgraph VPS["VPS — conteneurs Docker (Docker Compose)"]
-        W["Serveur web<br/>HTTPS, aiguillage des requêtes"]
+        W["Serveur web Nginx<br/>HTTPS, aiguillage des requêtes"]
         F["Front-end Next.js<br/>pages publiques, catalogue, panier,<br/>paiement, espace client, administration"]
         API["API REST Je s’appelle Graine<br/>Node.js + Express"]
         DB[("PostgreSQL<br/>comptes, arbres, paniers, commandes<br/>(volume de données sauvegardé)")]
@@ -66,7 +66,7 @@ flowchart TB
 
 ## 3. Environnement de développement
 
-En local, Docker Compose lance les mêmes conteneurs que sur le VPS, pour que tout le monde travaille avec la même configuration.
+En local, Docker Compose lance les mêmes conteneurs que sur le VPS (front-end, API, PostgreSQL), pour que tout le monde travaille avec la même configuration. Nginx n'est utile que sur le VPS : en local, le front-end appelle directement l'API.
 
 ```mermaid
 flowchart LR
@@ -87,7 +87,7 @@ flowchart LR
 
 | Brique | Technologie | Hébergement (distant) | En développement |
 | --- | --- | --- | --- |
-| Serveur web | À choisir | VPS (conteneur Docker) | — |
+| Serveur web | Nginx (HTTPS avec Certbot) | VPS (conteneur Docker) | — |
 | Front-end | Next.js / React (TypeScript) | VPS (conteneur Docker) | Conteneur Docker (Docker Compose) |
 | API REST | Node.js + Express (TypeScript) | VPS (conteneur Docker) | Conteneur Docker (Docker Compose) |
 | Base de données | PostgreSQL | VPS (conteneur Docker + volume sauvegardé) | Conteneur Docker (Docker Compose) |
@@ -97,5 +97,4 @@ flowchart LR
 
 ## Points à valider avec l'équipe
 
-- **Serveur web** (HTTPS, aiguillage `/api`) : à choisir.
 - **Sauvegardes de la base** : fréquence et lieu de stockage (hors du VPS).
