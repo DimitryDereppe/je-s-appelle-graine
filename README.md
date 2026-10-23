@@ -30,3 +30,16 @@ Les documents de conception du modèle se trouvent dans [`docs/conception/modele
 - [MLD](docs/conception/modele-de-donnees/06-mld.md)
 - [MPD](docs/conception/modele-de-donnees/07-mpd.md)
 - [Dictionnaire de données](docs/conception/modele-de-donnees/00-dictionnaire-de-donnees.md)
+
+### Prérequis
+
+Versions des dépendances : 
+
+| dependances | versions |
+| - | - |
+| Nodejs      | 24.22.1 ( LTS) |
+|Nextjs| 16.4.2(LTS)|
+|Typescript| 5.9.0|
+Argon2| 0.45.1 |
+Postgre| 18|
+|PG | 8.23.1 |
