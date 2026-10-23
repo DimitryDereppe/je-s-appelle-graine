@@ -1,5 +1,28 @@
 # Carnet de bord — Je s’appelle Graine
 
+## 2026-10-23 — Fin du sprint 0, organisation du sprint 1 et Kanban GitHub
+
+### Travail réalisé
+
+- Présentation de l'organisation des sprints et pitch du sprint 1 par Fabrice. Le backlog a été présenté rapidement : il sera relu en détail au sprint planning du lundi 26 octobre.
+- Derniers ajustement de la maquette (rajout de la « Politique de confidentialité » oublié).
+- Finalisation des slides pour la présentation par Loïc
+- **Présentation de fin du sprint 0 faite par Loïc et Shanna** : le sprint 0 (conception) est terminé.
+- Charte graphique, maquette complète et wireframes ajoutés au dépôt (`docs/design/`).
+
+### Décisions
+
+- **Organisation** : validée par l'équipe (rien n'est figé et fermé).
+- **Sessions communes du début du sprint 1** en Live Share : lundi après-midi l'API et la base (Dimitry guide), mardi matin Next.js et Husky (Loïc guide). Chacun passe au clavier à tour de rôle, celui qui guide commite et pousse.
+- **Dépôt GitHub renommé** : `apo-greenroots` devient `apo-jesappellegraine`, pour correspondre au nom du projet. Le Kanban suit le renommage ; GitHub redirige encore l'ancienne adresse.
+
+### À poursuivre
+
+- **Sprint planning du lundi 26 octobre** : objectif du sprint, matrice des binômes, Definition of Ready et Definition of Done, conventions front et back, relecture des cartes du sprint 1.
+- Accepter l'invitation au Kanban GitHub (chacun).
+- Mettre à jour l'adresse du dépôt sur sa machine (chacun) : `git remote set-url origin git@github.com:O-clock-Kyoto/apo-jesappellegraine.git`, ou recloner le dépôt.
+- Vérifications de chaque machine avant lundi (connexion au VPS, Git, clé SSH, Docker, Node.js) avec une checklist commune.
+
 ## 2026-10-22 — Relecture complète de la documentation et simplification du panier
 
 ### Travail réalisé
@@ -32,13 +55,13 @@
 - **CGV** : classées en évolution (page `/cgv` et case à cocher sur la page de paiement).
 - **Rôle administrateur des ventes** : classé en évolution. Il gérera les commandes et le catalogue sans accès aux comptes ni à la partie technique ; l'administrateur actuel devient le super-administrateur. La table `role` permet de l'ajouter sans changer la structure de la base (US49, US55, US56).
 - **Évolutions ajoutées** : mot de passe oublié (US37), pagination des listes, envoi des photos (US48), retour automatique sur la fiche, panier enrichi.
-- **Fin du sprint 0** : Préparation ensemble en cours, Loïc fera la présentation
-- **Maquette et charte graphique** : analyse avec l'équipe, modification en cours. Reste à valider la finalisation.
+- **Fin du sprint 0** : Préparation ensemble, Loïc et Shanna feront la présentation. Simulation faite, ajustée et validée.
+- **Maquette et charte graphique** : analyse avec l'équipe, ajustement et correction. Maquette finale validée.
 
 ### À poursuivre
 
-- **Fin du sprint 0** : Simulation de la présentation.
-- **Maquette et charte graphique** : Valider les maquettes finalisées.
+- **Fin du sprint 0** : Préparation de la présentation officielle..
+- **Vision sur le sprint 1** : réflexions à donner aux Tech Leads pour lundi, tests des environements de chacun via une checklist
 
 ## 2026-10-21 — Nom du projet, paiement, disponibilité, hébergement et vérification du modèle de données
 

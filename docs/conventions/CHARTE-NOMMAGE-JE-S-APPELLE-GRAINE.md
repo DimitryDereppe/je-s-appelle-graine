@@ -131,8 +131,10 @@ docs: rédiger la charte de nommage Je s’appelle Graine
 ## Documents du projet
 
 - Utiliser des noms explicites et stables pour les documents de référence.
-- Nommer le carnet de bord `CARNET-DE-BORD-JE-S-APPELLE-GRAINE.md`.
-- Ajouter les nouvelles entrées du carnet en tête du fichier, en ordre anti-chronologique, sans créer plusieurs entrées pour une même date.
+- Nommer le carnet de bord de l’équipe `CARNET-DE-BORD-JE-S-APPELLE-GRAINE.md`. Il est tenu à jour par le Scrum Master.
+- Chaque membre tient aussi son carnet de bord personnel, à la racine du dépôt, nommé `CARNET-DE-BORD-<PRÉNOM>.md` (prénom en majuscules, sans accent : `CARNET-DE-BORD-LOIC.md`). Chacun ne modifie que le sien.
+- Dans un carnet personnel, chaque entrée reprend les rubriques « Travail réalisé », « Décisions (prises avec l’équipe) » et « À poursuivre » ; une rubrique « Ce que j’ai appris » peut s’y ajouter.
+- Ajouter les nouvelles entrées des carnets en tête du fichier, en ordre anti-chronologique, sans créer plusieurs entrées pour une même date.
 
 ## Application de la charte
 
