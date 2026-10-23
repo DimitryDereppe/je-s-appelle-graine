@@ -2,6 +2,34 @@
 
 Suivi de mon travail sur Je s’appelle Graine. Les décisions notées ici ont été prises avec l'équipe sur Discord ; le suivi de l'équipe est dans le [[Apothéose/apo-greenroots/CARNET-DE-BORD-JE-S-APPELLE-GRAINE|carnet de bord Je s’appelle Graine]].
 
+## 2026-10-23 — Versions communes et scripts SQL
+
+### Travail réalisé
+
+- **Scripts SQL de la base**, préparés pour la session de lundi (étape 4) :
+  - `01-schema.sql` : l'extension `unaccent` et les 8 tables, avec leurs contraintes ;
+  - `02-seed.sql` : les rôles, les catégories, les disponibilités, 21 arbres (dont un retiré et un épuisé, pour les tests de l'accueil) et le premier compte admin (mot de passe haché en Argon2).
+- Les deux scripts ont été testés sur PostgreSQL 18 dans Docker : tables, données, contraintes et suppressions.
+
+### Décisions (prises avec Loïc)
+
+| Outil | Version retenue |
+| --- | --- |
+| Node.js | **24 LTS** |
+| PostgreSQL | **18** |
+| pg (client PostgreSQL pour Node.js) | **8.23** |
+| TypeScript | **5** |
+| Next.js | **16** |
+
+- La même version de Node.js pour tout le monde : elle sera notée dans le README (partie « Prérequis ») et utilisée dans les Dockerfiles de l'API et du front.
+- PostgreSQL 18 : dans `docker-compose.yml`, le volume se monte sur `/var/lib/postgresql` (et non plus sur `/var/lib/postgresql/data`).
+
+### À poursuivre
+
+- Annoncer les versions dans le canal de l'équipe (la case Node.js de la checklist en dépend).
+- Faire relire les scripts SQL par Mahamadou avant lundi.
+- Décider lundi du chemin des photos (`/images/trees/`) et l'annoncer.
+
 ## 2026-10-21 — Lieu de plantation et compte actif
 
 ### Travail réalisé
