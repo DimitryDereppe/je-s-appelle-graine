@@ -7,7 +7,7 @@ Je s’appelle Graine est un projet de plateforme e-commerce autour de la refore
 ### Suivi du projet
 
 - [Carnet de bord de l’équipe](CARNET-DE-BORD-JE-S-APPELLE-GRAINE.md)
-- Carnets de bord personnels : [Dimitry](CARNET-DE-BORD-DIMITRY.md), [Fabrice](CARNET-DE-BORD-FABRICE.md)
+- Carnets de bord personnels : [Dimitry](CARNET-DE-BORD-DIMITRY.md), [Fabrice](CARNET-DE-BORD-FABRICE.md), [Loïc](CARNET-DE-BORD-LOIC.md)
 
 ### Cadrage du projet
 
