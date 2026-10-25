@@ -51,6 +51,7 @@
 | US22 | Client | voir le détail de mon panier (arbres, quantités, prix unitaire, total) | vérifier ma commande avant de payer | MVP |
 | US23 | Client | modifier la quantité d'un arbre ou le retirer du panier | ajuster ma commande | MVP |
 | US23b | Client | choisir la quantité d'un arbre sur sa fiche (1 par défaut) avant de l'ajouter au panier | acheter plusieurs arbres identiques en une seule fois | MVP |
+| US23c | Client | ajouter un arbre au panier directement depuis sa vignette (accueil, catalogue), en quantité 1 | ajouter rapidement un arbre sans ouvrir sa fiche, puis ajuster la quantité dans le panier | MVP |
 | US24 | Client | choisir mon mode de paiement (virement ou chèque) et m'engager à payer sous 10 jours avant de confirmer ma commande | passer commande et régler par le moyen qui me convient | MVP |
 | US25 | Client | recevoir un email de confirmation avec la référence de ma commande et les instructions de paiement | être sûr que ma commande a bien été prise en compte | MVP |
 | US25b | Client | recevoir un email quand mon paiement a été reçu | savoir que ma commande est validée | MVP |
