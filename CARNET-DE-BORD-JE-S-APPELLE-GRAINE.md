@@ -5,7 +5,7 @@
 ### Travail réalisé
 
 - Présentation de l'organisation des sprints et pitch du sprint 1 par Fabrice. Le backlog a été présenté rapidement : il sera relu en détail au sprint planning du lundi 26 octobre.
-- Derniers ajustement de la maquette (rajout de la « Politique de confidentialité » oublié).
+- Derniers ajustements de la maquette.
 - Finalisation des slides pour la présentation par Loïc
 - **Présentation de fin du sprint 0 faite par Loïc et Shanna** : le sprint 0 (conception) est terminé.
 - Charte graphique, maquette complète et wireframes ajoutés au dépôt (`docs/design/`).
