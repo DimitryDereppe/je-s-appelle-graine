@@ -1,0 +1,52 @@
+services:
+
+  # On crée le service rattaché au conteneur "bdd"
+  bdd:
+    # On défini l'image qui sera utilisée
+    image: postgres:18-alpine
+
+    # On défini les variables d'environnement pour créer la BDD
+    # CF: https://hub.docker.com/_/postgres
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_DB: ${POSTGRES_DB}
+
+    healthcheck:
+      # pour être sûr que la BDD est bien opérationnelle
+      test: [ "CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+    # On bind le port 5433 sur le 5432 du conteneur
+    ports:
+      - ${POSTGRES_PORT}:5432
+
+    restart: unless-stopped # Permet de redémarrer le conteneur même en cas de crash
+
+    volumes:
+      # Depuis PostgreSQL 18, le volume se monte sur /var/lib/postgresql (et non plus .../data)
+      - db-data:/var/lib/postgresql
+      # Exécutés une seule fois, au premier démarrage, dans l'ordre de leur nom.
+      # Aussi relus par "npm run db:reset". On monte les fichiers un par un :
+      # PostgreSQL exécuterait tout .sh ou .sql présent dans un dossier monté.
+      - ./api/data/01-schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
+      - ./api/data/02-seed.sql:/docker-entrypoint-initdb.d/02-seed.sql
+    # Adminer est une interface pour gérer notre base de donnée
+  adminer:
+    # On récupère l'image d'adminer
+    image: adminer
+    restart: unless-stopped # Permet de redémarrer le conteneur même en cas de crash
+
+    # Permet de binder les ports
+    ports:
+      - ${ADMINER_PORT}:8080
+
+    # Dit que adminer a besoin que la BDD soit lancé avant de lancer le conteneur adminer
+    depends_on:
+      - bdd
+
+volumes:
+  db-data:
+  api-node-modules:

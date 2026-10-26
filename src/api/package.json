@@ -14,7 +14,8 @@
     "typecheck": "tsc --noEmit",
     "db:up": "docker compose up -d --wait db",
     "db:reset": "docker compose exec -T db sh -c 'psql -q -v ON_ERROR_STOP=1 -U \"$POSTGRES_USER\" -d \"$POSTGRES_DB\" -c \"SET client_min_messages TO warning\" -c \"DROP SCHEMA public CASCADE\" -c \"CREATE SCHEMA public\" -f /docker-entrypoint-initdb.d/01-schema.sql -f /docker-entrypoint-initdb.d/02-seed.sql && echo Base remise à zéro.'",
-    "db:psql": "docker compose exec db sh -c 'psql -U \"$POSTGRES_USER\" -d \"$POSTGRES_DB\"'"
+    "db:seed": "docker compose exec -T db sh -c 'psql -q -v ON_ERROR_STOP=1 -U \"$POSTGRES_USER\" -d \"$POSTGRES_DB\" -c \"SET client_min_messages TO warning\" -c \"TRUNCATE role, category, availability, account, tree, cart_item, purchase, purchase_line RESTART IDENTITY CASCADE\" -f - && echo Données de test réinsérées.' < data/02-seed.sql",
+    "db:psql":"docker compose exec db sh -c 'psql -U \"$POSTGRES_USER\" -d \"$POSTGRES_DB\"'"
   },
   "keywords": [],
   "type": "module",
