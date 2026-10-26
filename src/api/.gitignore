@@ -1,4 +1,11 @@
-// Fichier pour les variables d'environnement
+# Variables d'environnement (secrets)
 .env
 
+# Configuration locale de Claude Code
 .claude/
+
+# Dépendances (recréées par npm install)
+node_modules/
+
+# Résultat de la compilation TypeScript (npm run build)
+dist/

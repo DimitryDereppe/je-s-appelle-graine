@@ -1,4 +1,4 @@
 .claude/
 
-// Fichier pour les variables d'environnement
+# Variables d'environnement (secrets)
 .env

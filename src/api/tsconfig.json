@@ -17,7 +17,8 @@
     "declarationMap": true,
     "forceConsistentCasingInFileNames": true
   },
-  "include": ["./*/.ts"],
+  // Tous les fichiers .ts, dans ce dossier et tous ses sous-dossiers
+  "include": ["**/*.ts"],
   // Ne pas compiler les dépendances ni le résultat déjà compilé
   "exclude": ["node_modules", "dist"]
 }
