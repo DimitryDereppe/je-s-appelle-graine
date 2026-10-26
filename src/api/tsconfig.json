@@ -15,10 +15,10 @@
     "sourceMap": true,
     "declaration": true,
     "declarationMap": true,
-    "forceConsistentCasingInFileNames": true
+    "forceConsistentCasingInFileNames": true,
+    "types": ["node"]
   },
-  // Tous les fichiers .ts, dans ce dossier et tous ses sous-dossiers
-  "include": ["**/*.ts"],
+  
   // Ne pas compiler les dépendances ni le résultat déjà compilé
   "exclude": ["node_modules", "dist"]
 }
