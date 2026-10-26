@@ -1,0 +1,4 @@
+.claude/
+
+// Fichier pour les variables d'environnement
+.env
