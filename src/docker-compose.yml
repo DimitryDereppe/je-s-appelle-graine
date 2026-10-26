@@ -14,13 +14,13 @@ services:
 
     healthcheck:
       # pour être sûr que la BDD est bien opérationnelle
-      test: [ "CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB" ]
+      test: [ "CMD-SHELL", "pg_isready", -U $$POSTGRES_USER -d $$POSTGRES_DB" ]
       interval: 5s
       timeout: 5s
       retries: 5
       # Délai de grâce au démarrage : les échecs pendant ce temps ne comptent pas.
       # Sur un volume neuf, la création de la base + schéma + seed prend ~30 s à 1 min.
-      start_period: 90s
+      start_period: 30s
 
     # On bind le port 5433 sur le 5432 du conteneur
     ports:
