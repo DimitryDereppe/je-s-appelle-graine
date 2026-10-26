@@ -44,7 +44,7 @@ Versions des dépendances :
 | - | - |
 | Nodejs      | 24.22.1 ( LTS) |
 |Nextjs| 16.4.2(LTS)|
-|Typescript| 5.9.0|
+|Typescript| 5.9.3|
 Argon2| 0.45.1 |
 Postgre| 18|
 |PG | 8.23.1 |
