@@ -1,5 +1,5 @@
 import express from "express";
-import { router as apiRouter } from "./routers/index.router.ts";
+import { router as apiRouter } from "./routers/index.router.ts"
 import cors from "cors";
 
 export const app = express();
