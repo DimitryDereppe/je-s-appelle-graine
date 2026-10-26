@@ -1,0 +1,57 @@
+# Carnet de bord — Loïc (Lead dev front)
+
+## 21/10/2026 - Sprint 0
+
+### Contexte :
+
+En raison d'un magnifique évènement familial de 3,5kgs, je suis arrivé ce jour dans le projet qui a débuté depuis deux jours. Ma première tâche a été de parcourir les documents qui m'avaient été envoyés par les membres de mon équipe. Dans un second temps, j'ai pu échanger avec eux lors du rendez-vous quotidien de 9h.
+
+### Action du jour :
+
+<ul>
+    <li> Echange avec la tutrice du projet et prise en compte de son retour sur les documents de conception. Changements notables :
+        <ul> 
+            <li>Changement du nom de projet. "Green Roots" devient "Je suis Graine" sur une proposition de Dimitry validée collectivement.</li>
+            <li>Dans le MCD : suppression de "panier" comme entité, création d'une table "disponibilité" pour l'entité "arbre", le lieu de plantation de l'arbre devient un attribut de l'entité arbre.</li>
+            <li>Inclus dans le MVP : suivi du statut des commandes par le client, deux modes de paiement (chèque et virement) </li>
+            <li>L'application sera hébergée sur le serveur VPS o'clock mis à la disposition des élèves.</li>
+        </ul>
+    </li>
+    <li>Création des wireframes. Un wireframe par membre du groupe (mobile et desktop). Réunion pour décider des éléments UX à conserver et à écarter.</li>
+</ul>
+
+## 22/10/2026 - Sprint 0
+
+### Contexte :
+
+Je me suis porté volontaire pour faire la première présentation des avancées de notre projet qui doit intervenir le 23/10. Cela me permet de parcourir à nouveau l'intégralité des documents de conception.
+
+### Actions du jour :
+
+<ul>
+    <li>Décisions collectives sur l'évolution du MVP et des évolutions. Changements notables :
+        <ul>
+         <li>Choix de Typescript pour le front et l'API</li>
+         <li>Envoi d'un email de confirmation par Nodemailer</li>
+         <li>Choix de l'architecture du projet avec Nginx</li>
+         <li>Validation collective de la page d'accueil</li>
+        </ul>
+        </li>
+    <li>Préparation de la présentation de fin de sprint du 23/10. </li>
+    <li>Validation de la charte graphique proposée par Shanna</li>
+</ul>
+
+## 23/10/2026 - Sprint 0
+
+### Contexte :
+
+Lors du point matinal, Fabrice nous a proposé un planning devant servir à organiser la prochaine semaine en nous répartissant nos tâches à accomplir. Le planning a été validé. Ma première activité du matin se fait conjointement avec Dimitry. Nous relevons les meilleures compatibilités entre les dépendances et les versions à installer. 
+
+### Actions du jour :
+
+<ul>
+    <li>Listing des versions à installer</li>
+    <li>Validation collective de la maquette graphique</li>
+    <li>Présentation de fin de sprint</li>
+    <li>Checklist du materiel pour lancement du développement le 26/10</li>
+</ul>
