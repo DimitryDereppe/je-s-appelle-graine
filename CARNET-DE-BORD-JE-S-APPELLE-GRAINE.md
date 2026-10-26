@@ -1,5 +1,51 @@
 # Carnet de bord — Je s’appelle Graine
 
+## 2026-10-26 — Sprint planning du sprint 1 et initialisation du back
+
+### Déroulement prévu
+
+- **Matin : sprint planning** animé par Fabrice : objectif du sprint, matrice de roulement, Definition of Ready et Definition of Done, règles de PR, conventions front et back, relecture des cartes du sprint 1 (#11 à #38), confirmation des groupes du sprint.
+- **Après-midi : initialisation du back** en session commune Live Share sur la machine de Dimitry (cartes #11, #12 et #13).
+  - Rôles : Dimitry guide et commite à la fin de chaque étape (avec `Co-authored-by` pour celui qui était au clavier), un conducteur tournant au clavier, les autres relisent. Fabrice prend les notes qui serviront au README, Shanna garde le temps (plus de 20 minutes bloqués sur une étape : on note et on avance).
+  - Étapes et relais au clavier, dans l'ordre :
+
+    | Étape | Au clavier |
+    | --- | --- |
+    | 1. Branche, arborescence et fichiers de base (`.env.example`, `.gitignore`, `docker-compose.yml`) | Dimitry |
+    | 2. Initialiser le projet Node.js de l'API en TypeScript | Dimitry |
+    | 3. Express et la route `/api/health`, lancée en local | Mahamadou |
+    | 4. PostgreSQL dans Docker Compose, scripts SQL et données de départ ; 5. vérifier la base (8 tables) | Fabrice |
+    | 6. L'API dans Docker | Loïc |
+    | 7. Première route qui lit la base `/api/` pour récupérer tous les arbres | Shanna |
+
+- **Mardi** : initialisation du front (Next.js, le front dans Docker, redirection de `/api`, Husky) guidée par Loïc, puis chacun installe le projet sur sa machine et la PR de la base commune est relue par les deux leads. Feu vert ensuite pour que chacun commence ses cartes.
+
+### Travail réalisé
+
+- **Sprint planning** : planning du sprint 1 présenté, démo du Kanban, objectif du sprint publié sur le Kanban, Definition of Ready et Definition of Done présentées, cartes du sprint 1 relues.
+- Carte #16 : issue « Suivi du développement » ouverte dans le dépôt des formateurs (`Projects-CDA`).
+- **Initialisation du back** faite en session commune, étapes 1 à 7 (PR #50 fusionnée) :
+  - `src/docker-compose.yml` avec les services `db` (PostgreSQL 18, healthcheck), `adminer` et `api` ; `01-schema.sql` et `02-seed.sql` joués au premier démarrage de la base ;
+  - scripts npm `db:up`, `db:reset`, `db:seed` et `db:psql` (documentés dans `src/api/README.md`) ;
+  - Dockerfile de l'API, rechargement automatique du code (`tsx watch`) et volume dédié à `node_modules` ;
+  - route `GET /api/health` et première route qui lit la base (`GET /api/`, liste des arbres).
+- Début de la rédaction du guide d'installation par Fabrice (`INSTALLATION.md`, branche `docs/installation`).
+
+### Décisions
+
+- **Groupes de travail du sprint 1** validés, en pair programming (un clavier pour le groupe, on change souvent de conducteur) :
+  - **trinôme du back** : Dimitry, Fabrice et Mahamadou : socle de l'API, route de l'accueil (`GET /api/trees/featured`), outil de test et tests, README, procédure de déploiement ;
+  - **binôme du front** : Loïc et Shanna : pages statiques, socle du front (mise en page, styles de la charte), fonction commune d'appel à l'API, page d'accueil branchée sur l'API.
+- Le **contrat d'API de l'accueil** relie les deux groupes : le trinôme sait quoi renvoyer, le binôme sait quoi afficher, et chacun avance sans attendre l'autre.
+- Sur le Kanban, chaque carte garde **un seul responsable**, même quand le groupe y travaille ensemble. Les groupes changent à chaque sprint.
+
+### À poursuivre
+
+- Mardi matin : initialisation du front guidée par Loïc, puis installation du projet sur chaque machine.
+- Relire le guide d'installation ; chacun le teste Mercredi en réinstallant le projet de zéro.
+- Compléter `src/.env.docker.example` (`NODE_ENV`, `API_PORT`, `DATABASE_URL`).
+- Remplacer la route de test `GET /api/` par les vraies routes (`/api/trees`…) ; supprimer les fichiers en double (`api/data/` et `api/src/data/`, images dans `api/public/public/` et `api/src/public/`) ; renommer le `WORKDIR` `/src/app.ts` en `/app`.
+
 ## 2026-10-23 — Fin du sprint 0, organisation du sprint 1 et Kanban GitHub
 
 ### Travail réalisé
