@@ -2,7 +2,7 @@
 
 Suivi de mon travail sur Je s’appelle Graine. Les décisions notées ici ont été prises avec l'équipe sur Discord ; le suivi de l'équipe est dans le [[Apothéose/apo-greenroots/CARNET-DE-BORD-JE-S-APPELLE-GRAINE|carnet de bord Je s’appelle Graine]].
 
-## 2026-10-26 — API dans Docker : démarrage et rechargement automatique
+## 2026-10-26 — API dans Docker : démarrage, rechargement automatique et première requête
 
 ### Travail réalisé
 
@@ -12,6 +12,9 @@ Suivi de mon travail sur Je s’appelle Graine. Les décisions notées ici ont �
   - `depends_on` avec `condition: service_healthy` : l'API attend que `pg_isready` réponde.
 - **`src/api/.dockerignore`** complété (`dist`, `node_modules`, `.env*`, tests, README...).
 - **Script `docker:start`** ajouté dans `package.json` (le `CMD` du Dockerfile) : il lance le code compilé et reste prévu pour la prod.
+- **Première requête vers la base depuis l'API** :
+  - `src/api/src/data/db-client.ts` crée un client `pg` à partir de `DATABASE_URL` et se connecte au démarrage ;
+  - route de test `GET /api/` dans `index.router.ts` : elle exécute `SELECT * FROM tree;` et renvoie les lignes en JSON.
 
 ### Difficultés
 
@@ -22,7 +25,9 @@ Suivi de mon travail sur Je s’appelle Graine. Les décisions notées ici ont �
 
 ### À poursuivre
 
-- ~~`start_period` dans le healthcheck de `db`~~ → fait : sur un volume neuf, `up -d` donnait `dependency failed to start: container src-db-1 is unhealthy` (initialisation d'environ 30 s, alors que le healthcheck abandonne au bout d'environ 25 s) → `start_period: 90s`. Pas encore retesté sur un volume neuf (`down -v`).
+- ~~`start_period` dans le healthcheck de `db`~~ → fait : sur un volume neuf, `up -d` donnait `dependency failed to start: container src-db-1 is unhealthy` (initialisation d'environ 30 s, alors que le healthcheck abandonne au bout d'environ 25 s) → `start_period: 90s`, puis ramené à `30s` (commit `cd42e85`). Pas encore retesté sur un volume neuf (`down -v`) : avec 30 s, la marge est faible si l'initialisation dure près d'une minute.
+- ~~**Ligne `test:` du healthcheck à vérifier**~~ → corrigé : guillemet remis après `$$POSTGRES_DB`, la commande redevient un seul élément (`"pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"`, vérifié avec `docker compose config`). Elle avait été modifiée dans le même commit : `[ "CMD-SHELL", "pg_isready", -U $$POSTGRES_USER -d $$POSTGRES_DB" ]`. Les guillemets ne sont plus appariés et `docker compose config` y lit 3 éléments au lieu d'un seul. Avec `CMD-SHELL`, seul le 2ᵉ élément est exécuté : `pg_isready` tourne sans `-U` ni `-d`.
+- Route de test `GET /api/` : à remplacer par les vraies routes (`/api/trees`...) et retirer le `console.log`.
 - Après ajout d'une dépendance npm : `docker volume rm src_api-node-modules`, puis `up -d --build`.
 - Renommer le `WORKDIR` `/src/app.ts` en `/app` (et le bind mount avec).
 
