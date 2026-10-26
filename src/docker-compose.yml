@@ -18,6 +18,9 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+      # Délai de grâce au démarrage : les échecs pendant ce temps ne comptent pas.
+      # Sur un volume neuf, la création de la base + schéma + seed prend ~30 s à 1 min.
+      start_period: 90s
 
     # On bind le port 5433 sur le 5432 du conteneur
     ports:
@@ -56,13 +59,33 @@ services:
     restart: unless-stopped # Redémarre automatiquement mon service en cas de crash (sauf si je l'ai éteint manuellement)
     environment:
       NODE_ENV: ${NODE_ENV}
-      PORT: 4000
+      PORT: ${API_PORT}
       DATABASE_URL: ${DATABASE_URL} # On lit directement dans le conteneur (database) puisqu'on est sur le meme network = le port 5432 j'ai accès depuis cet autre conteneur
+    ports:
+      - ${API_PORT}:4000
+
+    # --- Mode développement : rechargement automatique à chaque sauvegarde ---
+    volumes:
+      # Bind mount : le dossier ./api de ma machine est "branché" dans le conteneur
+      # (dans le WORKDIR du Dockerfile). Une modif dans VS Code y est visible aussitôt.
+      - ./api:/src/app.ts
+      # Volume nommé par-dessus node_modules : sans lui, le node_modules de ma machine
+      # recouvrirait celui installé dans l'image par "npm install" (Linux Alpine).
+      # Après un ajout de dépendance : docker volume rm src_api-node-modules puis --build.
+      - api-node-modules:/src/app.ts/node_modules
+    # Remplace le CMD du Dockerfile (qui garde "docker:start", le code compilé, pour la prod) :
+    # "tsx watch" relance l'API à chaque modification d'un fichier.
+    command: ["npm", "run", "dev"]
+
     depends_on:
-      - db
+      db:
+        # Attend que le healthcheck de la BDD soit vert (pg_isready), pas seulement
+        # que le conteneur soit démarré : évite "the database system is starting up".
+        condition: service_healthy
 
 
 
 volumes:
   db-data:
   api-node-modules:
+ 

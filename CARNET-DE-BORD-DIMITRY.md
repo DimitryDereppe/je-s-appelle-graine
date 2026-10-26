@@ -2,6 +2,30 @@
 
 Suivi de mon travail sur Je s’appelle Graine. Les décisions notées ici ont été prises avec l'équipe sur Discord ; le suivi de l'équipe est dans le [[Apothéose/apo-greenroots/CARNET-DE-BORD-JE-S-APPELLE-GRAINE|carnet de bord Je s’appelle Graine]].
 
+## 2026-10-26 — API dans Docker : démarrage et rechargement automatique
+
+### Travail réalisé
+
+- **Service `api` du compose** (`src/docker-compose.yml`), en mode développement :
+  - bind mount `./api:/src/app.ts` (le `WORKDIR` du Dockerfile) et `command: ["npm", "run", "dev"]` : `tsx watch` relance l'API à chaque sauvegarde, sans `--build` (testé : `[tsx] change in ./src/app.ts Restarting...` puis `Server ready`) ;
+  - volume nommé `api-node-modules` monté sur `node_modules`, pour que le `node_modules` de la machine ne recouvre pas celui de l'image ;
+  - `depends_on` avec `condition: service_healthy` : l'API attend que `pg_isready` réponde.
+- **`src/api/.dockerignore`** complété (`dist`, `node_modules`, `.env*`, tests, README...).
+- **Script `docker:start`** ajouté dans `package.json` (le `CMD` du Dockerfile) : il lance le code compilé et reste prévu pour la prod.
+
+### Difficultés
+
+- **Conteneur `src-api` en `Restarting (1)` et rien sur `localhost:4000`** → `npm error Missing script: "docker:start"` : le `CMD` appelait un script absent de `package.json` → script ajouté.
+- **API plantée au premier lancement** avec `the database system is starting up` (code `57P03`) → `depends_on: - db` attend que le conteneur soit démarré, pas que PostgreSQL soit prêt → `condition: service_healthy`.
+- **`npm install` en échec pendant le build (`EJSONPARSE`)** → `package.json` cassé lors d'une modification : accolades de `scripts` et `allowScripts` mal fermées, `dotenv` et `@types/cors` retirés alors qu'ils sont encore importés, `db:seed` supprimé et scripts `db:*` privés de `-f ../docker-compose.yml --env-file ../.env.docker` (sans eux, Compose lit `api/.env`, où il n'y a pas les ports) → fichier rétabli sur la version du dernier commit, plus `docker:start`.
+- **`localhost:4000/` répond 404** → normal : toutes les routes sont sous `/api`.
+
+### À poursuivre
+
+- ~~`start_period` dans le healthcheck de `db`~~ → fait : sur un volume neuf, `up -d` donnait `dependency failed to start: container src-db-1 is unhealthy` (initialisation d'environ 30 s, alors que le healthcheck abandonne au bout d'environ 25 s) → `start_period: 90s`. Pas encore retesté sur un volume neuf (`down -v`).
+- Après ajout d'une dépendance npm : `docker volume rm src_api-node-modules`, puis `up -d --build`.
+- Renommer le `WORKDIR` `/src/app.ts` en `/app` (et le bind mount avec).
+
 ## 2026-10-26 — Base de données dans Docker et scripts npm
 
 Travail fait en groupe.
