@@ -20,6 +20,17 @@ Ils passent tous par Docker Compose : la base PostgreSQL tourne dans le service 
 
   `ON_ERROR_STOP=1` arrête tout à la première erreur SQL ; `client_min_messages TO warning`
   masque les messages « NOTICE » du `CASCADE`. ⚠️ Toutes les données sont effacées.
+- `npm run db:seed` : remet les **données de test** à leur état de départ, sans
+  toucher à la structure des tables (plus léger que `db:reset`) :
+  1. vide toutes les tables (`TRUNCATE ... CASCADE`) et remet leurs compteurs d'id
+     à 1 (`RESTART IDENTITY`) : les id cités dans `02-seed.sql` restent justes ;
+  2. réinsère `data/02-seed.sql`. Le fichier est envoyé depuis ta machine dans
+     l'entrée de `psql` (`< data/02-seed.sql` côté npm, `-f -` côté psql =
+     « lis le SQL sur l'entrée standard ») : pas besoin qu'il soit monté dans le conteneur.
+
+  On peut le relancer autant de fois qu'on veut : jamais de doublons. ⚠️ Les comptes,
+  paniers et commandes créés à la main pendant les tests sont effacés.
+  Prérequis : les tables existent déjà (`01-schema.sql` a été joué).
 - `npm run db:psql` : ouvre une console `psql` interactive dans le conteneur
   (pour tester une requête à la main ; `\q` pour quitter).
 

@@ -1,0 +1,11 @@
+.claude/
+
+# Variables d'environnement (secrets)
+.env*
+!.env.docker.example
+
+# Dépendances (recréées par npm install)
+node_modules/
+
+# Résultat de la compilation TypeScript (npm run build)
+dist/

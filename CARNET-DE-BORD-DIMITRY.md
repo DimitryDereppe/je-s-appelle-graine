@@ -2,6 +2,94 @@
 
 Suivi de mon travail sur Je s’appelle Graine. Les décisions notées ici ont été prises avec l'équipe sur Discord ; le suivi de l'équipe est dans le [[Apothéose/apo-greenroots/CARNET-DE-BORD-JE-S-APPELLE-GRAINE|carnet de bord Je s’appelle Graine]].
 
+## 2026-10-26 — API dans Docker : démarrage, rechargement automatique et première requête
+
+### Travail réalisé
+
+- **Service `api` du compose** (`src/docker-compose.yml`), en mode développement :
+  - bind mount `./api:/src/app.ts` (le `WORKDIR` du Dockerfile) et `command: ["npm", "run", "dev"]` : `tsx watch` relance l'API à chaque sauvegarde, sans `--build` (testé : `[tsx] change in ./src/app.ts Restarting...` puis `Server ready`) ;
+  - volume nommé `api-node-modules` monté sur `node_modules`, pour que le `node_modules` de la machine ne recouvre pas celui de l'image ;
+  - `depends_on` avec `condition: service_healthy` : l'API attend que `pg_isready` réponde.
+- **`src/api/.dockerignore`** complété (`dist`, `node_modules`, `.env*`, tests, README...).
+- **Script `docker:start`** ajouté dans `package.json` (le `CMD` du Dockerfile) : il lance le code compilé et reste prévu pour la prod.
+- **Première requête vers la base depuis l'API** :
+  - `src/api/src/data/db-client.ts` crée un client `pg` à partir de `DATABASE_URL` et se connecte au démarrage ;
+  - route de test `GET /api/` dans `index.router.ts` : elle exécute `SELECT * FROM tree;` et renvoie les lignes en JSON.
+
+### Difficultés
+
+- **Conteneur `src-api` en `Restarting (1)` et rien sur `localhost:4000`** → `npm error Missing script: "docker:start"` : le `CMD` appelait un script absent de `package.json` → script ajouté.
+- **API plantée au premier lancement** avec `the database system is starting up` (code `57P03`) → `depends_on: - db` attend que le conteneur soit démarré, pas que PostgreSQL soit prêt → `condition: service_healthy`.
+- **`npm install` en échec pendant le build (`EJSONPARSE`)** → `package.json` cassé lors d'une modification : accolades de `scripts` et `allowScripts` mal fermées, `dotenv` et `@types/cors` retirés alors qu'ils sont encore importés, `db:seed` supprimé et scripts `db:*` privés de `-f ../docker-compose.yml --env-file ../.env.docker` (sans eux, Compose lit `api/.env`, où il n'y a pas les ports) → fichier rétabli sur la version du dernier commit, plus `docker:start`.
+- **`localhost:4000/` répond 404** → normal : toutes les routes sont sous `/api`.
+
+### À poursuivre
+
+- ~~`start_period` dans le healthcheck de `db`~~ → fait : sur un volume neuf, `up -d` donnait `dependency failed to start: container src-db-1 is unhealthy` (initialisation d'environ 30 s, alors que le healthcheck abandonne au bout d'environ 25 s) → `start_period: 90s`, puis ramené à `30s` (commit `cd42e85`). Pas encore retesté sur un volume neuf (`down -v`) : avec 30 s, la marge est faible si l'initialisation dure près d'une minute.
+- ~~**Ligne `test:` du healthcheck à vérifier**~~ → corrigé : guillemet remis après `$$POSTGRES_DB`, la commande redevient un seul élément (`"pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"`, vérifié avec `docker compose config`). Elle avait été modifiée dans le même commit : `[ "CMD-SHELL", "pg_isready", -U $$POSTGRES_USER -d $$POSTGRES_DB" ]`. Les guillemets ne sont plus appariés et `docker compose config` y lit 3 éléments au lieu d'un seul. Avec `CMD-SHELL`, seul le 2ᵉ élément est exécuté : `pg_isready` tourne sans `-U` ni `-d`.
+- Route de test `GET /api/` : à remplacer par les vraies routes (`/api/trees`...) et retirer le `console.log`.
+- Après ajout d'une dépendance npm : `docker volume rm src_api-node-modules`, puis `up -d --build`.
+- Renommer le `WORKDIR` `/src/app.ts` en `/app` (et le bind mount avec).
+
+## 2026-10-26 — Base de données dans Docker et scripts npm
+
+Travail fait en groupe.
+
+### Travail réalisé
+
+- **`docker-compose.yml`** (dans `src/`) : un service `bdd` (PostgreSQL 18, avec healthcheck) et un service `adminer`. `01-schema.sql` et `02-seed.sql` sont montés dans `/docker-entrypoint-initdb.d/` : PostgreSQL les exécute tout seul à la création de la base.
+- **Scripts npm de la base** dans `src/api/package.json`, documentés dans le README de l'API :
+  - `db:up` : démarre la base et attend qu'elle soit prête ;
+  - `db:reset` : supprime tout, puis rejoue le schéma et le seed ;
+  - `db:seed` : vide les tables (`TRUNCATE ... RESTART IDENTITY CASCADE`) et réinsère `data/02-seed.sql`, envoyé depuis la machine sur l'entrée de `psql`. Il ne touche pas aux tables elles-mêmes et peut être relancé sans créer de doublons (testé deux fois de suite sur une base jetable : 2 rôles, 10 comptes, 21 arbres) ;
+  - `db:psql` : ouvre une console `psql` dans le conteneur.
+- La base démarre maintenant correctement : conteneur `bdd` « healthy », 8 tables créées.
+
+### Difficultés
+
+- **`services.volumes.db-data false schema`** → `volumes:` était indenté de 2 espaces : Compose le lisait comme un 3ᵉ service → remis en colonne 0, au même niveau que `services:`.
+- **Base démarrée sans aucune table** → les montages pointaient vers `./01-schema.sql`, un fichier qui n'existait pas dans `src/`. Docker a alors créé à la place deux **dossiers vides appartenant à root** → chemins corrigés en `./api/data/...`.
+- **Chemins corrigés, mais toujours aucune table** → les logs disaient `Database directory appears to contain a database; Skipping initialization` : les scripts d'init ne tournent qu'avec un volume vide → `docker compose down -v` puis `up -d`.
+- **`container src-bdd-1 is unhealthy`** → la première initialisation prend environ une minute sur la machine (création de la base, puis schéma et seed), alors que le healthcheck abandonnait au bout d'environ 25 s (5 essais × 5 s). La base a démarré au lancement suivant ; la piste retenue est `start_period` dans le healthcheck.
+- **`depends_on.bdd must be a mapping`** → `bdd:` était écrit sans condition en dessous → repassé en forme liste (`- bdd`).
+
+### À poursuivre
+
+- Les scripts `db:*` visent le service `db`, mais il s'appelle `bdd`. Ils sont aussi lancés depuis `src/api/`, alors que le compose est dans `src/` → choisir un seul nom et pointer vers le bon compose (`-f ../docker-compose.yml` ou autre).
+- Supprimer les dossiers vides `src/01-schema.sql/` et `src/02-seed.sql/` (`sudo rmdir`).
+- Remettre `:ro` (lecture seule) sur les montages des fichiers SQL.
+- Ajouter `start_period` au healthcheck, pour que la première initialisation ne soit plus déclarée « unhealthy ».
+- Garder un seul dossier de données : `api/data/` et `api/src/data/` contiennent les mêmes fichiers.
+- Installer l'extension VS Code YAML (Red Hat) : elle signale les erreurs de `docker-compose.yml` pendant la frappe.
+
+## 2026-10-23 — Versions communes et scripts SQL
+
+### Travail réalisé
+
+- **Scripts SQL de la base**, préparés pour la session de lundi (étape 4) :
+  - `01-schema.sql` : l'extension `unaccent` et les 8 tables, avec leurs contraintes ;
+  - `02-seed.sql` : les rôles, les catégories, les disponibilités, 21 arbres (dont un retiré et un épuisé, pour les tests de l'accueil) et le premier compte admin (mot de passe haché en Argon2).
+- Les deux scripts ont été testés sur PostgreSQL 18 dans Docker : tables, données, contraintes et suppressions.
+
+### Décisions (prises avec Loïc)
+
+| Outil | Version retenue |
+| --- | --- |
+| Node.js | **24 LTS** |
+| PostgreSQL | **18** |
+| pg (client PostgreSQL pour Node.js) | **8.23** |
+| TypeScript | **5** |
+| Next.js | **16** |
+
+- La même version de Node.js pour tout le monde : elle sera notée dans le README (partie « Prérequis ») et utilisée dans les Dockerfiles de l'API et du front.
+- PostgreSQL 18 : dans `docker-compose.yml`, le volume se monte sur `/var/lib/postgresql` (et non plus sur `/var/lib/postgresql/data`).
+
+### À poursuivre
+
+- Annoncer les versions dans le canal de l'équipe (la case Node.js de la checklist en dépend).
+- Faire relire les scripts SQL par Mahamadou avant lundi.
+- Décider lundi du chemin des photos (`/images/trees/`) et l'annoncer.
+
 ## 2026-10-21 — Lieu de plantation et compte actif
 
 ### Travail réalisé
