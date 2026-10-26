@@ -2,6 +2,10 @@
 
 Je s’appelle Graine est un projet de plateforme e-commerce autour de la reforestation. Le MVP permet de découvrir un catalogue d’arbres, de créer un compte, de passer commande (paiement hors ligne : aucun paiement n’est encaissé sur le site) et de suivre ses commandes.
 
+## Installation
+
+Voir le [guide d'installation](INSTALLATION.md).
+
 ## Documentation
 
 ### Suivi du projet
