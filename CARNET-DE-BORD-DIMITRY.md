@@ -2,6 +2,37 @@
 
 Suivi de mon travail sur Je s’appelle Graine. Les décisions notées ici ont été prises avec l'équipe sur Discord ; le suivi de l'équipe est dans le [[Apothéose/apo-greenroots/CARNET-DE-BORD-JE-S-APPELLE-GRAINE|carnet de bord Je s’appelle Graine]].
 
+## 2026-10-26 — Base de données dans Docker et scripts npm
+
+Travail fait en groupe.
+
+### Travail réalisé
+
+- **`docker-compose.yml`** (dans `src/`) : un service `bdd` (PostgreSQL 18, avec healthcheck) et un service `adminer`. `01-schema.sql` et `02-seed.sql` sont montés dans `/docker-entrypoint-initdb.d/` : PostgreSQL les exécute tout seul à la création de la base.
+- **Scripts npm de la base** dans `src/api/package.json`, documentés dans le README de l'API :
+  - `db:up` : démarre la base et attend qu'elle soit prête ;
+  - `db:reset` : supprime tout, puis rejoue le schéma et le seed ;
+  - `db:seed` : vide les tables (`TRUNCATE ... RESTART IDENTITY CASCADE`) et réinsère `data/02-seed.sql`, envoyé depuis la machine sur l'entrée de `psql`. Il ne touche pas aux tables elles-mêmes et peut être relancé sans créer de doublons (testé deux fois de suite sur une base jetable : 2 rôles, 10 comptes, 21 arbres) ;
+  - `db:psql` : ouvre une console `psql` dans le conteneur.
+- La base démarre maintenant correctement : conteneur `bdd` « healthy », 8 tables créées.
+
+### Difficultés
+
+- **`services.volumes.db-data false schema`** → `volumes:` était indenté de 2 espaces : Compose le lisait comme un 3ᵉ service → remis en colonne 0, au même niveau que `services:`.
+- **Base démarrée sans aucune table** → les montages pointaient vers `./01-schema.sql`, un fichier qui n'existait pas dans `src/`. Docker a alors créé à la place deux **dossiers vides appartenant à root** → chemins corrigés en `./api/data/...`.
+- **Chemins corrigés, mais toujours aucune table** → les logs disaient `Database directory appears to contain a database; Skipping initialization` : les scripts d'init ne tournent qu'avec un volume vide → `docker compose down -v` puis `up -d`.
+- **`container src-bdd-1 is unhealthy`** → la première initialisation prend environ une minute sur la machine (création de la base, puis schéma et seed), alors que le healthcheck abandonnait au bout d'environ 25 s (5 essais × 5 s). La base a démarré au lancement suivant ; la piste retenue est `start_period` dans le healthcheck.
+- **`depends_on.bdd must be a mapping`** → `bdd:` était écrit sans condition en dessous → repassé en forme liste (`- bdd`).
+
+### À poursuivre
+
+- Les scripts `db:*` visent le service `db`, mais il s'appelle `bdd`. Ils sont aussi lancés depuis `src/api/`, alors que le compose est dans `src/` → choisir un seul nom et pointer vers le bon compose (`-f ../docker-compose.yml` ou autre).
+- Supprimer les dossiers vides `src/01-schema.sql/` et `src/02-seed.sql/` (`sudo rmdir`).
+- Remettre `:ro` (lecture seule) sur les montages des fichiers SQL.
+- Ajouter `start_period` au healthcheck, pour que la première initialisation ne soit plus déclarée « unhealthy ».
+- Garder un seul dossier de données : `api/data/` et `api/src/data/` contiennent les mêmes fichiers.
+- Installer l'extension VS Code YAML (Red Hat) : elle signale les erreurs de `docker-compose.yml` pendant la frappe.
+
 ## 2026-10-23 — Versions communes et scripts SQL
 
 ### Travail réalisé

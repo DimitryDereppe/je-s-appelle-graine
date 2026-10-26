@@ -1,7 +1,7 @@
 services:
 
-  # On crée le service rattaché au conteneur "bdd"
-  bdd:
+  # On crée le service rattaché au conteneur "db"
+  db:
     # On défini l'image qui sera utilisée
     image: postgres:18-alpine
 
@@ -31,8 +31,8 @@ services:
       # Exécutés une seule fois, au premier démarrage, dans l'ordre de leur nom.
       # Aussi relus par "npm run db:reset". On monte les fichiers un par un :
       # PostgreSQL exécuterait tout .sh ou .sql présent dans un dossier monté.
-      - ./api/data/01-schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
-      - ./api/data/02-seed.sql:/docker-entrypoint-initdb.d/02-seed.sql
+      - ./api/data/01-schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+      - ./api/data/02-seed.sql:/docker-entrypoint-initdb.d/02-seed.sql:ro
     # Adminer est une interface pour gérer notre base de donnée
   adminer:
     # On récupère l'image d'adminer
@@ -45,7 +45,23 @@ services:
 
     # Dit que adminer a besoin que la BDD soit lancé avant de lancer le conteneur adminer
     depends_on:
-      - bdd
+      - db
+
+  api:
+    build: # Plutôt que de partir d'une image existante, on demande à compose de générer l'image à partir de :
+      context: ./api # ce dossier
+      dockerfile: Dockerfile # le Dockerfile pour construire l'image de l'API
+    # image:                  # Pour partir d'une image existante, on pourrait plutôt utiliser cette syntaxe
+    # Nom de l'image de laquelle on part (uploadée sur docker hub par exemple)
+    restart: unless-stopped # Redémarre automatiquement mon service en cas de crash (sauf si je l'ai éteint manuellement)
+    environment:
+      NODE_ENV: ${NODE_ENV}
+      PORT: 4000
+      DATABASE_URL: ${DATABASE_URL} # On lit directement dans le conteneur (database) puisqu'on est sur le meme network = le port 5432 j'ai accès depuis cet autre conteneur
+    depends_on:
+      - db
+
+
 
 volumes:
   db-data:
