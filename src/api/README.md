@@ -24,8 +24,8 @@ Ils passent tous par Docker Compose : la base PostgreSQL tourne dans le service 
   toucher à la structure des tables (plus léger que `db:reset`) :
   1. vide toutes les tables (`TRUNCATE ... CASCADE`) et remet leurs compteurs d'id
      à 1 (`RESTART IDENTITY`) : les id cités dans `02-seed.sql` restent justes ;
-  2. réinsère `src/data/02-seed.sql`. Le fichier est envoyé depuis ta machine dans
-     l'entrée de `psql` (`< src/data/02-seed.sql` côté npm, `-f -` côté psql =
+  2. réinsère `data/02-seed.sql`. Le fichier est envoyé depuis ta machine dans
+     l'entrée de `psql` (`< data/02-seed.sql` côté npm, `-f -` côté psql =
      « lis le SQL sur l'entrée standard ») : pas besoin qu'il soit monté dans le conteneur.
 
   On peut le relancer autant de fois qu'on veut : jamais de doublons. ⚠️ Les comptes,
