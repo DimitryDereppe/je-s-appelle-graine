@@ -1,184 +1,281 @@
-# Installation — Je s'appelle Graine
+# Guide d'installation — Je s'appelle Graine
 
-Deux façons de lancer le projet :
+Ce guide explique comment installer le projet et vérifier qu'il fonctionne. Il y a deux manières de le faire tourner, au choix :
 
-- **[Chapitre 1 — Docker](#chapitre-1--installation-avec-docker-recommandé)** (recommandé) : la BDD, Adminer et l'API tournent dans Docker.
-- **[Chapitre 2 — API en local](#chapitre-2--lancer-lapi-en-local-optionnel)** (optionnel) : la BDD reste dans Docker, l'API tourne sur ta machine.
+|                 | 1. Tout en Docker         | 2. En local (base en Docker)                             |
+| --------------- | ------------------------- | -------------------------------------------------------- |
+| Base de données | Docker                    | Docker                                                   |
+| API             | Docker                    | ta machine (`npm run dev`)                               |
+| Front           | Docker                    | ta machine (`npm run dev`)                               |
+| Pour qui        | **la manière par défaut** | déboguer dans VS Code, logs directement dans le terminal |
+
+Commence par l'[installation commune](#installation-commune), puis suis le chapitre de ton choix : 1. Tout en Docker ou 2. En local (base en Docker).
 
 ---
 
-# Chapitre 1 — Installation avec Docker (recommandé)
+## Installation commune
 
-## Étape 1 — Installer les outils
+### Prérequis
 
-| Outil | Version attendue |
-| - | - |
-| Git | récente |
-| Docker + Docker Compose | Compose **v2.1 minimum** (`docker compose`, sans tiret) |
-| Node.js + npm | **v24.x** |
+Toutes les commandes de ce guide sont les mêmes sous Windows (WSL) et macOS. Seule l'installation des outils change.
 
-Selon ton système :
+**Windows**
 
-- **Linux** : [Docker Engine + plugin Compose](https://docs.docker.com/engine/install/).
-- **Windows** : installer WSL2 (`wsl --install` dans PowerShell en admin), puis **au choix** :
-  - [Docker Desktop](https://docs.docker.com/desktop/setup/install/windows-install/) avec l'intégration WSL activée (*Settings → Resources → WSL integration*) ;
-  - ou [Docker Engine directement dans Ubuntu (WSL)](https://docs.docker.com/engine/install/ubuntu/), sans Docker Desktop.
+- **WSL 2** (Ubuntu). Toutes les commandes se lancent dans le terminal Ubuntu.
+- **Docker Desktop**, avec l'intégration WSL activée pour Ubuntu (Settings → Resources → WSL integration).
+- **Node.js 24** installé **dans WSL** (par exemple avec `nvm install 24`).
+- **Git**, configuré avec ton nom et ton e-mail.
+- **VS Code**, avec l'extension WSL. Ouvre le projet avec `code .` depuis le terminal Ubuntu.
 
-  ⚠️ Lancer toutes les commandes dans le **terminal WSL** et cloner le projet dans `~/...` (pas dans `/mnt/c/...`).
-- **macOS** : [Docker Desktop pour Mac](https://docs.docker.com/desktop/setup/install/mac-install/) (version **Apple Silicon** ou **Intel** selon ton Mac), puis **lancer l'application**.
+> ⚠️ Clone le dépôt dans le système de fichiers de WSL (`~/...`), **pas** dans `/mnt/c/...`. Sous `/mnt/c`, le rechargement automatique ne marche pas, tout est lent, et les droits des fichiers posent problème.
 
-Vérifier :
+**macOS**
 
-```bash
-git --version            # git version 2.x
-docker compose version   # Docker Compose version v2.x.x
-node --version           # v24.x.x
-```
+- **Docker Desktop pour Mac**, en choisissant la version de ta puce : Apple (M1, M2…) ou Intel. Dans Settings → General, garde **VirtioFS** pour le partage de fichiers.
+- **Node.js 24**, par exemple avec `nvm install 24` ou `brew install node@24`.
+- **Git** : il est installé avec les outils de développement Apple (`xcode-select --install`). Configure ton nom et ton e-mail.
+- **VS Code**. Pour pouvoir l'ouvrir avec `code .` : palette de commandes → « Shell Command: Install 'code' command in PATH ».
+- Clone le dépôt où tu veux dans ton dossier personnel (`~/...`).
 
-> Si seul `docker-compose` (avec tiret) fonctionne, c'est Compose v1 : mettre Docker à jour.
+**Dans les deux cas**, `node -v` doit afficher `v24.x`. Node est nécessaire sur ta machine même avec Docker : les vérifications de Husky (Prettier, ESLint, TypeScript) s'exécutent au moment du commit. VS Code s'en sert aussi pour l'autocomplétion.
 
-## Étape 2 — Cloner le projet
+### Cloner le dépôt
 
 ```bash
 git clone git@github.com:O-clock-Kyoto/apo-jesappellegraine.git
-cd apo-jesappellegraine/src
+cd apo-jesappellegraine
 ```
 
-## Étape 3 — Créer le fichier `.env.docker`
+### Installer les dépendances (avant Docker !)
 
 ```bash
-cp .env.docker.example .env.docker
+npm install
+npm --prefix src/api ci
+npm --prefix src/front ci
 ```
 
-Le compléter avec **toutes** ces variables :
+- `npm install` à la racine installe **Husky**, lint-staged et Prettier, et active les hooks Git.
+- `npm ci` installe exactement les versions du `package-lock.json` : les mêmes chez tout le monde.
 
-```dotenv
-# BDD
-POSTGRES_USER=graine
-POSTGRES_PASSWORD=choisir_un_mot_de_passe
-POSTGRES_DB=graine
-POSTGRES_PORT=5433
+> ⚠️ **L'ordre compte.** Si tu lances Docker avant ces commandes, Docker crée des dossiers `node_modules` vides sur ta machine, et Husky refuse tous tes commits (`next: not found`). Sous WSL, ces dossiers sont en plus au nom de `root` et non modifiables. Pour réparer, voir le [dépannage](#fichiers-au-nom-de-root-eacces-next-not-found).
 
-# ADMINER
-ADMINER_PORT=8080
-
-# API
-NODE_ENV=development
-API_PORT=4000
-DATABASE_URL=postgres://graine:choisir_un_mot_de_passe@db:5432/graine
-```
-
-> ⚠️ Le mot de passe de `DATABASE_URL` doit être le même que `POSTGRES_PASSWORD`.
-
-## Étape 4 — Lancer le projet
-
-Depuis `src/` :
+Vérifie que les hooks sont actifs :
 
 ```bash
+git config core.hooksPath
+```
+
+La commande doit afficher `.husky/_`.
+
+### Créer le fichier d'environnement Docker
+
+Ce fichier sert dans les deux manières de travailler : la base de données tourne toujours dans Docker.
+
+```bash
+cp src/.env.docker.example src/.env.docker
+```
+
+Ouvre `src/.env.docker` dans VS Code et remplace `A_REMPLIR` par le mot de passe de la base, **aux deux endroits** : dans `POSTGRES_PASSWORD` et dans `DATABASE_URL`.
+
+Ce fichier n'est jamais commité : il est dans le `.gitignore`.
+
+---
+
+## 1. Tout en Docker
+
+Les 4 services tournent dans Docker :
+
+| Service   | Rôle                                  | Adresse sur ta machine                        |
+| --------- | ------------------------------------- | --------------------------------------------- |
+| `front`   | Next.js, rechargement automatique     | `http://localhost:3000` (`FRONT_HOST_PORT`)   |
+| `api`     | Express + TypeScript (`tsx watch`)    | `http://localhost:4000/api` (`API_HOST_PORT`) |
+| `db`      | PostgreSQL 18                         | `localhost:5433` (`POSTGRES_PORT`)            |
+| `adminer` | Interface web pour la base de données | `http://localhost:8080` (`ADMINER_PORT`)      |
+
+Le code reste sur ta machine : il est « branché » dans les conteneurs.
+
+### 1.1 Lancer le projet
+
+Toutes les commandes Docker se lancent **depuis le dossier `src/`** :
+
+```bash
+cd src
 docker compose --env-file .env.docker up -d --build
 ```
 
-Le premier lancement prend 30 s à 1 min (création de la BDD et des données de test).
+Le premier lancement prend quelques minutes. Docker construit les images, puis PostgreSQL crée la base et joue `01-schema.sql` et `02-seed.sql`.
 
-## Étape 5 — Vérifier
-
-```bash
-curl http://localhost:4000/api/health
-```
-
-Réponse attendue : `ok`.
-
-| Service | Adresse |
-| - | - |
-| API | <http://localhost:4000/api> |
-| Adminer | <http://localhost:8080> — Système `PostgreSQL`, Serveur `db`, identifiants de `.env.docker` |
-
-## Étape 6 — Installer les dépendances pour VS Code
-
-Les dépendances de l'API sont installées **dans le conteneur**, pas sur ta machine. Sans cette étape, l'API fonctionne mais VS Code souligne les imports en rouge (`Cannot find module 'express'`) et l'autocomplétion ne marche pas.
+### 1.2 Vérifier que tout fonctionne
 
 ```bash
-cd api
-npm install
+docker compose --env-file .env.docker ps
 ```
 
-> À refaire à chaque fois qu'une dépendance est ajoutée au `package.json`.
+Les 4 services doivent être `Up`, et `db` doit être `(healthy)`. Ensuite, dans le navigateur :
 
-✅ **L'environnement de dev est prêt.** Le code modifié dans `src/api/` est rechargé automatiquement.
+| Test                   | Adresse                            | Résultat attendu                            |
+| ---------------------- | ---------------------------------- | ------------------------------------------- |
+| Front                  | `http://localhost:3000`            | la page d'accueil, avec la liste des arbres |
+| API en direct          | `http://localhost:4000/api/health` | `{"message":"je s'appelle Graine"}`         |
+| API à travers le front | `http://localhost:3000/api/health` | la même réponse                             |
+| Données de l'API       | `http://localhost:4000/api/trees`  | la liste des arbres en JSON                 |
+| Adminer                | `http://localhost:8080`            | une page de connexion                       |
+
+Pour te connecter à Adminer :
+
+- Système : `PostgreSQL` ;
+- Serveur : `db` ;
+- Utilisateur, mot de passe et base : ceux de ton `.env.docker`.
+
+Pour tout arrêter (les données de la base sont conservées) :
+
+```bash
+docker compose --env-file .env.docker down
+```
 
 ---
 
-## Au quotidien
+## 2. En local (base en Docker)
 
-Depuis `src/` :
+Seule la base de données tourne dans Docker. L'API et le front tournent sur ta machine, chacun dans son terminal.
 
-| Commande | Effet |
-| - | - |
-| `docker compose --env-file .env.docker up -d` | Démarrer le projet |
-| `docker compose --env-file .env.docker down` | Arrêter le projet (données conservées) |
-| `docker compose --env-file .env.docker logs -f api` | Voir les logs de l'API |
+| Service | Où         | Adresse                                                |
+| ------- | ---------- | ------------------------------------------------------ |
+| `front` | ta machine | `http://localhost:3000`                                |
+| `api`   | ta machine | `http://localhost:4050/api` (`PORT` du `src/api/.env`) |
+| `db`    | Docker     | `localhost:5433` (`POSTGRES_PORT`)                     |
 
-Depuis `src/api/` :
+### 2.1 Créer les fichiers d'environnement locaux
 
-| Commande | Effet |
-| - | - |
-| `npm run db:seed` | Remettre les données de test à zéro |
-| `npm run db:reset` | Recréer les tables + données de test (après une modif de `01-schema.sql`) ⚠️ efface tout |
-| `npm run db:psql` | Ouvrir une console SQL (`\q` pour quitter) |
+Ces deux fichiers ne sont jamais commités. Leurs modèles (`.env.example`) le sont.
 
-Détails des scripts : [`src/api/README.md`](src/api/README.md).
-
-## Dépannage
-
-| Problème | Solution |
-| - | - |
-| `Cannot connect to the Docker daemon` | Lancer Docker Desktop (Linux / WSL sans Desktop : `sudo service docker start`) |
-| `The "API_PORT" variable is not set` | Vérifier que `.env.docker` contient toutes les variables de l'[étape 3](#étape-3--créer-le-fichier-envdocker) |
-| `port is already allocated` | Port déjà utilisé : changer sa valeur dans `.env.docker` |
-| Modif des fichiers SQL non prise en compte | `npm run db:reset` |
-| Nouvelle dépendance absente du conteneur | Depuis `src/` : `docker compose --env-file .env.docker down`, `docker volume rm src_api-node-modules`, puis `docker compose --env-file .env.docker up -d --build` |
-
----
-
-# Chapitre 2 — Lancer l'API en local (optionnel)
-
-Utile surtout pour le débogueur de VS Code. **Prérequis : chapitre 1 terminé.**
-
-## Étape 1 — Créer `src/api/.env`
+**L'API** (depuis `src/api/`) :
 
 ```bash
-cd src/api
 cp .env.example .env
 ```
 
-Modifier `DATABASE_URL` : l'API est sur ta machine, donc `localhost:5433` (et non `db:5432`) :
+Ouvre `src/api/.env` et remplace `a_remplir` par le mot de passe de la base (le même que dans `src/.env.docker`). Il contient :
 
 ```dotenv
-DATABASE_URL=postgres://graine:choisir_un_mot_de_passe@localhost:5433/graine
-PORT=4000
+NODE_ENV=development
+PORT=4050
+DATABASE_URL=postgres://graine:a_remplir@localhost:5433/graine
 ```
 
-## Étape 2 — Installer les dépendances
+- `PORT=4050` : un port différent de celui de l'API Docker (4000), pour éviter tout conflit.
+- Dans `DATABASE_URL`, l'hôte est `localhost` et le port `5433`. Depuis ta machine, tu passes par le port publié par Docker (`POSTGRES_PORT`). L'hôte `db` et le port `5432` ne marchent qu'entre conteneurs.
 
-Obligatoire dans ce mode (déjà fait si tu as suivi l'étape 6 du chapitre 1) :
+**Le front** (depuis `src/front/`) :
 
 ```bash
-npm install
+cp .env.example .env.local
 ```
 
-## Étape 3 — Arrêter l'API Docker et lancer l'API locale
+Il contient l'adresse de ton API locale :
+
+```dotenv
+API_URL=http://localhost:4050
+```
+
+Le front relaie `/api/...` vers cette adresse (voir `next.config.ts`).
+
+Ces fichiers ne gênent pas le mode tout en Docker : Docker définit ses propres variables, et elles passent avant celles des fichiers `.env`.
+
+### 2.2 Lancer le projet
+
+**1. Arrête l'API et le front Docker** s'ils tournent, depuis `src/`. Sinon ils occupent les ports.
 
 ```bash
-docker compose -f ../docker-compose.yml --env-file ../.env.docker stop api
+docker compose --env-file .env.docker stop api front
+```
+
+**2. Démarre la base seule**, depuis `src/api/` :
+
+```bash
+npm run db:up
+```
+
+La commande rend la main quand la base est prête.
+
+**3. Lance l'API**, toujours depuis `src/api/` :
+
+```bash
 npm run dev
 ```
 
-Vérifier : `curl http://localhost:4000/api/health` → `ok`.
-
-## Revenir à Docker
-
-`Ctrl + C` pour arrêter l'API locale, puis depuis `src/` :
+**4. Lance le front** dans un **deuxième terminal**, depuis `src/front/` :
 
 ```bash
-docker compose --env-file .env.docker up -d
+npm run dev
 ```
+
+### 2.3 Vérifier que tout fonctionne
+
+| Test                   | Adresse                            | Résultat attendu                            |
+| ---------------------- | ---------------------------------- | ------------------------------------------- |
+| Front                  | `http://localhost:3000`            | la page d'accueil, avec la liste des arbres |
+| API en direct          | `http://localhost:4050/api/health` | `{"message":"je s'appelle Graine"}`         |
+| API à travers le front | `http://localhost:3000/api/health` | la même réponse                             |
+| Données de l'API       | `http://localhost:4050/api/trees`  | la liste des arbres en JSON                 |
+
+Au démarrage, le front affiche `Environments: .env.local` : c'est le signe que ton fichier est bien lu.
+
+Pour tout arrêter :
+
+1. `Ctrl+C` dans les deux terminaux ;
+2. depuis `src/`, `docker compose --env-file .env.docker down` pour arrêter la base.
+
+---
+
+## Dépannage
+
+### `port is already allocated` / `address already in use`
+
+Un autre programme utilise déjà ce port : Live Share, l'API ou le front de l'autre manière (Docker et local en même temps), ou un ancien conteneur.
+
+- Arrête ce qui tourne en double.
+- Sinon, change le port concerné : dans `src/.env.docker` en Docker, dans `src/api/.env` pour l'API locale. Pour le front en local : `npm run dev -- -p 3002`.
+
+> **Live Share** occupe les ports 3000 et 3001 de la machine qui partage la session. En Docker, mets alors `FRONT_HOST_PORT=3002` dans `src/.env.docker` et ouvre `http://localhost:3002`.
+
+### Fichiers au nom de root (`EACCES`, `next: not found`)
+
+Docker a été lancé avant les `npm ci`. Sous macOS, Docker Desktop donne toujours les fichiers à ton utilisateur : les mêmes commandes marchent, sans `sudo`. Depuis `src/` :
+
+```bash
+docker compose --env-file .env.docker down
+sudo rm -rf api/node_modules front/node_modules front/.next front/next-env.d.ts
+docker volume rm src_api-node-modules src_front-node-modules src_front-next
+npm --prefix api ci && npm --prefix front ci && mkdir front/.next
+docker compose --env-file .env.docker up -d --build
+```
+
+Sous WSL, `sudo` est nécessaire parce que ces fichiers appartiennent à `root`. Les données de la base sont conservées.
+
+### En local, `/api` à travers le front ne répond pas
+
+- Vérifie que `src/front/.env.local` existe et contient le bon port de l'API (celui du `PORT` de `src/api/.env`).
+- Relance le `npm run dev` du front : le relais est calculé au démarrage.
+
+### En local, l'API ne se connecte pas à la base
+
+- Vérifie que la base tourne : `npm run db:up` depuis `src/api/`.
+- Dans `src/api/.env`, l'adresse doit être `localhost:5433`, pas `db:5432`.
+- Le mot de passe doit être le même que dans `src/.env.docker`.
+
+### `password authentication failed`
+
+- Vérifie que le mot de passe est le même partout : `POSTGRES_PASSWORD` et `DATABASE_URL` dans `src/.env.docker`, plus `DATABASE_URL` dans `src/api/.env` en local.
+- Si tu as changé le mot de passe **après** le premier lancement, l'ancien est resté dans la base. Il faut la recréer : voir la section suivante.
+
+### Tout recréer de zéro
+
+⚠️ Cette commande **efface les données de la base** :
+
+```bash
+docker compose --env-file .env.docker down -v
+docker compose --env-file .env.docker up -d --build
+```
+
+La base est recréée avec le schéma et les données de test.
