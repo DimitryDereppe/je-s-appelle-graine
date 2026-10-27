@@ -9,10 +9,11 @@ WORKDIR /api
 # Comme Dockerfile fonctionne avec un système de couche, au moment de la création d'une V1, il va faire toutes les instructions.
 # Cependant, au moment de la création d'une V2 de l'image, il va uniquement partir de la ligne où il y a eu des changements.
 # Exemple: Si je n'ai pas changé mon package.json, il n'y aura pas besoin de reinstaller les dépendances...
-COPY ./package.json ./
+# package-lock.json copié + npm ci : installe exactement les versions du lock
+COPY package.json package-lock.json ./
 
 # On installe les dépendances
-RUN npm install
+RUN npm ci
 
 # On copie tout le reste
 COPY ./ ./

@@ -2,8 +2,8 @@ import { Router } from "express";
 import { client } from "../data/db-client.ts";
 export const router = Router();
 
-router.get("/health", (_req, res) => {
-  res.status(200).send("je s'appelle Graine");
+router.get("/health",  (_req, res) => {
+ res.status(200).json({status:"je s'appelle Graine"});
 });
 
 

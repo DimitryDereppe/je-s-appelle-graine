@@ -5,13 +5,14 @@ import { useState, useEffect } from 'react';
 
 export default function Home() {
 
-  const [data, setData] = useState(null);
+  const [data, setData] = useState("null");
 
   useEffect(() => {
     async function fetchData() {
       const res = await fetch('http://localhost:4000/api/');
       if (!res.ok) throw new Error('Erreur réseau');
       const json = await res.json();
+      console.log(json)
       setData(json);
     }
     fetchData();
