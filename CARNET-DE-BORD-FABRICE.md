@@ -6,6 +6,7 @@ Suivi de mon travail sur Je s’appelle Graine. Les décisions notées ici ont �
 
 ### Travail réalisé
 
+- test husky
 - Kanban GitHub en place : colonnes (Backlog, À faire, En cours, En revue, Terminé), champs Sprint (sprints 1 à 3) et Feature, vues « Sprint en cours », « Backlog » (regroupée par feature) et « Par personne » (regroupée par responsable), issues #1 à #10 ajoutées avec leur sprint et leur feature. Le backlog reste dans l'ordre des numéros des features.
 - Cartes du sprint 1 créées à l'avance (#11 à #38), toutes sur le même plan (story, à faire, fini quand, relecteur) : un responsable, des étiquettes, le sprint 1, la feature ou le bloc (base commune, outillage, socle API, mise en page, F1, déploiement, présentation), statut « À faire ». Les cartes de F1 (#26 à #30) sont des sous-issues de #1.
 - Règles automatiques du Kanban testées avec une issue d'essai : une nouvelle issue arrive dans « Backlog », une issue fermée passe dans « Terminé », une carte glissée dans « Terminé » ferme son issue. Les règles liées aux PR seront vérifiées mardi avec la PR de la base commune.
