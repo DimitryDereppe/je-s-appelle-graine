@@ -57,6 +57,13 @@ npm --prefix src/front ci
 - `npm install` à la racine installe **Husky**, lint-staged et Prettier, et active les hooks Git.
 - `npm ci` installe exactement les versions du `package-lock.json` : les mêmes chez tout le monde.
 
+> Pendant l'installation, npm peut afficher des avertissements (`npm warn`). Ils sont **normaux** et ne bloquent rien :
+>
+> - `deprecated eslint@9…` : ESLint 9 n'est plus maintenu, mais il fonctionne. La mise à jour vers ESLint 10 est prévue plus tard ;
+> - `install-scripts … unrs-resolver` : npm demande d'approuver le script d'installation d'un paquet utilisé par ESLint. Rien à faire, ESLint fonctionne sans.
+>
+> L'installation a réussi si npm affiche `added … packages` et `found 0 vulnerabilities`, sans aucune ligne `npm error`.
+
 > ⚠️ **L'ordre compte.** Si tu lances Docker avant ces commandes, Docker crée des dossiers `node_modules` vides sur ta machine, et Husky refuse tous tes commits (`next: not found`). Sous WSL, ces dossiers sont en plus au nom de `root` et non modifiables. Pour réparer, voir le [dépannage](#fichiers-au-nom-de-root-eacces-next-not-found).
 
 Vérifie que les hooks sont actifs :
