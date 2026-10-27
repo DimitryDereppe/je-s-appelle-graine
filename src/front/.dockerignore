@@ -1,0 +1,19 @@
+# Permet de spécifier les dossier et fichiers que je ne veux pas envoyer dans mon conteneur
+# (ils ne partent pas dans le "contexte de build", donc COPY ./ ./ ne les copie pas)
+
+# Recréés DANS l'image par "RUN npm install" et "RUN npm run build" :
+# les copier écraserait la version propre au conteneur (Linux Alpine)
+dist
+node_modules
+
+# Secrets : jamais dans une image (les variables arrivent par docker-compose.yml)
+.env*
+
+# Inutiles pour faire tourner l'API
+Dockerfile
+.dockerignore
+.gitignore
+README.md
+tests
+.claude
+*.log

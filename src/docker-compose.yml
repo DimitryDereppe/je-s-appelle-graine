@@ -37,6 +37,7 @@ services:
       - ./api/src/data/01-schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
       - ./api/src/data/02-seed.sql:/docker-entrypoint-initdb.d/02-seed.sql:ro
     # Adminer est une interface pour gérer notre base de donnée
+  
   adminer:
     # On récupère l'image d'adminer
     image: adminer
@@ -83,7 +84,16 @@ services:
         # que le conteneur soit démarré : évite "the database system is starting up".
         condition: service_healthy
 
-
+  client: # le front
+    build:
+      context: ./front
+      dockerfile: Dockerfile
+    ports: # équivalent du --build-arg
+        - "3000:3000"
+    restart: unless-stopped
+    depends_on:
+      - api
+    
 
 volumes:
   db-data:
