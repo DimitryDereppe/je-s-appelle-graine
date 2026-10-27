@@ -2,12 +2,16 @@
 
 Je s’appelle Graine est un projet de plateforme e-commerce autour de la reforestation. Le MVP permet de découvrir un catalogue d’arbres, de créer un compte, de passer commande (paiement hors ligne : aucun paiement n’est encaissé sur le site) et de suivre ses commandes.
 
+## Installation
+
+Voir le [guide d'installation](INSTALLATION.md).
+
 ## Documentation
 
 ### Suivi du projet
 
 - [Carnet de bord de l’équipe](CARNET-DE-BORD-JE-S-APPELLE-GRAINE.md)
-- Carnets de bord personnels : [Dimitry](CARNET-DE-BORD-DIMITRY.md), [Fabrice](CARNET-DE-BORD-FABRICE.md), [Loïc](CARNET-DE-BORD-LOIC.md)
+- Carnets de bord personnels : [Dimitry](CARNET-DE-BORD-DIMITRY.md), [Fabrice](CARNET-DE-BORD-FABRICE.md), [Loïc](CARNET-DE-BORD-LOIC.md), [Mahamadou](CARNET-DE-BORD-MAHAMADOU.md), [Shanna](CARNET-DE-BORD-SHANNA.md)
 
 ### Cadrage du projet
 
@@ -38,13 +42,13 @@ Les documents de conception du modèle se trouvent dans [`docs/conception/modele
 
 ### Prérequis
 
-Versions des dépendances : 
+Versions des dépendances :
 
-| dependances | versions |
-| - | - |
+| dependances | versions       |
+| ----------- | -------------- |
 | Nodejs      | 24.22.1 ( LTS) |
-|Nextjs| 16.4.2(LTS)|
-|Typescript| 5.9.3|
-Argon2| 0.45.1 |
-Postgre| 18|
-|PG | 8.23.1 |
+| Nextjs      | 16.4.2(LTS)    |
+| Typescript  | 5.9.3          |
+| Argon2      | 0.45.1         |
+| Postgre     | 18             |
+| PG          | 8.23.1         |

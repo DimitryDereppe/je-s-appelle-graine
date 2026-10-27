@@ -2,6 +2,43 @@
 
 Suivi de mon travail sur Je s’appelle Graine. Les décisions notées ici ont été prises avec l'équipe ; le suivi de l'équipe est dans le [carnet de bord Je s’appelle Graine](CARNET-DE-BORD-JE-S-APPELLE-GRAINE.md), que je tiens à jour.
 
+## 2026-10-26 — Sprint planning du sprint 1, initialisation de l'API et guide d'installation
+
+### Travail réalisé
+
+- **Sprint planning du sprint 1** :
+  - présentation du planning du sprint 1 et démo du Kanban GitHub à l'équipe ;
+  - objectif du sprint publié sur le Kanban (« Add status update ») ;
+  - Definition of Ready et Definition of Done présentées ;
+  - relecture des cartes du sprint 1 (#11 à #38) avec l'équipe.
+- **Groupes de travail du sprint 1** présentés et validés, en pair programming :
+  - **trinôme du back** : Dimitry, Mahamadou et moi (socle de l'API, route de l'accueil, outil de test et tests, README, procédure de déploiement) ;
+  - **binôme du front** : Loïc et Shanna (pages statiques, socle du front, fonction commune d'appel à l'API, page d'accueil branchée sur l'API) ;
+  - sur le Kanban, chaque carte garde un seul responsable, même quand le groupe y travaille ensemble.
+- Carte #16 faite : issue « Suivi du développement » ouverte dans le dépôt des formateurs (`Projects-CDA`).
+- **Initialisation de l'API** en session commune Live Share (Dimitry guide, chacun au clavier à tour de rôle) :
+  - `docker-compose.yml` avec les services `db` (PostgreSQL 18), `adminer` et `api` ;
+  - scripts SQL joués au premier démarrage de la base, scripts npm `db:up`, `db:reset`, `db:seed` et `db:psql` ;
+  - Dockerfile de l'API et rechargement automatique du code (`tsx watch`) ;
+  - route `GET /api/health` et première requête vers la base (`GET /api/`, liste des arbres).
+- **Début de la rédaction du guide d'installation** ([INSTALLATION.md](INSTALLATION.md), branche `docs/installation`), lié depuis le README :
+  - chapitre 1 : installation avec Docker en 6 étapes (outils selon Linux, Windows avec WSL2 ou macOS, clonage, `.env.docker`, lancement, vérification, `npm install` pour VS Code), commandes du quotidien et dépannage ;
+  - chapitre 2 (optionnel) : lancer l'API sur sa machine, la BDD restant dans Docker.
+
+### Ce que j'ai appris
+
+- En mode Docker, `npm install` n'est pas nécessaire pour faire tourner l'API : les dépendances sont installées dans l'image. Le `node_modules` du conteneur est dans un volume Docker, donc absent de la machine : sans `npm install` local, VS Code souligne les imports en rouge alors que l'API fonctionne.
+- L'adresse de la base change selon l'endroit où tourne l'API : `db:5432` depuis un conteneur, `localhost:5433` depuis sa machine.
+- Les scripts `db:*` demandent Docker Compose v2.1 minimum (`docker compose` sans tiret, option `--wait`).
+- Sous macOS, Docker a besoin d'une machine virtuelle Linux, fournie par Docker Desktop. Sous Windows, WSL2 est recommandé (les scripts `db:*` utilisent une syntaxe Linux) ; Docker Desktop y est facultatif.
+
+### À poursuivre
+
+- Pursuivre l'écriture du guide d'installation.
+- Mercredi : chacun teste le guide en réinstallant le projet de zéro ; corriger le guide avec les retours.
+- Compléter `src/.env.docker.example` : il manque `NODE_ENV`, `API_PORT` et `DATABASE_URL`, utilisées par `docker-compose.yml`.
+- Signaler à Dimitry les fichiers en double (`api/data/` et `api/src/data/`, images dans `api/public/public/` et `api/src/public/`) et le fichier `.env.example` à la racine, qui reprend celui de `src/api/`.
+
 ## 2026-10-23 — Kanban GitHub et cartes du sprint 1
 
 ### Travail réalisé
@@ -13,7 +50,7 @@ Suivi de mon travail sur Je s’appelle Graine. Les décisions notées ici ont �
 - Documents préparés pour l'équipe : le déroulé des deux jours d'initialisation (lundi le back, mardi le front, puis le feu vert pour que chacun commence ses cartes), la démo du Kanban, un guide Git (journée type, une carte de la branche à la fusion, conflits, erreurs courantes), et les sujets transverses avec des exemples dans la fiche d'équipe et dans la feuille de route de chacun.
 - Dépôt renommé en `apo-jesappellegraine` sur GitHub et dans mon dossier local ; adresse du dépôt mise à jour (`git remote set-url`) et ancien nom remplacé dans nos documents.
 - Sessions communes de lundi et mardi organisées avec Live Share : chacun passe au clavier à tour de rôle.
-- Pas de modèles d'issue ni de PR dans notre dépôt : ceux du centre sont gérés dans le dépôt des formateurs (`Projects-CDA`). Ma carte #16 devient l'ouverture de l'issue « Suivi du développement » dans ce dépôt, lundi à 11 h.
+- Pas de modèles d'issue ni de PR dans notre dépôt : ceux du centre sont gérés dans le dépôt des formateurs (`Projects-CDA`). Ma carte #16 devient l'ouverture de l'issue « Suivi du développement » dans ce dépôt, lundi.
 - Présentation de l'organisation des sprints et pitch du sprint 1 par Fabrice. Le backlog a été présenté rapidement : il sera relu en détail au sprint planning du lundi 26 octobre.
 
 ### Décisions
@@ -29,7 +66,7 @@ Suivi de mon travail sur Je s’appelle Graine. Les décisions notées ici ont �
 
 ### À poursuivre
 
-- Lundi : démo du Kanban, publier l'objectif du sprint, relire les cartes avec l'équipe ; carte #16 à 11 h.
+- Lundi : démo du Kanban, publier l'objectif du sprint, relire les cartes avec l'équipe ; carte #16.
 - Remettre le filtre `status:"En cours"` dans la vue « Par personne » après la démo, et remplacer `sprint:"Sprint 1"` par `sprint:@current` dans la vue « Sprint en cours » avant le sprint planning du 2 novembre.
 - Vérifier que chacun a accepté l'invitation au Kanban et mis à jour l'adresse du dépôt sur sa machine.
 

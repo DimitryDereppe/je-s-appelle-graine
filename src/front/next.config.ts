@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // Évite l'avertissement « multiple lockfiles » en local
+  // Racine du front = ce dossier (sinon Next.js hésite avec le package-lock.json de la racine du dépôt)
   turbopack: { root: __dirname },
 
   // /api/... -> l'API (API_URL : compose en Docker, .env.local en local)
