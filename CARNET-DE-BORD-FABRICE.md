@@ -2,6 +2,46 @@
 
 Suivi de mon travail sur Je s’appelle Graine. Les décisions notées ici ont été prises avec l'équipe ; le suivi de l'équipe est dans le [carnet de bord Je s’appelle Graine](CARNET-DE-BORD-JE-S-APPELLE-GRAINE.md), que je tiens à jour.
 
+## 2026-10-27 — Initialisation du front, Husky et environnement de développement
+
+### Travail réalisé
+
+- **Initialisation du front** en session commune Live Share, guidée par Loïc : Next.js, le front dans Docker, relais `/api` vers l'API, Husky avec Prettier, ESLint et la vérification des types (PR #54).
+- **Vérification de l'environnement Docker et de Husky** sur le dépôt, puis tests sur une copie isolée. Problèmes trouvés :
+  - un push vers `main` passait : Husky ne bloquait que les commits ;
+  - `next.config.ts` contenait une erreur de syntaxe (`export default const`), et le relais `/api` ne fonctionnait pas ;
+  - le conteneur du front tournait en `root` : les fichiers créés sur nos machines étaient au nom de `root`, et Husky échouait ;
+  - l'API plantait quand la base redémarrait (`pg.Client` unique) ;
+  - le port de l'API sur la machine n'utilisait pas `API_HOST_PORT`.
+- **Corrections** commitées et fusionnées :
+  - PR #55 : hook `pre-push` qui refuse les push vers `main` ;
+  - PR #56 : utilisateur `node` dans le Dockerfile du front, `pg.Pool`, `next.config.ts` corrigé, port de l'API, `.env.example` de l'API et du front pour travailler en local, commentaires des fichiers Docker simplifiés.
+- **Guide d'installation terminé** ([INSTALLATION.md](INSTALLATION.md), PR #57) :
+  - installation commune pour Windows (WSL) et macOS ;
+  - chapitre 1 : tout en Docker ; chapitre 2 : l'API et le front en local, la base dans Docker ;
+  - les deux manières testées, y compris l'affichage de la liste des arbres dans un navigateur.
+- **Guide de développement** préparé : démarrer et arrêter, Git et Husky, ajouter une dépendance, quoi faire après un `git pull`, scripts de la base. À proposer à l'équipe.
+
+### Ce que j'ai appris
+
+- Husky ne protège qu'en local, et seulement après un `npm install` à la racine. Il faut un hook `pre-push` pour bloquer les push vers `main`, et seule une règle de branche sur GitHub protège vraiment.
+- Un conteneur qui tourne en `root` crée des fichiers au nom de `root` sur la machine, à travers le bind mount. L'utilisateur `node` de l'image (uid 1000, le même que sous WSL) règle le problème ; `COPY` écrit toujours en `root`, d'où `--chown=node:node`.
+- `CMD` est la commande par défaut du conteneur ; `command:` dans le compose la remplace.
+- Un `pg.Client` unique fait planter l'API si la base redémarre ; un `pg.Pool` se reconnecte.
+- Dans le navigateur, `process.env` ne contient que les variables `NEXT_PUBLIC_` : le front appelle donc `/api/...`, et c'est Next.js qui relaie vers l'API.
+
+### Décisions (prises avec l'équipe)
+
+- On ne travaille jamais sur `main` : une branche par carte, puis une Pull Request.
+- Deux manières de travailler, au choix : tout en Docker choisie par défaut (ou en local avec la base dans Docker si réel besoin).
+
+### À poursuivre
+
+- Mercredi : chacun installe le projet de zéro avec le guide ; corriger le guide avec les retours, en particulier sous macOS (non testé sur un vrai Mac).
+- Accompagner la mise à jour des machines de ceux qui avaient déjà le projet.
+- Proposer le guide de développement à l'équipe.
+- Donner le feu vert pour les cartes du sprint 1 une fois toutes les installations validées.
+
 ## 2026-10-26 — Sprint planning du sprint 1, initialisation de l'API et guide d'installation
 
 ### Travail réalisé

@@ -1,5 +1,39 @@
 # Carnet de bord — Je s’appelle Graine
 
+## 2026-10-27 — Initialisation du front, Husky et environnement de développement
+
+### Travail réalisé
+
+- **Nettoyage de l'API** par Dimitry : fichiers en double supprimés (données et images regroupées dans `src/api/src/`), dossiers `controllers`, `datamappers`, `middlewares` et `services` préparés, `src/.env.docker.example` complété.
+- **Initialisation du front** en session commune Live Share, guidée par Loïc (PR #54) :
+  - projet Next.js dans `src/front` ;
+  - Dockerfile du front et service `front` dans `docker-compose.yml` ;
+  - relais `/api` du front vers l'API (`next.config.ts`) : le front appelle `fetch("/api/...")`, sans adresse en dur ;
+  - Husky, lint-staged, Prettier et ESLint : à chaque commit, mise en forme, ESLint et vérification des types de l'API et du front.
+- **Protection de `main`** (PR #55) : un premier test a montré qu'un push vers `main` passait encore. Ajout d'un hook `pre-push` qui le refuse ; les commits sur `main` étaient déjà refusés par le `pre-commit`.
+- **Corrections de l'environnement de développement** (PR #56) :
+  - port de l'API sur la machine réglable (`API_HOST_PORT`) ;
+  - front lancé avec l'utilisateur `node` dans Docker : plus de fichiers au nom de `root`, qui bloquaient Husky ;
+  - connexion à la base par un pool (`pg.Pool`) : l'API ne plante plus quand la base redémarre ;
+  - routes `GET /api/health` et `GET /api/trees`, page d'accueil "test branchement API" qui affiche la liste des arbres ;
+  - fichiers `.env.example` de l'API et du front pour travailler en local ;
+  - commentaires des fichiers Docker simplifiés.
+- **Guide d'installation** ([INSTALLATION.md](INSTALLATION.md), PR #57), lié depuis le README : prérequis Windows (WSL) et macOS, deux manières de lancer le projet (tout en Docker, ou l'API et le front en local avec la base dans Docker), vérifications et dépannage.
+- **Initialisation du front terminée.**
+
+### Décisions
+
+- On ne travaille jamais sur `main` : une branche par carte, puis une Pull Request. Husky refuse les commits et les push vers `main`. Cette protection est locale : une protection côté GitHub dépend de l'école, propriétaire du dépôt.
+- Le code est vérifié à chaque commit : Prettier, ESLint (0 erreur, 0 avertissement) et TypeScript.
+- Deux manières de travailler, au choix : tout en Docker (par défaut) ou en local avec la base dans Docker.
+
+### À poursuivre
+
+- Chacun installe le projet de zéro avec le guide d'installation, sous Windows ou macOS, et remonte ses retours pour corriger/valider le guide.
+- Ceux qui avaient déjà le projet : refaire une fois la mise à jour de leur machine (dépendances et anciens volumes Docker).
+- Une fois l'installation validée sur chaque machine : feu vert pour commencer les cartes du sprint 1.
+- NOTA : servir les images des arbres depuis l'API, penser à rajouter :`express.static`.
+
 ## 2026-10-26 — Sprint planning du sprint 1 et initialisation du back
 
 ### Déroulement prévu
@@ -9,14 +43,14 @@
   - Rôles : Dimitry guide et commite à la fin de chaque étape (avec `Co-authored-by` pour celui qui était au clavier), un conducteur tournant au clavier, les autres relisent. Fabrice prend les notes qui serviront au README, Shanna garde le temps (plus de 20 minutes bloqués sur une étape : on note et on avance).
   - Étapes et relais au clavier, dans l'ordre :
 
-    | Étape | Au clavier |
-    | --- | --- |
-    | 1. Branche, arborescence et fichiers de base (`.env.example`, `.gitignore`, `docker-compose.yml`) | Dimitry |
-    | 2. Initialiser le projet Node.js de l'API en TypeScript | Dimitry |
-    | 3. Express et la route `/api/health`, lancée en local | Mahamadou |
-    | 4. PostgreSQL dans Docker Compose, scripts SQL et données de départ ; 5. vérifier la base (8 tables) | Fabrice |
-    | 6. L'API dans Docker | Loïc |
-    | 7. Première route qui lit la base `/api/` pour récupérer tous les arbres | Shanna |
+    | Étape                                                                                                | Au clavier |
+    | ---------------------------------------------------------------------------------------------------- | ---------- |
+    | 1. Branche, arborescence et fichiers de base (`.env.example`, `.gitignore`, `docker-compose.yml`)    | Dimitry    |
+    | 2. Initialiser le projet Node.js de l'API en TypeScript                                              | Dimitry    |
+    | 3. Express et la route `/api/health`, lancée en local                                                | Mahamadou  |
+    | 4. PostgreSQL dans Docker Compose, scripts SQL et données de départ ; 5. vérifier la base (8 tables) | Fabrice    |
+    | 6. L'API dans Docker                                                                                 | Loïc       |
+    | 7. Première route qui lit la base `/api/` pour récupérer tous les arbres                             | Shanna     |
 
 - **Mardi** : initialisation du front (Next.js, le front dans Docker, redirection de `/api`, Husky) guidée par Loïc, puis chacun installe le projet sur sa machine et la PR de la base commune est relue par les deux leads. Feu vert ensuite pour que chacun commence ses cartes.
 
