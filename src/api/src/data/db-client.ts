@@ -1,6 +1,11 @@
-import pg from 'pg';
+import pg from "pg";
 
-// process permet d'aller chercher la variable DB_URL dans le fichier ".env"
-export const client = new pg.Client(process.env.DATABASE_URL);
-client.connect();
+// Pool : se reconnecte si PostgreSQL redémarre
+export const pool = new pg.Pool({
+  connectionString: process.env.DATABASE_URL,
+});
 
+// Sans écouteur, une connexion coupée fait planter Node
+pool.on("error", (error) => {
+  console.error("Connexion PostgreSQL perdue :", error.message);
+});
