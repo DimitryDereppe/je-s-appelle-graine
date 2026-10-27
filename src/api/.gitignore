@@ -9,3 +9,7 @@ node_modules/
 
 # Résultat de la compilation TypeScript (npm run build)
 dist/
+
+# Anciens emplacements des données et images (déplacés dans src/data et src/public)
+/data/
+/public/

@@ -34,8 +34,8 @@ services:
       # Exécutés une seule fois, au premier démarrage, dans l'ordre de leur nom.
       # Aussi relus par "npm run db:reset". On monte les fichiers un par un :
       # PostgreSQL exécuterait tout .sh ou .sql présent dans un dossier monté.
-      - ./api/data/01-schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
-      - ./api/data/02-seed.sql:/docker-entrypoint-initdb.d/02-seed.sql:ro
+      - ./api/src/data/01-schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+      - ./api/src/data/02-seed.sql:/docker-entrypoint-initdb.d/02-seed.sql:ro
     # Adminer est une interface pour gérer notre base de donnée
   adminer:
     # On récupère l'image d'adminer
