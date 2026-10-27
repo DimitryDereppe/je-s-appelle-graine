@@ -5,10 +5,9 @@ if [ "$(git branch --show-current)" = "main" ]; then
   exit 1
 fi
 
-# Remet en forme les fichiers modifiés (Prettier)
+# 2. Prettier + ESLint sur les fichiers du commit (configs .lintstagedrc.json)
 npx lint-staged
 
-# Vérifie les types de l'API et du front, puis ESLint sur le front
+# 3. Types TypeScript (tout le projet : une erreur peut venir d'un autre fichier)
 npm --prefix src/api run typecheck
 npm --prefix src/front run typecheck
-npm --prefix src/front run lint
