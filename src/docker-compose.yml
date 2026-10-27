@@ -88,8 +88,12 @@ services:
     build:
       context: ./front
       dockerfile: Dockerfile
-    ports: # équivalent du --build-arg
-        - "3000:3000"
+    environment:
+      # Adresse de l'API vue depuis le conteneur du front (relais /api et fetch côté serveur)
+      API_URL: http://api:${API_PORT}
+    ports: 
+      - ${FRONT_HOST_PORT}:3000
+      #  - "3000:80" pour déploiement Nginx
     restart: unless-stopped
     depends_on:
       - api

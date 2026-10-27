@@ -3,7 +3,7 @@
 FROM node:24-alpine
 
 # On va se positionner dans le répertoire de travail
-WORKDIR /src/app.ts
+WORKDIR /api
 
 # On copie d'abord le fichier package.json
 # Comme Dockerfile fonctionne avec un système de couche, au moment de la création d'une V1, il va faire toutes les instructions.
