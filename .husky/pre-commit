@@ -1,0 +1,14 @@
+# 1. Pas de commit sur main
+if [ "$(git branch --show-current)" = "main" ]; then
+  echo "⛔ Commit refusé : tu es sur la branche main."
+  echo "👉 Crée une branche : git switch -c feat/ma-fonctionnalite"
+  exit 1
+fi
+
+# Remet en forme les fichiers modifiés (Prettier)
+npx lint-staged
+
+# Vérifie les types de l'API et du front, puis ESLint sur le front
+npm --prefix src/api run typecheck
+npm --prefix src/front run typecheck
+npm --prefix src/front run lint

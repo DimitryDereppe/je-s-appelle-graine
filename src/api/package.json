@@ -16,7 +16,8 @@
     "db:reset": "docker compose -f ../docker-compose.yml --env-file ../.env.docker exec -T db sh -c 'psql -q -v ON_ERROR_STOP=1 -U \"$POSTGRES_USER\" -d \"$POSTGRES_DB\" -c \"SET client_min_messages TO warning\" -c \"DROP SCHEMA public CASCADE\" -c \"CREATE SCHEMA public\" -f /docker-entrypoint-initdb.d/01-schema.sql -f /docker-entrypoint-initdb.d/02-seed.sql && echo Base remise à zéro.'",
     "db:seed": "docker compose -f ../docker-compose.yml --env-file ../.env.docker exec -T db sh -c 'psql -q -v ON_ERROR_STOP=1 -U \"$POSTGRES_USER\" -d \"$POSTGRES_DB\" -c \"SET client_min_messages TO warning\" -c \"TRUNCATE role, category, availability, account, tree, cart_item, purchase, purchase_line RESTART IDENTITY CASCADE\" -f - && echo Données de test réinsérées.' < src/data/02-seed.sql",
     "db:psql": "docker compose -f ../docker-compose.yml --env-file ../.env.docker exec db sh -c 'psql -U \"$POSTGRES_USER\" -d \"$POSTGRES_DB\"'",
-    "docker:start": "npm run start"
+    "docker:start": "npm run start",
+    "lint": "eslint"
   },
   "keywords": [],
   "type": "module",
@@ -27,12 +28,16 @@
     "pg": "^8.23.1"
   },
   "devDependencies": {
+    "@eslint/js": "^9.39.5",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
     "@types/node": "^24.19.2",
     "@types/pg": "^8.23.1",
+    "eslint": "^9.39.5",
+    "globals": "^17.13.0",
     "tsx": "^4.23.15",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.72.1"
   },
   "allowScripts": {
     "esbuild@0.28.2": true

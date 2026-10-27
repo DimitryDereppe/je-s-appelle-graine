@@ -37,6 +37,7 @@ services:
       - ./api/src/data/01-schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
       - ./api/src/data/02-seed.sql:/docker-entrypoint-initdb.d/02-seed.sql:ro
     # Adminer est une interface pour gérer notre base de donnée
+  
   adminer:
     # On récupère l'image d'adminer
     image: adminer
@@ -83,9 +84,31 @@ services:
         # que le conteneur soit démarré : évite "the database system is starting up".
         condition: service_healthy
 
-
-
+  front: 
+    build:
+      context: ./front
+      dockerfile: Dockerfile
+    environment:
+      # Adresse de l'API vue depuis le conteneur du front (relais /api et fetch côté serveur)
+      API_URL: http://api:${API_PORT}
+    ports: 
+      - ${FRONT_HOST_PORT}:3000
+      #  - "3000:80" pour déploiement Nginx
+    volumes:
+      # Le dossier ./front de ma machine est branché dans le conteneur (WORKDIR /app)
+      - ./front:/app
+      # Volume nommé par-dessus node_modules (même raison que pour l'API).
+      # Lancer "npm install" dans front/ AVANT le premier "docker compose up" :
+      # sinon Docker crée front/node_modules au nom de root.
+      - front-node-modules:/app/node_modules
+      - front-next:/app/.next # cache Next.js : évite un .next appartenant à root sur ma machine
+    restart: unless-stopped
+    depends_on:
+      - api
+    
 volumes:
   db-data:
   api-node-modules:
+  front-node-modules:
+  front-next:
  

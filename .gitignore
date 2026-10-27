@@ -3,3 +3,5 @@
 # Variables d'environnement (secrets)
 .env*
 
+# Dépendances (Husky, lint-staged, Prettier)
+node_modules/
