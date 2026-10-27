@@ -1,22 +1,26 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-
+import { useState, useEffect } from "react";
 
 export default function Home() {
-
-  const [data, setData] = useState("null");
+  const [data, setData] = useState([]);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     async function fetchData() {
-      const res = await fetch('http://localhost:4000/api/');
-      if (!res.ok) throw new Error('Erreur réseau');
-      const json = await res.json();
-      console.log(json)
-      setData(json);
+      try {
+        const res = await fetch(`/api/trees`); // relais Next → API (voir next.config.ts)
+        if (!res.ok) throw new Error(`Erreur ${res.status}`);
+
+        setData(await res.json());
+      } catch (err) {
+        setError((err as Error).message);
+      }
     }
     fetchData();
   }, []);
 
-  return <div>{JSON.stringify(data)}</div>;
+  if (error) return <p>Erreur : {error}</p>;
+
+  return <div>{JSON.stringify(data, null, 2)}</div>;
 }

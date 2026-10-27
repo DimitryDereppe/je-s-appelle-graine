@@ -1,28 +1,20 @@
-# On part d'une image existante
-# Dans notre cas, on va partir sur la version 22 de node en alpine (plus légè)
+# Image de base : Node 24, version Alpine (légère)
 FROM node:24-alpine
 
-# On va se positionner dans le répertoire de travail
+# Dossier de travail dans le conteneur
 WORKDIR /api
 
-# On copie d'abord le fichier package.json
-# Comme Dockerfile fonctionne avec un système de couche, au moment de la création d'une V1, il va faire toutes les instructions.
-# Cependant, au moment de la création d'une V2 de l'image, il va uniquement partir de la ligne où il y a eu des changements.
-# Exemple: Si je n'ai pas changé mon package.json, il n'y aura pas besoin de reinstaller les dépendances...
-# package-lock.json copié + npm ci : installe exactement les versions du lock
+# Dépendances d'abord : couche en cache tant que package*.json ne change pas
 COPY package.json package-lock.json ./
-
-# On installe les dépendances
 RUN npm ci
 
-# On copie tout le reste
+# Le reste du code
 COPY ./ ./
 
-# # On build le projet
+# Compile le TypeScript dans dist/ (pour la prod)
 RUN npm run build
 
-# On expose le port 4000 (Facultatif)
 EXPOSE 4000
 
-# Au lancement de notre image, je veux que cette commande soit lancée
+# Commande de prod ; en dev, le compose la remplace par npm run dev
 CMD ["npm", "run", "docker:start"]
