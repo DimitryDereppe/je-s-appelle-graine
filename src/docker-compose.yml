@@ -1,91 +1,93 @@
+# Chaque service = un conteneur. Lancer : docker compose --env-file .env.docker up -d
 services:
-
-  # On crée le service rattaché au conteneur "db"
   db:
-    # On défini l'image qui sera utilisée
-    image: postgres:18-alpine
+    image: postgres:18-alpine # image toute faite (Docker Hub)
 
-    # On défini les variables d'environnement pour créer la BDD
-    # CF: https://hub.docker.com/_/postgres
+    # Création de la BDD au 1er démarrage (cf. hub.docker.com/_/postgres)
     environment:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_DB: ${POSTGRES_DB}
 
     healthcheck:
-      # pour être sûr que la BDD est bien opérationnelle
-      test: [ "CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB" ]
+      # Prête = pg_isready répond
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
       interval: 5s
       timeout: 5s
       retries: 5
-      # Délai de grâce au démarrage : les échecs pendant ce temps ne comptent pas.
-      # Sur un volume neuf, la création de la base + schéma + seed prend ~30 s à 1 min.
+      # Grâce de 30 s : la 1re création (schéma + seed) est lente
       start_period: 30s
 
-    # On bind le port 5433 sur le 5432 du conteneur
+    # Port de ma machine : port du conteneur
     ports:
       - ${POSTGRES_PORT}:5432
 
-    restart: unless-stopped # Permet de redémarrer le conteneur même en cas de crash
+    restart: unless-stopped # Redémarre après un crash, sauf arrêt manuel
 
     volumes:
-      # Depuis PostgreSQL 18, le volume se monte sur /var/lib/postgresql (et non plus .../data)
+      # Depuis PostgreSQL 18 : /var/lib/postgresql (plus /data)
       - db-data:/var/lib/postgresql
-      # Exécutés une seule fois, au premier démarrage, dans l'ordre de leur nom.
-      # Aussi relus par "npm run db:reset". On monte les fichiers un par un :
-      # PostgreSQL exécuterait tout .sh ou .sql présent dans un dossier monté.
-      - ./api/data/01-schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
-      - ./api/data/02-seed.sql:/docker-entrypoint-initdb.d/02-seed.sql:ro
-    # Adminer est une interface pour gérer notre base de donnée
-  adminer:
-    # On récupère l'image d'adminer
-    image: adminer
-    restart: unless-stopped # Permet de redémarrer le conteneur même en cas de crash
+      # Scripts SQL joués au 1er démarrage seulement (et par npm run db:reset).
+      # Montés un par un car si on montait tout data/, PostgreSQL exécuterait chaque .sql qu'il contient.
+      - ./api/src/data/01-schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+      - ./api/src/data/02-seed.sql:/docker-entrypoint-initdb.d/02-seed.sql:ro
 
-    # Permet de binder les ports
+  # Interface web de la BDD
+  adminer:
+    image: adminer
+    restart: unless-stopped
     ports:
       - ${ADMINER_PORT}:8080
-
-    # Dit que adminer a besoin que la BDD soit lancé avant de lancer le conteneur adminer
     depends_on:
       - db
 
   api:
-    build: # Plutôt que de partir d'une image existante, on demande à compose de générer l'image à partir de :
-      context: ./api # ce dossier
-      dockerfile: Dockerfile # le Dockerfile pour construire l'image de l'API
-    # image:                  # Pour partir d'une image existante, on pourrait plutôt utiliser cette syntaxe
-    # Nom de l'image de laquelle on part (uploadée sur docker hub par exemple)
-    restart: unless-stopped # Redémarre automatiquement mon service en cas de crash (sauf si je l'ai éteint manuellement)
+    # Image construite depuis notre Dockerfile
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    restart: unless-stopped
     environment:
       NODE_ENV: ${NODE_ENV}
       PORT: ${API_PORT}
-      DATABASE_URL: ${DATABASE_URL} # On lit directement dans le conteneur (database) puisqu'on est sur le meme network = le port 5432 j'ai accès depuis cet autre conteneur
+      DATABASE_URL: ${DATABASE_URL} # Hôte "db" : le nom du service sur le réseau Docker
     ports:
-      - ${API_PORT}:4000
-
-    # --- Mode développement : rechargement automatique à chaque sauvegarde ---
+      # Port de ma machine : port d'Express
+      - ${API_HOST_PORT}:${API_PORT}
     volumes:
-      # Bind mount : le dossier ./api de ma machine est "branché" dans le conteneur
-      # (dans le WORKDIR du Dockerfile). Une modif dans VS Code y est visible aussitôt.
-      - ./api:/src/app.ts
-      # Volume nommé par-dessus node_modules : sans lui, le node_modules de ma machine
-      # recouvrirait celui installé dans l'image par "npm install" (Linux Alpine).
-      # Après un ajout de dépendance : docker volume rm src_api-node-modules puis --build.
-      - api-node-modules:/src/app.ts/node_modules
-    # Remplace le CMD du Dockerfile (qui garde "docker:start", le code compilé, pour la prod) :
-    # "tsx watch" relance l'API à chaque modification d'un fichier.
+      # Code de ma machine branché dans le conteneur : rechargement auto
+      - ./api:/api
+      # node_modules du conteneur (Alpine), à ne pas recouvrir par celui de ma machine
+      - api-node-modules:/api/node_modules
+    # Dev : tsx watch (le CMD du Dockerfile reste pour la prod)
     command: ["npm", "run", "dev"]
-
     depends_on:
       db:
-        # Attend que le healthcheck de la BDD soit vert (pg_isready), pas seulement
-        # que le conteneur soit démarré : évite "the database system is starting up".
+        # Attend que la BDD soit prête, pas seulement démarrée
         condition: service_healthy
 
+  front:
+    build:
+      context: ./front
+      dockerfile: Dockerfile
+    environment:
+      # Adresse de l'API depuis le conteneur du front
+      API_URL: http://api:${API_PORT}
+    ports:
+      - ${FRONT_HOST_PORT}:3000
+    volumes:
+      # Code de ma machine branché dans le conteneur : rechargement auto
+      - ./front:/app
+      # node_modules du conteneur (Alpine), à ne pas recouvrir par celui de ma machine
+      - front-node-modules:/app/node_modules
+      - front-next:/app/.next # cache Next.js, hors de ma machine
+    restart: unless-stopped
+    depends_on:
+      - api
 
-
+# Volumes nommés : gérés par Docker, conservés entre deux lancements
 volumes:
   db-data:
   api-node-modules:
- 
+  front-node-modules:
+  front-next:

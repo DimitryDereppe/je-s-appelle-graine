@@ -2,6 +2,24 @@
 
 Suivi de mon travail sur Je s’appelle Graine. Les décisions notées ici ont été prises avec l'équipe sur Discord ; le suivi de l'équipe est dans le [[Apothéose/apo-greenroots/CARNET-DE-BORD-JE-S-APPELLE-GRAINE|carnet de bord Je s’appelle Graine]].
 
+## 2026-10-27 — Un seul dossier de données (`api/src/data`)
+
+### Travail réalisé
+
+- Suppression des doublons `src/api/data/` et `src/api/public/` (`git rm -r`, 49 fichiers) :
+  - `data/` contenait les mêmes fichiers que `src/data/` (sans `db-client.ts`, utilisé par le routeur) ;
+  - `public/` contenait les images en double (`public/images/` et `public/public/images/`), toutes déjà présentes dans `src/public/`, et aucun code n'y faisait référence.
+- Chemins mis à jour vers `src/data/` : montages `initdb.d` de `docker-compose.yml` (lignes 37-38), script `db:seed` de `package.json` et `README.md`. Vérifié avec `docker compose config --quiet`.
+- Question réglée au passage : pas besoin de `DROP TABLE` en tête de `01-schema.sql`. `initdb.d` ne s'exécute que sur un volume vide, et `db:reset` fait déjà `DROP SCHEMA public CASCADE` avant de rejouer le schéma.
+
+### Difficultés
+
+- Risque repéré avant la suppression : `docker-compose.yml` montait encore `./api/data/...`. Sans mise à jour, Docker aurait recréé des dossiers vides appartenant à root à la place des fichiers SQL, comme le 2026-10-26 → chemins corrigés dans le même commit.
+
+### À poursuivre
+
+- Retester sur un volume neuf (`docker compose down -v` puis `up -d`) que le schéma et le seed sont bien chargés depuis `api/src/data/`.
+
 ## 2026-10-26 — API dans Docker : démarrage, rechargement automatique et première requête
 
 ### Travail réalisé
@@ -59,7 +77,7 @@ Travail fait en groupe.
 - Supprimer les dossiers vides `src/01-schema.sql/` et `src/02-seed.sql/` (`sudo rmdir`).
 - Remettre `:ro` (lecture seule) sur les montages des fichiers SQL.
 - Ajouter `start_period` au healthcheck, pour que la première initialisation ne soit plus déclarée « unhealthy ».
-- Garder un seul dossier de données : `api/data/` et `api/src/data/` contiennent les mêmes fichiers.
+- ~~Garder un seul dossier de données : `api/data/` et `api/src/data/` contiennent les mêmes fichiers.~~ → fait le 2026-10-27 (`api/src/data/` conservé).
 - Installer l'extension VS Code YAML (Red Hat) : elle signale les erreurs de `docker-compose.yml` pendant la frappe.
 
 ## 2026-10-23 — Versions communes et scripts SQL

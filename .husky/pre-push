@@ -1,0 +1,7 @@
+# Pas de push vers main : on passe par une Pull Request
+while read local_ref local_sha remote_ref remote_sha; do
+  if [ "$remote_ref" = "refs/heads/main" ]; then
+    echo "⛔ Push refusé vers main : pousse ta branche et ouvre une Pull Request."
+    exit 1
+  fi
+done

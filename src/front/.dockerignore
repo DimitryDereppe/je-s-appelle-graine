@@ -1,0 +1,16 @@
+# Exclus de l'image (COPY ./ ./)
+
+# Recréés dans l'image (versions Alpine)
+.next
+node_modules
+
+# Secrets : jamais dans une image
+.env*
+
+# Inutiles pour faire tourner le front
+Dockerfile
+.dockerignore
+.gitignore
+README.md
+.claude
+*.log
