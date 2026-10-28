@@ -1,6 +1,6 @@
 # Carnet de bord — Dimitry (Tech Lead Back)
 
-Suivi de mon travail sur Je s’appelle Graine. Les décisions notées ici ont été prises avec l'équipe sur Discord ; le suivi de l'équipe est dans le [[Apothéose/apo-greenroots/CARNET-DE-BORD-JE-S-APPELLE-GRAINE|carnet de bord Je s’appelle Graine]].
+Suivi de mon travail sur Je s’appelle Graine. Les décisions notées ici ont été prises avec l'équipe sur Discord ; le suivi de l'équipe est dans le [[Apothéose/apo-jesappellegraine/CARNET-DE-BORD-JE-S-APPELLE-GRAINE|carnet de bord Je s’appelle Graine]].
 
 ## 2026-10-27 — Un seul dossier de données (`api/src/data`)
 
@@ -11,14 +11,31 @@ Suivi de mon travail sur Je s’appelle Graine. Les décisions notées ici ont �
   - `public/` contenait les images en double (`public/images/` et `public/public/images/`), toutes déjà présentes dans `src/public/`, et aucun code n'y faisait référence.
 - Chemins mis à jour vers `src/data/` : montages `initdb.d` de `docker-compose.yml` (lignes 37-38), script `db:seed` de `package.json` et `README.md`. Vérifié avec `docker compose config --quiet`.
 - Question réglée au passage : pas besoin de `DROP TABLE` en tête de `01-schema.sql`. `initdb.d` ne s'exécute que sur un volume vide, et `db:reset` fait déjà `DROP SCHEMA public CASCADE` avant de rejouer le schéma.
+- **État final (commit `d33dcc2`)** : données dans `src/api/src/data/`, images dans `src/api/src/public/`. Fichiers ramenés avec `git mv` : git les voit comme renommés (`R`), l'historique est conservé.
+- **`src/api/.gitignore`** : ajout de `/data/` et `/public/`. Le `/` au début limite la règle aux dossiers situés à côté du `.gitignore` (`src/api/data`, `src/api/public`). Sans lui, git ignorerait aussi `src/api/src/data` et `src/api/src/public`.
+- **Dossiers des couches de l'API** créés dans `src/api/src/` d'après le [[docs/conception/diagrammes/01-architecture|diagramme d'architecture]] : `middlewares/`, `controllers/`, `services/`, `datamappers/`. Chacun contient un `.gitkeep`, parce que git ne suit pas les dossiers vides.
+- Vérifié sur un volume neuf (`down -v` puis `up -d`) : 8 tables et 21 arbres chargés depuis `api/src/data/`.
+- **`src/.env.docker.example`** (commit `d33dcc2`) : ajout d'un bloc `# API` avec `NODE_ENV`, `DATABASE_URL` (hôte `db`, le nom du service Compose), `API_PORT=4000` et `API_HOST_PORT=4001`. Le modèle reflète maintenant les variables lues par le service `api`.
 
 ### Difficultés
 
 - Risque repéré avant la suppression : `docker-compose.yml` montait encore `./api/data/...`. Sans mise à jour, Docker aurait recréé des dossiers vides appartenant à root à la place des fichiers SQL, comme le 2026-10-26 → chemins corrigés dans le même commit.
+- **Les doublons réapparaissent après chaque commit de nettoyage**, en fichiers non suivis (`??`) : à 07:50 après le commit de 07:44, à 09:10 et à 09:20. Les fichiers sont complets, m'appartiennent (pas à root) et sont écrits un par un, environ 0,4 s par fichier. Ils correspondent exactement au contenu de l'ancienne image `src-api` (construite le 26/10 à 16:49) : `data/`, `public/images`, `public/public`, `src/data`, `src/public`.
+  - Cause non trouvée. Ce n'est ni git (rien dans le reflog), ni le conteneur (il tourne en root et l'API n'écrit aucun fichier), ni un outil de synchronisation.
+  - J'ai d'abord pensé à `docker compose up -d`, mais la séquence `down -v` puis `up -d` lancée depuis un autre shell ne les recrée pas : testée 4 fois.
+  - Piste restante : un programme lancé depuis VS Code (extension Docker, Container Tools ou Dev Containers ?).
+  - Parade : la règle `.gitignore` ci-dessus. Même s'ils reviennent, git ne les affiche plus.
+  - Ils sont revenus une fois de plus à 09:30 (`api/data/` et `api/public/`, après le commit de 09:19). Cette fois `git status --ignored` les marque `!!` (ignorés) et non plus `??` : la parade fonctionne.
+- Au passage, aller-retour sur l'emplacement des données (`api/data` ↔ `api/src/data`) entre les commits `13d2acd`, `af8fbb6` et `d33dcc2`.
 
 ### À poursuivre
 
-- Retester sur un volume neuf (`docker compose down -v` puis `up -d`) que le schéma et le seed sont bien chargés depuis `api/src/data/`.
+- ~~Retester sur un volume neuf que le schéma et le seed sont bien chargés depuis `api/src/data/`~~ → fait (8 tables, 21 arbres).
+- Trouver ce qui recrée les dossiers : lancer `ls api ; docker compose --env-file=.env.docker up -d ; ls api` dans le terminal de VS Code, puis dans un terminal hors de VS Code, et comparer.
+- Reconstruire l'image (`up -d --build`) : celle du 26/10 contient encore `data/`, `public/public`, `src/errors` et `src/lib`.
+- Placer `db-client.ts` (actuellement dans `src/data/`) : il relève plutôt des datamappers ou d'un dossier de configuration de la base.
+- **CORS, maintenant que le front existe** (Next.js initialisé par Loïc dans `src/front/`, commits `db5cee2` et `e9c776a`) : `app.ts` appelle `cors()` sans option, donc toutes les origines sont acceptées, et `config.allowedOrigins` (`ALLOWED_ORIGINS`, `*` par défaut) n'est lu nulle part. À brancher avec l'origine du front (`http://localhost:3000` en dev, port par défaut de Next.js).
+- `src/package-lock.json` vide (`"packages": {}`) ajouté par `db5cee2`, sans `package.json` à côté : sans doute un `npm install` lancé depuis `src/`. À signaler à Loïc avant de le supprimer.
 
 ## 2026-10-26 — API dans Docker : démarrage, rechargement automatique et première requête
 
@@ -91,13 +108,13 @@ Travail fait en groupe.
 
 ### Décisions (prises avec Loïc)
 
-| Outil | Version retenue |
-| --- | --- |
-| Node.js | **24 LTS** |
-| PostgreSQL | **18** |
-| pg (client PostgreSQL pour Node.js) | **8.23** |
-| TypeScript | **5** |
-| Next.js | **16** |
+| Outil                               | Version retenue |
+| ----------------------------------- | --------------- |
+| Node.js                             | **24 LTS**      |
+| PostgreSQL                          | **18**          |
+| pg (client PostgreSQL pour Node.js) | **8.23**        |
+| TypeScript                          | **5**           |
+| Next.js                             | **16**          |
 
 - La même version de Node.js pour tout le monde : elle sera notée dans le README (partie « Prérequis ») et utilisée dans les Dockerfiles de l'API et du front.
 - PostgreSQL 18 : dans `docker-compose.yml`, le volume se monte sur `/var/lib/postgresql` (et non plus sur `/var/lib/postgresql/data`).
