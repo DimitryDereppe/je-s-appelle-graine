@@ -1,7 +1,7 @@
 import { pool } from "../data/db-client.ts";
 import type { ITree, IFeaturedTree } from "../@types/index.d.ts";
 
-const treeDatamapper = {
+export const treeDatamapper = {
   async findAll(): Promise<ITree[]> {
     const sql_query = "SELECT * FROM tree;";
     const result = await pool.query(sql_query);
@@ -34,5 +34,3 @@ const treeDatamapper = {
     return result.rows;
   },
 };
-
-export default treeDatamapper;
