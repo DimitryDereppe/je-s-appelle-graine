@@ -15,15 +15,15 @@ Cette charte définit les conventions de nommage du projet Je s’appelle Graine
 
 ## Fichiers et dossiers
 
-| Élément                            | Convention                                 | Exemple                                     |
-| ---------------------------------- | ------------------------------------------ | ------------------------------------------- |
-| Dossiers                           | `kebab-case`                               | `tree-catalogue/`                           |
-| Fichiers TypeScript                | `camelCase` pour modules et utilitaires    | `treeController.ts`, `formatPrice.ts`       |
-| Fichiers de composants UI et Class | `PascalCase`                               | `TreeCard.tsx`                              |
-| Fichiers de types dédiés           | `camelCase` avec suffixe explicite         | `tree.types.ts`                             |
-| Fichiers HTML et CSS               | `kebab-case`                               | `tree-details.html`, `catalogue-layout.css` |
+| Élément                            | Convention                                 | Exemple                                              |
+| ---------------------------------- | ------------------------------------------ | ---------------------------------------------------- |
+| Dossiers                           | `kebab-case`                               | `tree-catalogue/`                                    |
+| Fichiers TypeScript                | `camelCase` pour modules et utilitaires    | `treeController.ts`, `formatPrice.ts`                |
+| Fichiers de composants UI et Class | `PascalCase`                               | `TreeCard.tsx`                                       |
+| Fichiers de types dédiés           | `camelCase` avec suffixe explicite         | `tree.types.ts`                                      |
+| Fichiers HTML et CSS               | `kebab-case`                               | `tree-details.html`, `catalogue-layout.css`          |
 | Documents Markdown                 | Majuscules pour les documents de référence | `README.md`, `CHARTE-NOMMAGE-JE-S-APPELLE-GRAINE.md` |
-| Variables d’environnement          | `UPPER_SNAKE_CASE`                         | `DATABASE_URL`                              |
+| Variables d’environnement          | `UPPER_SNAKE_CASE`                         | `DATABASE_URL`                                       |
 
 Les conventions du framework priment lorsque celui-ci impose un format particulier.
 
@@ -81,6 +81,7 @@ class TreeService {
 - Regrouper les routes réservées à l’administrateur sous le préfixe `/api/admin/`, protégé par un seul middleware de rôle.
 - Exception au pluriel : une ressource unique pour l’utilisateur connecté reste au singulier (`/api/cart`, `/api/users/me`, `/api/auth`, pages `/panier` et `/compte`).
 - Pages web (en français) : les formulaires d’ajout et de modification suivent la convention habituelle `…/nouveau` et `…/:id/modifier` ; la règle « sans verbe » s’applique aux routes de l’API.
+- Champs JSON des requêtes et des réponses : `camelCase`. La base reste en `snake_case` : la conversion se fait dans le `SELECT` du DataMapper, avec un alias entre guillemets (sinon PostgreSQL le passe en minuscules).
 
 ```text
 GET    /api/trees
@@ -89,6 +90,11 @@ GET    /api/trees?category=2
 POST   /api/admin/trees
 PATCH  /api/admin/trees/:id
 DELETE /api/admin/trees/:id
+```
+
+```sql
+SELECT photo_url AS "photoUrl", category_id AS "categoryId" FROM tree;
+-- Réponse : { "photoUrl": "...", "categoryId": 1 }
 ```
 
 ## Base de données
