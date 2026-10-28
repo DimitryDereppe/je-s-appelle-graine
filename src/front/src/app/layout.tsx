@@ -1,6 +1,7 @@
 import { Lora } from "next/font/google";
 import "./globals.css";
 import Header from "../components/header/Header";
+import Footer from "../components/footer/Footer";
 
 const lora = Lora({
   subsets: ["latin"],
@@ -14,6 +15,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className={lora.variable}>
         <Header />
         {children}
+        <Footer />
       </body>
     </html>
   );
