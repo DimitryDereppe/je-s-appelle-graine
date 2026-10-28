@@ -34,6 +34,7 @@ export const treeDatamapper = {
             -- AS "photoUrl" : guillemets obligatoires, sinon PostgreSQL renvoie "photourl"
             SELECT tree.id, tree.name, CAST(tree.price AS FLOAT) AS price,
                    tree.photo_url AS "photoUrl",
+                   tree.planting_location AS "plantingLocation",
                    json_build_object('id', category.id, 'name', category.name) AS category
             FROM tree
             -- On y associe leur catégorie (clé étrangère tree.category_id → category.id)

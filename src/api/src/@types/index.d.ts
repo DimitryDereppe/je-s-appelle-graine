@@ -20,5 +20,6 @@ export type IFeaturedTree = {
   name: string;
   price: number;
   photoUrl: string | null;
+  plantingLocation: string | null;
   category: ICategory;
 };
