@@ -52,10 +52,12 @@ cd apo-jesappellegraine
 npm install
 npm --prefix src/api ci
 npm --prefix src/front ci
+mkdir -p src/front/.next
 ```
 
 - `npm install` à la racine installe **Husky**, lint-staged et Prettier, et active les hooks Git.
 - `npm ci` installe exactement les versions du `package-lock.json` : les mêmes chez tout le monde.
+- `mkdir` crée le dossier du cache du front à ton nom. Sinon Docker le crée au nom de `root`, et Husky refuse tes commits.
 
 > Pendant l'installation, npm peut afficher des avertissements (`npm warn`). Ils sont **normaux** et ne bloquent rien :
 >
@@ -259,6 +261,16 @@ docker compose --env-file .env.docker up -d --build
 ```
 
 Sous WSL, `sudo` est nécessaire parce que ces fichiers appartiennent à `root`. Les données de la base sont conservées.
+
+### Commit refusé : `EACCES: permission denied, mkdir '…/src/front/.next/types'`
+
+Le compose a créé `src/front/.next` sur ta machine, vide et au nom de `root`, pour y monter le cache du front. Le hook `pre-commit` vérifie les types du front et doit écrire dans ce dossier. Depuis la racine du dépôt :
+
+```bash
+sudo chown -R $USER:$USER src/front/.next
+```
+
+Puis relance ton commit. À faire une seule fois : Docker garde ensuite ce dossier tel quel. Sous macOS, ce problème n'arrive pas.
 
 ### En local, `/api` à travers le front ne répond pas
 
