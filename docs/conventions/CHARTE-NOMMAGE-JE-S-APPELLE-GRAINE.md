@@ -20,7 +20,7 @@ Cette charte définit les conventions de nommage du projet Je s’appelle Graine
 | Dossiers                           | `kebab-case`                               | `tree-catalogue/`                                    |
 | Fichiers TypeScript                | `camelCase` pour modules et utilitaires    | `treeController.ts`, `formatPrice.ts`                |
 | Fichiers de composants UI et Class | `PascalCase`                               | `TreeCard.tsx`                                       |
-| Fichiers de types dédiés           | `camelCase` avec suffixe explicite         | `tree.types.ts`                                      |
+| Types de l’API                     | un seul fichier de déclarations            | `src/api/src/@types/index.d.ts`                      |
 | Fichiers HTML et CSS               | `kebab-case`                               | `tree-details.html`, `catalogue-layout.css`          |
 | Documents Markdown                 | Majuscules pour les documents de référence | `README.md`, `CHARTE-NOMMAGE-JE-S-APPELLE-GRAINE.md` |
 | Variables d’environnement          | `UPPER_SNAKE_CASE`                         | `DATABASE_URL`                                       |
@@ -31,11 +31,13 @@ Les conventions du framework priment lorsque celui-ci impose un format particuli
 
 - Variables et fonctions : `camelCase`.
 - Classes : `PascalCase`.
-- Types, interfaces, enums et composants : `PascalCase`, sans préfixe `I` pour les interfaces (par exemple `Tree`, `CreateTreeInput`).
+- Types et interfaces : `PascalCase` avec le préfixe `I` (par exemple `ITree`, `ICreateTreeInput`), pour les distinguer des composants et des classes.
+- Enums et composants : `PascalCase`, sans préfixe (par exemple `TreeCard`).
 - Constantes : `camelCase` par défaut ; `UPPER_SNAKE_CASE` pour les constantes globales immuables ou variables d’environnement.
 - Booléens : utiliser un préfixe parlant comme `is`, `has` ou `can`.
 - Fonctions : commencer par un verbe qui décrit l’action.
 - Ajouter un nom de domaine suffisamment précis pour distinguer les concepts proches (par exemple, `userId` et `treeId`).
+- Les types de l’API sont regroupés dans `src/api/src/@types/index.d.ts` et s’importent avec `import type` (obligatoire pour un fichier `.d.ts`).
 - Donner des types explicites aux données échangées entre couches et éviter `any` ; utiliser `unknown` quand le type reçu n’est pas encore vérifié.
 - Utiliser le suffixe `.tsx` pour les fichiers contenant du JSX et `.ts` pour les autres fichiers TypeScript.
 
@@ -43,13 +45,13 @@ Les conventions du framework priment lorsque celui-ci impose un format particuli
 const maxTreesPerPage = 20;
 const isWateringDue = true;
 
-type Tree = {
+type ITree = {
   id: number;
   name: string;
   price: number;
 };
 
-function findTreeById(treeId: number): Tree | undefined {
+function findTreeById(treeId: number): ITree | undefined {
   // Recherche un arbre précis dans le service concerné.
   return undefined;
 }
