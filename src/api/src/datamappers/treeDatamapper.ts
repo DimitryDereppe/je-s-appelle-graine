@@ -1,13 +1,14 @@
 import { pool } from "../data/db-client.ts";
+import type { ITree, IFeaturedTree } from "../@types/index.d.ts";
 
 const treeDatamapper = {
-  async findAll() {
+  async findAll(): Promise<ITree[]> {
     const sql_query = "SELECT * FROM tree;";
     const result = await pool.query(sql_query);
     return result.rows;
   },
 
-  async findFeatured() {
+  async findFeatured(): Promise<IFeaturedTree[]> {
     const sql_query = `
             SELECT * FROM tree
             JOIN availability ON trees.id = availability.tree_id
