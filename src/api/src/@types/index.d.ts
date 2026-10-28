@@ -14,10 +14,11 @@ export type ITree = {
   availability_id: number;
 };
 
+// Correspond exactement aux colonnes renvoyées par treeDatamapper.findFeatured()
 export type IFeaturedTree = {
   id: number;
   name: string;
   price: number;
-  photoUrl: string | null;
-  category: ICategory;
+  photo_url: string | null;
+  category_id: number;
 };

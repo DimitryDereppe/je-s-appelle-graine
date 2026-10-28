@@ -6,8 +6,11 @@ import {
 
 export const router = Router();
 
-// je branche le middleware treeController sur la router "/api/trees/featured"
-router.get("/api/trees/featured", getFeaturedTrees);
+// Le préfixe "/api" est déjà ajouté par app.use("/api", ...) dans app.ts :
+// ici on n'écrit que la suite du chemin.
 
-// je branche le middleware treeController sur la router "/api/trees/"
-router.get("/api/trees", getAllTrees);
+// GET /api/trees/featured → les arbres mis en avant sur l'accueil
+router.get("/trees/featured", getFeaturedTrees);
+
+// GET /api/trees → la liste de tous les arbres
+router.get("/trees", getAllTrees);
