@@ -2,6 +2,39 @@
 
 Suivi de mon travail sur Je s’appelle Graine. Les décisions notées ici ont été prises avec l'équipe sur Discord ; le suivi de l'équipe est dans le [[Apothéose/apo-jesappellegraine/CARNET-DE-BORD-JE-S-APPELLE-GRAINE|carnet de bord Je s’appelle Graine]].
 
+## 2026-10-28 — Conteneurs front et API sous l'utilisateur `node`
+
+Travail solo, avec l'aval du groupe.
+
+### Travail réalisé
+
+- **Diagnostic « Cannot GET » et « connexion échouée »** : db, adminer et api tournaient, mais le conteneur `front` était resté à l'état `Created`, sans jamais démarrer. Cause : `failed to bind host port 0.0.0.0:3000/tcp: address already in use`. Le port 3000 était déjà occupé par un autre programme au moment du `up`.
+  - Le `Cannot GET /` sur le port 4000 est la page 404 par défaut d'Express. Toutes les routes sont sous `/api` (`/api/health`, `/api/trees`), donc ce n'est pas une panne.
+- **Front reconstruit** avec l'image à jour (`USER node`, commit `b28e153`) :
+  - commandes : `rm -sf front`, puis `docker volume rm src_front-next src_front-node-modules`, puis `up -d --build front` ;
+  - vérifié : `docker compose exec front whoami` → `node`.
+- **Dockerfile de l'API** (commit `9b72536`), même modèle que le front :
+  - `RUN chown node:node /api` puis `USER node` ;
+  - `--chown=node:node` sur les `COPY`, parce que `COPY` écrit en root même après `USER`.
+  - Image reconstruite (`npm run build` passe), conteneur recréé, `whoami` → `node`.
+- **Ports** : `API_HOST_PORT` remis à `4000` dans `.env.docker` (il valait `4001`), cohérent avec `API_URL=http://localhost:4000/api/`. État vérifié : front sur 3000 (200), api sur 4000, db sur 5433, adminer sur 8080.
+- **`.gitignore`** (commits `a813e13`, `6249bd7`) : exceptions `!.env.example` et `!.env.docker.example`, pour que les modèles d'environnement soient suivis par git alors que les `.env*` sont ignorés.
+
+### Difficultés
+
+- **Pre-commit en échec avec `EACCES: permission denied, open '.../src/front/next-env.d.ts'`** :
+  - `next-env.d.ts` et `.next` appartenaient à root. Ils avaient été créés le 27/10 à 17:00 par le conteneur front, dont l'image (construite à 16:59) tournait encore en root. La correction `USER node` n'est arrivée qu'à 23:16, et une image ne change pas tant qu'on ne la reconstruit pas.
+  - Le hook lance `npm --prefix src/front run typecheck`, donc `next typegen`, qui réécrit `next-env.d.ts` → refusé.
+  - Débloqué avec `sudo chown -R $USER:$USER src/front/next-env.d.ts src/front/.next`. Le premier essai a échoué (« Aucun fichier ou dossier de ce nom ») parce que la commande n'était pas lancée depuis la racine du dépôt : les chemins relatifs partent du dossier courant (`pwd`).
+- **Les volumes nommés gardent les propriétaires de leurs fichiers** : un volume rempli par root reste à root après la reconstruction de l'image. Il faut supprimer les volumes du service concerné (pas `down -v`, qui efface aussi `db-data`).
+- `docker compose ps` lancé sans `--env-file .env.docker` affiche des dizaines d'avertissements « variable is not set » et échoue (`no port specified`).
+
+### À poursuivre
+
+- Revoir le message du commit `9b72536`, qui contient les commentaires du Dockerfile collés sur une seule ligne (à corriger avant la PR, par exemple `git commit --amend` tant qu'il n'est pas poussé).
+- Vérifier si les doublons `api/data/` et `api/public/` (cf. 27/10) reviennent encore maintenant que l'ancienne image `src-api` a été remplacée.
+- Toujours en attente : CORS avec l'origine du front, emplacement de `db-client.ts`, `src/package-lock.json` vide.
+
 ## 2026-10-27 — Un seul dossier de données (`api/src/data`)
 
 ### Travail réalisé
