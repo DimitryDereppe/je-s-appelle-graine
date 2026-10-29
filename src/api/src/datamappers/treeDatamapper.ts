@@ -2,7 +2,7 @@ import { pool } from "../data/db-client.ts";
 import type { ITree, IFeaturedTree } from "../@types/index.d.ts";
 
 export const treeDatamapper = {
-  async findAll(): Promise<ITree[]> {
+  async findAllCatalog(): Promise<ITree[]> {
     // Colonnes listées une par une pour pouvoir convertir le prix :
     // PostgreSQL stocke price en NUMERIC, que pg renvoie en texte ("9.90") ;
     // CAST(... AS FLOAT) le transforme en nombre (9.9), comme annoncé dans ITree.
@@ -10,7 +10,10 @@ export const treeDatamapper = {
             SELECT id, name, description, CAST(price AS FLOAT) AS price,
                    photo_url AS "photoUrl", planting_location AS "plantingLocation",
                    category_id AS "categoryId", availability_id AS "availabilityId"
-            FROM tree;
+            FROM tree,
+            -- On y associe leur statut de disponibilité
+            -- (clé étrangère tree.availability_id → availability.id)
+            JOIN availability ON tree.availability_id = availability.id;
         `;
     const result = await pool.query(sqlQuery);
     return result.rows;

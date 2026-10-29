@@ -3,6 +3,19 @@ Contribution consignée : Shanna.
 
 Les entrées sont classées de la plus récente à la plus ancienne.
 
+Sp1- Jour 3
+
+Travail réalisé : Création du header et du footer réutilisables dans Next.js avec TypeScript et des modules CSS. Ajustement du rendu responsive selon la maquette et la charte graphique : alignement du logo et des liens, footer mobile avec liens empilés à droite, bandeau d’engagements et séparateurs verticaux. Préparation de commentaires TODO pour ajouter les pictogrammes et l’icône du panier.
+
+Difficultés rencontrées et solutions : Le premier rendu CSS ne correspondait pas assez à la maquette, notamment les marges, les alignements et l’espacement des liens sur mobile. Le CSS du footer a été ajusté en prenant le header existant comme référence. Le commit a aussi rencontré des problèmes de permissions sur des fichiers générés par Docker et un avertissement ESLint pour une variable inutilisée. Après correction, le commit est passé.
+
+Résultat : Le header et le footer sont prêts à être intégrés aux pages du site.
+
+Sp1- Jour 2 -
+
+Travail réalisé : Initialisation du front-end et mise en place de sa dockerisation, avec l’accompagnement de Loïc, notre lead front-end.
+
+Résultat : Le front est lancé dans Docker et accessible en local.
 
 Sprint 1 — Jour 1
 
@@ -11,7 +24,8 @@ Travail réalisé
 - Travail en groupe dans Live Share pour initialiser le projet.
 - Création d'une route de test pour vérifier la connexion entre l'API et la base de données.
 - Correction de la maquette à partir des échanges avec l'équipe.
-- 
+-
+
 À poursuivre
 
 - Vérifier le fonctionnement de la route de connexion à la base de données.
