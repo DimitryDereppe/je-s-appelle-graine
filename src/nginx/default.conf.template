@@ -1,0 +1,46 @@
+# Je s'appelle Graine : Nginx devant le front et l'API (carte #31).
+# Fichier modèle : l'image nginx remplace ${DOMAINE} par sa valeur au démarrage du conteneur.
+# Le nom "default.conf.template" compte : il remplace la configuration par défaut de l'image.
+
+# HTTP : sert uniquement la vérification Let's Encrypt, tout le reste part en HTTPS.
+server {
+    listen 80;
+    server_name ${DOMAINE};
+
+    location /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+    }
+
+    location / {
+        return 301 https://$host$request_uri;
+    }
+}
+
+server {
+    listen 443 ssl;
+    http2 on;
+    server_name ${DOMAINE};
+
+    ssl_certificate     /etc/letsencrypt/live/${DOMAINE}/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/${DOMAINE}/privkey.pem;
+
+    server_tokens off;          # ne pas afficher la version de Nginx
+    client_max_body_size 2m;    # taille maximale d'une requête
+
+    # Les requêtes /api/... vont à l'API Express.
+    location /api/ {
+        proxy_pass http://api:4000;
+        proxy_set_header Host              $host;
+        proxy_set_header X-Real-IP         $remote_addr;
+        proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    # Tout le reste va au front (Next.js).
+    location / {
+        proxy_pass http://front:3000;
+        proxy_set_header Host              $host;
+        proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
