@@ -2,6 +2,38 @@
 
 Suivi de mon travail sur Je s’appelle Graine. Les décisions notées ici ont été prises avec l'équipe sur Discord ; le suivi de l'équipe est dans le [[Apothéose/apo-jesappellegraine/CARNET-DE-BORD-JE-S-APPELLE-GRAINE|carnet de bord Je s’appelle Graine]].
 
+## 2026-10-28 (après-midi) — Datamapper `tree` et routes `/api/trees` de l'accueil
+
+Branche `feat/datamappers/accueil`, PR #61 fusionnée à 15:44 (après la PR #60 `.gitignore`, fusionnée à 10:29).
+
+### Travail réalisé
+
+- **`src/api/src/datamappers/treeDatamapper.ts`** (commit `23c7469`) : objet `treeDatamapper` avec deux méthodes qui interrogent la base via `pool.query` :
+  - `findAll()` : tous les arbres ;
+  - `findFeatured()` : les arbres mis en avant sur la page d'accueil.
+- **Types** dans `src/api/src/@types/index.d.ts` (commit `8797a2b`) : `ITree` et `IFeaturedTree`, importés dans le datamapper pour typer les retours (`Promise<ITree[]>`, `Promise<IFeaturedTree[]>`).
+- **Commentaires** dans le datamapper (commit `70833ad`) : rôle de chaque méthode, ligne par ligne pour la requête SQL.
+- **Export nommé** (commit `73a8ed0`) : `export const treeDatamapper` à la place de `export default`, comme les autres modules du projet (`export const router`...), et pour éviter un conflit au merge avec le controller.
+- **Merge de `origin/feat/router-acceuil`** dans ma branche (commit `2c7d781`) : récupère le controller (Fabrice, `878277f`) et le router `tree` (Mahamadou, `80ef8f9`) pour tester la chaîne complète route → controller → datamapper → base.
+- **Corrections après le merge** (commit `479da8d`) :
+  - `treeRouter.ts` : routes écrites `/trees` et `/trees/featured` au lieu de `/api/trees...`. Le préfixe `/api` est déjà ajouté par `app.use("/api", ...)` dans `app.ts` ; sinon l'adresse devenait `/api/api/trees`.
+  - `app.ts` : suppression du second `app.use("/api", treeRouter)`, le router `tree` étant déjà branché dans `index.router.ts`.
+  - `findFeatured()` réécrite d'après le vrai schéma : jointure `tree.availability_id = availability.id`, filtre `availability.name = 'available'`, `ORDER BY tree.id` (sans tri, PostgreSQL ne garantit aucun ordre), `LIMIT 3`. Colonnes préfixées par `tree.` parce que `availability` a aussi des colonnes `id` et `name`.
+  - Prix renvoyé en nombre : `CAST(price AS FLOAT)` dans les deux requêtes. `price` est en `NUMERIC`, que `pg` renvoie en texte (`"9.90"`).
+  - `IFeaturedTree` aligné sur les colonnes réellement renvoyées (`photo_url`, `category_id`).
+  - `test/test.tree.http` : requête `GET http://localhost:4000/api/trees/featured`.
+
+### Difficultés
+
+- **Première version de `findFeatured()` incompatible avec le schéma** : elle supposait une table `availability` avec `tree_id`, `is_available`, `start_date` et `end_date`, alors que c'est `tree` qui pointe vers `availability` (`availability_id`), et `availability` ne contient qu'un statut (`name`). La requête contenait aussi `trees.id` (table `tree` au singulier) et deux `WHERE` à la suite (il faut un seul `WHERE` avec `AND`).
+- **Route introuvable après le merge** : le préfixe `/api` était écrit à la fois dans `app.ts` et dans `treeRouter.ts` → `/api/api/trees`.
+
+### À poursuivre
+
+- Le commit `9b72536` (message avec les commentaires du Dockerfile sur une ligne) est maintenant poussé et fusionné : on ne le corrige plus avec `--amend`, on le laisse tel quel.
+- Fabrice a ensuite passé les réponses en camelCase et ajouté `planting_location` (`b693daa`, `826a432`, PR #63) : vérifier que `IFeaturedTree` correspond toujours aux colonnes renvoyées.
+- Toujours en attente : CORS avec l'origine du front, emplacement de `db-client.ts`, `src/package-lock.json` vide.
+
 ## 2026-10-28 — Conteneurs front et API sous l'utilisateur `node`
 
 Travail solo, avec l'aval du groupe.
