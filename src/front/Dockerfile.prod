@@ -1,0 +1,26 @@
+# Je s'appelle Graine : image de PRODUCTION du front Next.js (carte #31)
+# Demande output: "standalone" dans next.config.ts.
+
+# Étape 1 : installer et construire (next build produit .next/standalone)
+FROM node:24.22.1-alpine AS build
+WORKDIR /app
+COPY package.json package-lock.json ./
+RUN npm ci
+COPY . .
+RUN npm run build
+
+# Étape 2 : l'image qui tourne sur le VPS, sans le code source ni les node_modules complets
+FROM node:24.22.1-alpine
+WORKDIR /app
+ENV NODE_ENV=production
+# Écouter sur toutes les interfaces du conteneur, sinon Nginx ne peut pas le joindre
+ENV HOSTNAME=0.0.0.0
+ENV PORT=3000
+# standalone ne contient pas .next/static (CSS, JavaScript du navigateur) : on le copie à part
+COPY --from=build /app/.next/standalone ./
+COPY --from=build /app/.next/static ./.next/static
+# Pas encore de dossier public/ dans le front. Quand il existera, ajouter :
+# COPY --from=build /app/public ./public
+USER node
+EXPOSE 3000
+CMD ["node", "server.js"]

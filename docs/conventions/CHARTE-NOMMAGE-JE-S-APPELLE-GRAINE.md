@@ -83,6 +83,7 @@ class TreeService {
 - Regrouper les routes réservées à l’administrateur sous le préfixe `/api/admin/`, protégé par un seul middleware de rôle.
 - Exception au pluriel : une ressource unique pour l’utilisateur connecté reste au singulier (`/api/cart`, `/api/users/me`, `/api/auth`, pages `/panier` et `/compte`).
 - Pages web (en français) : les formulaires d’ajout et de modification suivent la convention habituelle `…/nouveau` et `…/:id/modifier` ; la règle « sans verbe » s’applique aux routes de l’API.
+- Champs JSON des requêtes et des réponses : `camelCase`. La base reste en `snake_case` : la conversion se fait dans le `SELECT` du DataMapper, avec un alias entre guillemets (sinon PostgreSQL le passe en minuscules).
 
 ```text
 GET    /api/trees
@@ -91,6 +92,11 @@ GET    /api/trees?category=2
 POST   /api/admin/trees
 PATCH  /api/admin/trees/:id
 DELETE /api/admin/trees/:id
+```
+
+```sql
+SELECT photo_url AS "photoUrl", category_id AS "categoryId" FROM tree;
+-- Réponse : { "photoUrl": "...", "categoryId": 1 }
 ```
 
 ## Base de données

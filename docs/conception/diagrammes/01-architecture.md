@@ -10,6 +10,15 @@
 
 Toute l'application est hébergée sur un **VPS** (serveur privé virtuel fourni par O'Clock), chaque brique dans son conteneur Docker. Un serveur web **Nginx** placé devant reçoit toutes les requêtes HTTPS, envoie celles qui commencent par `/api` à l'API et les autres au front-end : le site et l'API partagent ainsi le même nom de domaine.
 
+**Nginx dans un conteneur, et non installé sur le VPS** (décision du 29/10/2026, carte #31). Quatre raisons :
+
+- sa configuration est dans le dépôt, relue en PR ;
+- il joint l'API et le front-end par leur nom de service sur le réseau Docker, sans que leurs ports soient publiés ;
+- la production se teste d'abord en local ;
+- un VPS neuf se remet en service avec `git clone` puis `docker compose`.
+
+Certbot tourne aussi dans un conteneur, lancé à la demande pour obtenir et renouveler le certificat Let's Encrypt. Seuls les ports 80 et 443 de Nginx sont ouverts sur Internet.
+
 ```mermaid
 flowchart TB
     U["Utilisateur<br/>(visiteur, client, admin)"]
@@ -85,15 +94,15 @@ flowchart LR
 
 ## Récapitulatif
 
-| Brique | Technologie | Hébergement (distant) | En développement |
-| --- | --- | --- | --- |
-| Serveur web | Nginx (HTTPS avec Certbot) | VPS (conteneur Docker) | — |
-| Front-end | Next.js / React (TypeScript) | VPS (conteneur Docker) | Conteneur Docker (Docker Compose) |
-| API REST | Node.js + Express (TypeScript) | VPS (conteneur Docker) | Conteneur Docker (Docker Compose) |
-| Base de données | PostgreSQL | VPS (conteneur Docker + volume sauvegardé) | Conteneur Docker (Docker Compose) |
-| Envoi d'emails | Nodemailer côté API, via le serveur SMTP d'un prestataire | Service externe | Prestataire de test ou boîte de test |
-| Accès aux données | DataMapper (requêtes SQL paramétrées) | — | — |
-| Hooks Git | Husky | — | Poste de chaque développeur |
+| Brique            | Technologie                                               | Hébergement (distant)                      | En développement                     |
+| ----------------- | --------------------------------------------------------- | ------------------------------------------ | ------------------------------------ |
+| Serveur web       | Nginx (HTTPS avec Certbot)                                | VPS (conteneur Docker)                     | —                                    |
+| Front-end         | Next.js / React (TypeScript)                              | VPS (conteneur Docker)                     | Conteneur Docker (Docker Compose)    |
+| API REST          | Node.js + Express (TypeScript)                            | VPS (conteneur Docker)                     | Conteneur Docker (Docker Compose)    |
+| Base de données   | PostgreSQL                                                | VPS (conteneur Docker + volume sauvegardé) | Conteneur Docker (Docker Compose)    |
+| Envoi d'emails    | Nodemailer côté API, via le serveur SMTP d'un prestataire | Service externe                            | Prestataire de test ou boîte de test |
+| Accès aux données | DataMapper (requêtes SQL paramétrées)                     | —                                          | —                                    |
+| Hooks Git         | Husky                                                     | —                                          | Poste de chaque développeur          |
 
 ## Points à valider avec l'équipe
 
