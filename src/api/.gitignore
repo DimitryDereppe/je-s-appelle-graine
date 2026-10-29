@@ -1,5 +1,7 @@
 # Variables d'environnement (secrets)
 .env*
+# Sauf la config des tests : pas de vrai secret dedans
+!.env.test
 
 # Configuration locale de Claude Code
 .claude/
