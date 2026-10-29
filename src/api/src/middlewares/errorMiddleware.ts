@@ -1,5 +1,9 @@
 import type { NextFunction, Request, Response } from "express";
-import { HttpClientError } from "../lib/errors.ts";
+import { HttpClientError, NotFoundError } from "../lib/errors.ts";
+
+export function notFoundMiddleware() {
+  throw new NotFoundError("Resource not found");
+}
 
 // Plusieurs façon d'appeler ce middleware :
 // - dans un controlleur en amont, `next(error)`
