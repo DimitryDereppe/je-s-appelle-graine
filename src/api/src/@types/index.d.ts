@@ -1,25 +1,20 @@
-export type ICategory = {
+// Accueil
+export interface IFeaturedTree {
   id: number;
   name: string;
-};
+  price: number;
+  photoUrl: string | null;
+  plantingLocation: string | null;
+  categoryName: string;
+}
 
-export type ITree = {
-  id: number;
-  name: string;
+// Catalogue
+// extends : reprend tous les champs de IFeaturedTree, et en ajoute un
+export interface ICatalogueTree extends IFeaturedTree {
+  availabilityName: "available" | "out_of_stock" | "withdrawn";
+}
+
+// Fiche
+export interface ITree extends ICatalogueTree {
   description: string | null;
-  price: number;
-  photoUrl: string | null;
-  plantingLocation: string | null;
-  categoryId: number;
-  availabilityId: number;
-};
-
-// Correspond exactement aux colonnes renvoyées par treeDatamapper.findFeatured()
-export type IFeaturedTree = {
-  id: number;
-  name: string;
-  price: number;
-  photoUrl: string | null;
-  plantingLocation: string | null;
-  category: ICategory;
-};
+}
