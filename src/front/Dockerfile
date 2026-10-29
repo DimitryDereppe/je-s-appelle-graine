@@ -15,8 +15,8 @@ RUN npm ci
 # Le reste du code (recouvert par le bind mount en dev)
 COPY --chown=node:node ./ ./
 
-# Créé au nom de node : le volume .next en hérite
-RUN mkdir -p .next
+# Compile le site pour la prod (crée aussi .next au nom de node, dont hérite le volume .next du dev)
+RUN npm run build
 
 EXPOSE 3000
 
