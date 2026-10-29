@@ -2,27 +2,6 @@ import Image from "next/image";
 import styles from "./Home.module.css";
 import { Tree, Feature } from "./typeHome";
 
-const trees: Tree[] = [
-  {
-    id: 1,
-    name: "Chêne pédonculé",
-    scientific: "Quercus robur",
-    price: "12 €",
-  },
-  {
-    id: 2,
-    name: "Pin sylvestre",
-    scientific: "Pinus sylvestris",
-    price: "9 €",
-  },
-  {
-    id: 3,
-    name: "Chêne champêtre",
-    scientific: "Quercus pubescens",
-    price: "11 €",
-  },
-];
-
 const features: Feature[] = [
   {
     id: 1,
@@ -41,7 +20,19 @@ const features: Feature[] = [
   },
 ];
 
-export default function Home() {
+export default async function Home() {
+  const res = await fetch(`${process.env.API_URL}/api/trees`, {
+    next: { revalidate: 60 },
+  });
+  if (!res.ok) {
+    throw new Error(`Erreur HTTP ${res.status}`);
+  }
+  const treesAll: Tree[] = await res.json();
+  const trees = [];
+  for (let i = 0; i < 3; i++) {
+    trees.push(treesAll[i]);
+  }
+
   return (
     <main className={styles.main}>
       {/* Section Welcome */}
@@ -84,7 +75,7 @@ export default function Home() {
             <article key={tree.id} className={styles.card}>
               <div className={styles.cardImage}>
                 <Image
-                  src="/images/pin-maritime.webp"
+                  src={tree.photo_url}
                   alt={tree.name}
                   className={styles.cardImg}
                   fill
@@ -104,7 +95,9 @@ export default function Home() {
                         height={18}
                       />
                     </span>{" "}
-                    Localisation
+                    <span className={styles.cardScientific}>
+                      {tree.planting_location}
+                    </span>
                   </p>
                 </div>
                 <div className={styles.cardActions}>

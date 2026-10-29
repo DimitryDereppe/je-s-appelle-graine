@@ -158,6 +158,8 @@
   position: relative;
   overflow: hidden;
   background-color: #e3e9df;
+  display: flex;
+  justify-content: center;
 }
 
 .cardImg {
@@ -291,7 +293,7 @@
   .welcomeContent {
     align-items: flex-start;
     text-align: left;
-    width: 45%;
+    width: 35%;
   }
 
   .welcomeTagline {
@@ -313,7 +315,7 @@
   }
 
   .heroImage {
-    width: 55%;
+    width: 65%;
     height: 290px;
   }
 
