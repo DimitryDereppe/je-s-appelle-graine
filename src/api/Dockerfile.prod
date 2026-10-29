@@ -19,6 +19,8 @@ COPY package.json package-lock.json ./
 # --omit=dev : ni typescript, ni tsx, ni @types dans l'image finale
 RUN npm ci --omit=dev
 COPY --from=build /app/dist ./dist
+# Photos des arbres : app.ts compilé est dans dist/src/
+COPY src/public ./dist/src/public
 # Ne pas tourner en root dans le conteneur
 USER node
 EXPOSE 4000
