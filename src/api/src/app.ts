@@ -1,6 +1,7 @@
 import express from "express";
 import { router as apiRouter } from "./routers/index.router.ts";
 import cors from "cors";
+import { globalErrorHandler } from "./middlewares/globalErrorHandler.ts";
 
 export const app = express();
 
@@ -11,3 +12,5 @@ app.use(express.json());
 /// https://expressjs.com/fr/5x/guide/using-middleware/
 // (treeRouter y est déjà inclus via index.router.ts)
 app.use("/api", apiRouter);
+
+app.use(globalErrorHandler); // middleware de gestion des erreurs globales
