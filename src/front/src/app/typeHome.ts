@@ -9,3 +9,9 @@ export interface Feature {
   id: number;
   title: string;
 }
+
+export interface Feature {
+  id: number;
+  title: string;
+  icon: string;
+}

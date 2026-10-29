@@ -24,9 +24,21 @@ const trees: Tree[] = [
 ];
 
 const features: Feature[] = [
-  { id: 1, title: "Des arbres sélectionnés" },
-  { id: 2, title: "Une plantation demain" },
-  { id: 3, title: "Un suivi transparent" },
+  {
+    id: 1,
+    title: "Des arbres sélectionnés",
+    icon: "/assets/arbres-selectionnes.png",
+  },
+  {
+    id: 2,
+    title: "Une plantation demain",
+    icon: "/assets/projets-plantation.png",
+  },
+  {
+    id: 3,
+    title: "Un suivi transparent",
+    icon: "/assets/suivi-transparent.png",
+  },
 ];
 
 export default function Home() {
@@ -41,7 +53,7 @@ export default function Home() {
           <h1 className={styles.welcomeTitle}>
             Un arbre aujourd&apos;hui,
             <br />
-            une forêt demain.
+            <span className={styles.underline}>une</span> forêt demain.
           </h1>
           <p className={styles.welcomeSubtitle}>
             Choisissez les arbres qui contribuent aux projets de reforestation.
@@ -64,7 +76,9 @@ export default function Home() {
 
       {/* Section Homepage */}
       <section className={styles.homepage}>
-        <h2 className={styles.sectionTitle}>Les arbres du moment</h2>
+        <h2 className={styles.sectionTitle}>
+          <span className={styles.underline}>Les</span> arbres du moment
+        </h2>{" "}
         <div className={styles.cardsGrid}>
           {trees.map((tree) => (
             <article key={tree.id} className={styles.card}>
@@ -77,20 +91,39 @@ export default function Home() {
                 />
               </div>
               <div className={styles.cardBody}>
-                <h3 className={styles.cardTitle}>{tree.name}</h3>
-                <p className={styles.cardScientific}>{tree.scientific}</p>
-                <p className={styles.cardLocation}>
-                  <span className={styles.locationIcon}>📍</span> Localisation
-                </p>
-                <div className={styles.cardFooter}>
-                  <p className={styles.cardPrice}>{tree.price}</p>
-                  <button
-                    className={styles.basketButton}
-                    type="button"
-                    aria-label={`Ajouter ${tree.name} au panier`}
-                  >
-                    🛒
-                  </button>
+                <div className={styles.cardInfo}>
+                  <h3 className={styles.cardTitle}>{tree.name}</h3>
+                  <p className={styles.cardScientific}>{tree.scientific}</p>
+                  <p className={styles.cardLocation}>
+                    <span className={styles.locationIcon}>
+                      <Image
+                        src={"/assets/localisation.svg"}
+                        alt=""
+                        className={styles.badgeIcon}
+                        width={18}
+                        height={18}
+                      />
+                    </span>{" "}
+                    Localisation
+                  </p>
+                </div>
+                <div className={styles.cardActions}>
+                  <div className={styles.cardFooter}>
+                    <p className={styles.cardPrice}>{tree.price} TTC</p>
+                    <button
+                      className={styles.basketButton}
+                      type="button"
+                      aria-label={`Ajouter ${tree.name} au panier`}
+                    >
+                      <Image
+                        src={"/assets/panier.svg"}
+                        alt=""
+                        className={styles.badgeIcon}
+                        width={24}
+                        height={24}
+                      />
+                    </button>
+                  </div>
                 </div>
               </div>
             </article>
@@ -102,6 +135,13 @@ export default function Home() {
       <div className={styles.badges}>
         {features.map((f) => (
           <div key={f.id} className={styles.badge}>
+            <Image
+              src={f.icon}
+              alt=""
+              className={styles.badgeIcon}
+              width={24}
+              height={24}
+            />
             <p className={styles.badgeText}>{f.title}</p>
           </div>
         ))}
