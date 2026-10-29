@@ -5,6 +5,8 @@ import {
   getOneTree,
 } from "../controllers/treeController.ts";
 
+import { validateId } from "../middlewares/commonMiddleware.ts";
+
 export const router = Router();
 
 // Le préfixe "/api" est déjà ajouté par app.use("/api", ...) dans app.ts :
@@ -18,4 +20,4 @@ router.get("/trees/featured", getFeaturedTrees);
 router.get("/trees", getAllCatalog);
 
 // GET /api/trees/:id → un arbre pour la fiche arbre
-router.get("/trees/:id", getOneTree);
+router.get("/trees/:id", validateId, getOneTree);
