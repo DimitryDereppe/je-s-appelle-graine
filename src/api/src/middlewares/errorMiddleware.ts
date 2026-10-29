@@ -1,6 +1,7 @@
 import type { NextFunction, Request, Response } from "express";
 import { HttpClientError, NotFoundError } from "../lib/errors.ts";
 
+// aucune route trouvée, on lance une erreur
 export function notFoundMiddleware() {
   throw new NotFoundError("Resource not found");
 }

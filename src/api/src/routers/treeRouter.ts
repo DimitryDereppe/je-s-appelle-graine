@@ -2,6 +2,7 @@ import { Router } from "express";
 import {
   getAllCatalog,
   getFeaturedTrees,
+  getOneTree,
 } from "../controllers/treeController.ts";
 
 export const router = Router();
@@ -15,3 +16,6 @@ router.get("/trees/featured", getFeaturedTrees);
 
 // GET /api/trees → la liste de tous les arbres pour le catalogue
 router.get("/trees", getAllCatalog);
+
+// GET /api/trees/:id → un arbre pour la fiche arbre
+router.get("/trees/:id", getOneTree);
