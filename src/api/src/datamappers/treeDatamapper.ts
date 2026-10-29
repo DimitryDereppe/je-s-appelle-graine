@@ -10,10 +10,10 @@ export const treeDatamapper = {
             SELECT id, name, description, CAST(price AS FLOAT) AS price,
                    photo_url AS "photoUrl", planting_location AS "plantingLocation",
                    category_id AS "categoryId", availability_id AS "availabilityId"
-            FROM tree;
+            FROM tree,
             -- On y associe leur statut de disponibilité
             -- (clé étrangère tree.availability_id → availability.id)
-            JOIN availability ON tree.availability_id = availability.id
+            JOIN availability ON tree.availability_id = availability.id;
         `;
     const result = await pool.query(sqlQuery);
     return result.rows;

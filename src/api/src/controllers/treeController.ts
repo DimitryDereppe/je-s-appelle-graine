@@ -3,7 +3,7 @@ import { treeDatamapper } from "../datamappers/treeDatamapper.ts";
 
 // la liste des arbres
 export async function getAllTrees(_req: Request, res: Response) {
-  const trees = await treeDatamapper.findAll();
+  const trees = await treeDatamapper.findAllCatalog();
   res.status(200).json(trees);
 }
 
