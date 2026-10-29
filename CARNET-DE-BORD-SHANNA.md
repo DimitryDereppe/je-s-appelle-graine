@@ -2,6 +2,29 @@ Carnet de bord du projet — Je s'appelle Graine
 Contribution consignée : Shanna.
 
 Les entrées sont classées de la plus récente à la plus ancienne.
+Sp1 - Jour 4
+
+Travail réalisé
+
+Développement de la page « Nos arbres » en Next.js et TypeScript, avec une mise en page responsive pour ordinateur et mobile, basée sur la maquette et la charte graphique.
+
+Connexion du catalogue à GET /api/trees et ajout du filtre par catégories, avec la requête GET /api/trees?category=….
+
+Ajustements de l’interface à partir de la maquette : suppression de la recherche, réglage des espacements, couleurs, séparateurs, filtre mobile et alignement du prix avec l’icône panier.
+
+Rendu des photos et des noms d’arbres cliquables pour accéder à une fiche individuelle.
+
+Définition de la route dynamique trees/[id] : un seul modèle de page servira les fiches de tous les arbres via GET /api/trees/:id.
+
+Difficultés rencontrées et suites
+
+Plusieurs ajustements CSS ont été nécessaires pour rapprocher le rendu desktop et mobile de la maquette.
+
+Le premier commit a été bloqué par ESLint : window.location.assign() est déconseillé pour naviguer vers une page Next.js interne. Remplacer cet appel par router.push() depuis useRouter.
+
+Les photos et le pictogramme panier ne s’affichaient pas dans la capture ; leurs chemins dans le dossier public restent à vérifier.
+
+Créer la page dynamique trees/[id]/page.tsx et son style, puis vérifier l’affichage réel des fiches et les liens depuis les cartes.
 
 Sp1- Jour 3
 

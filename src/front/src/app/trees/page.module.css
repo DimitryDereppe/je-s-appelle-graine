@@ -1,0 +1,447 @@
+.catalogue {
+  width: 100%;
+  max-width: none;
+  min-height: 60vh;
+  margin: 0;
+  padding: 1.5rem clamp(1rem, 2vw, 2rem) 3rem;
+  color: var(--color-deep-green, #18352e);
+  background-color: var(--color-ivory, #f8f6f0);
+}
+
+.pageHeader {
+  display: grid;
+  grid-template-columns: minmax(170px, 210px) minmax(0, 1fr);
+  gap: 2rem;
+  margin-bottom: 0.75rem;
+}
+
+.desktopFilterTitle {
+  align-self: end;
+  margin: 0 0 0.4rem;
+  font-family: var(--font-lora, Georgia), Georgia, serif;
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.contentHeading {
+  min-width: 0;
+}
+
+.breadcrumb {
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.breadcrumb ol {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.breadcrumb li + li::before {
+  content: "›";
+  margin-right: 0.5rem;
+  color: var(--color-muted, #53615b);
+}
+
+.breadcrumb a {
+  color: var(--color-muted, #53615b);
+  text-decoration: none;
+}
+
+.breadcrumb a:hover {
+  text-decoration: underline;
+  text-underline-offset: 0.2rem;
+}
+
+.titleRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-lora, Georgia), Georgia, serif;
+  font-size: clamp(2rem, 7vw, 3rem);
+  line-height: 1.15;
+}
+
+.treeCount {
+  flex: 0 0 auto;
+  margin: 0;
+  color: var(--color-muted, #53615b);
+  font-size: 0.875rem;
+}
+
+.catalogueLayout {
+  display: grid;
+  grid-template-columns: minmax(170px, 210px) minmax(0, 1fr);
+  gap: 2rem;
+}
+
+.filterToggle {
+  display: none;
+}
+
+.filters {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+.categoryFilters {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  margin: 0;
+  padding: 0 0 0.6rem;
+  border: 0;
+  border-bottom: 1px solid var(--color-border, #e4e1d9);
+}
+
+.categoryFilters legend {
+  margin-bottom: 0.375rem;
+  font-weight: 700;
+}
+
+.categoryOption {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 32px;
+  padding: 0.125rem 0.25rem;
+  color: var(--color-deep-green, #18352e);
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9375rem;
+}
+
+.categoryOption input {
+  width: 0.9rem;
+  height: 0.9rem;
+  flex: 0 0 auto;
+  accent-color: var(--color-primary-green, #245a46);
+}
+
+.categoryOption:has(input:checked) {
+  color: var(--color-primary-green, #245a46);
+  font-weight: 700;
+}
+
+.categoryOption:focus-within {
+  outline: 3px solid var(--color-terracotta, #b6532c);
+  outline-offset: 2px;
+}
+
+.results {
+  grid-column: 2;
+  grid-row: 1;
+  min-width: 0;
+}
+
+.treeGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.treeCard {
+  min-width: 0;
+  overflow: hidden;
+  background-color: #fff;
+  border: 1px solid var(--color-border, #e4e1d9);
+  border-radius: 12px;
+}
+
+.treeImage {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 2.6 / 1;
+  overflow: hidden;
+  background-color: var(--color-sage, #e3e9df);
+}
+
+.treeImageLink {
+  position: absolute;
+  inset: 0;
+  display: block;
+}
+
+.treeImage img {
+  object-fit: cover;
+}
+
+.treeInfo {
+  padding: 0.5rem 0.625rem 0.625rem;
+}
+
+.treeName {
+  margin: 0;
+  font-family: var(--font-lora, Georgia), Georgia, serif;
+  font-size: 1.125rem;
+  line-height: 1.25;
+}
+
+.treeNameLink {
+  color: inherit;
+  text-decoration: none;
+}
+
+.treeNameLink:hover {
+  color: var(--color-primary-green, #245a46);
+  text-decoration: underline;
+  text-underline-offset: 0.2rem;
+}
+
+.treeImageLink:focus-visible,
+.treeNameLink:focus-visible {
+  outline: 3px solid var(--color-terracotta, #b6532c);
+  outline-offset: 3px;
+}
+
+.treeCategory {
+  margin: 0.125rem 0;
+  color: var(--color-muted, #53615b);
+  font-size: 0.875rem;
+}
+
+.treeLocation {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.35rem;
+  min-height: 2.25rem;
+  margin: 0.25rem 0 0;
+  color: var(--color-muted, #53615b);
+  font-size: 0.875rem;
+  line-height: 1.35;
+}
+
+.locationIcon {
+  width: 1rem;
+  height: 1rem;
+  flex: 0 0 1rem;
+  margin-top: 0.125rem;
+  /* TODO : placer ici le pictogramme de localisation. */
+}
+
+.priceAndCart {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+}
+
+.treePrice {
+  margin: 0;
+  color: var(--color-terracotta, #b6532c);
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.addToCart {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
+  padding: 0;
+  background-color: var(--color-sage, #e3e9df);
+  border: 1px solid transparent;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.addToCart:hover:not(:disabled) {
+  background-color: var(--color-border, #e4e1d9);
+}
+
+.addToCart:disabled {
+  cursor: wait;
+  opacity: 0.6;
+}
+
+.addToCart:focus-visible,
+.breadcrumb a:focus-visible {
+  outline: 3px solid var(--color-terracotta, #b6532c);
+  outline-offset: 3px;
+}
+
+.errorMessage {
+  padding: 1rem;
+  background-color: var(--color-sage, #e3e9df);
+  border-left: 4px solid var(--color-terracotta, #b6532c);
+  line-height: 1.5;
+}
+
+.cartMessage {
+  min-height: 1.5rem;
+  margin: 0.75rem 0 0;
+  color: var(--color-deep-green, #18352e);
+  font-size: 0.9375rem;
+}
+
+@media (max-width: 699px) {
+  .catalogue {
+    padding: 1rem;
+  }
+
+  .pageHeader {
+    display: block;
+    margin-bottom: 0.75rem;
+  }
+
+  .desktopFilterTitle {
+    display: none;
+  }
+
+  .breadcrumb {
+    margin-bottom: 0.375rem;
+    font-size: 0.75rem;
+  }
+
+  .titleRow {
+    align-items: flex-start;
+  }
+
+  .title {
+    font-size: 1.75rem;
+  }
+
+  /* Petit soulignement terre cuite du titre mobile. */
+  .title::after {
+    display: block;
+    width: 48px;
+    height: 3px;
+    margin-top: 0.3rem;
+    background-color: var(--color-terracotta, #b6532c);
+    content: "";
+  }
+
+  .catalogueLayout {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+    width: 100%;
+    min-width: 0;
+  }
+
+  /* Le fond du bouton couvre la moitié de la largeur d’une carte. */
+  .filterToggle {
+    display: flex;
+    flex: 0 0 auto;
+    align-self: flex-start;
+    box-sizing: border-box;
+    width: 50%;
+    max-width: 50%;
+    min-height: 32px;
+    align-items: center;
+    justify-content: center;
+    padding: 0.25rem 1rem;
+    color: var(--color-deep-green, #18352e);
+    background-color: var(--color-sage, #e3e9df);
+    border: 0;
+    border-radius: 999px;
+    cursor: pointer;
+  }
+
+  .filterToggle svg {
+    width: 1.125rem;
+    height: 1.125rem;
+    fill: currentColor;
+  }
+
+  .filterToggle:focus-visible {
+    outline: 3px solid var(--color-terracotta, #b6532c);
+    outline-offset: 3px;
+  }
+
+  .filters {
+    display: none;
+    box-sizing: border-box;
+    width: 100%;
+    padding: 0.75rem;
+    background-color: var(--color-ivory, #f8f6f0);
+    border: 1px solid var(--color-border, #e4e1d9);
+    border-radius: 10px;
+  }
+
+  .filtersOpen {
+    display: block;
+  }
+
+  .categoryFilters {
+    gap: 0.125rem;
+  }
+
+  .categoryOption {
+    min-height: 36px;
+  }
+
+  .results {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .treeGrid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.75rem;
+  }
+
+  .treeCard,
+  .treeImage {
+    box-sizing: border-box;
+    width: 100%;
+  }
+
+  .treeImage {
+    aspect-ratio: 3.2 / 1;
+  }
+
+  .treeInfo {
+    padding: 0.375rem 0.625rem 0.5rem;
+  }
+
+  .treeName {
+    font-size: 1rem;
+  }
+
+  .treeCategory,
+  .treeLocation {
+    font-size: 0.75rem;
+  }
+
+  .treeLocation {
+    min-height: auto;
+  }
+
+  .priceAndCart {
+    justify-content: flex-end;
+    gap: 0.5rem;
+  }
+
+  .treePrice {
+    font-size: 0.875rem;
+  }
+
+  .addToCart {
+    width: 40px;
+    height: 40px;
+    flex-basis: 40px;
+  }
+}
+
+@media (min-width: 700px) and (max-width: 999px) {
+  .treeGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

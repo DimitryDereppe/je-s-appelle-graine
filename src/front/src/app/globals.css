@@ -4,3 +4,17 @@
   margin: 0;
 }
 
+:root {
+  --color-deep-green: #18352e;
+  --color-green: #245a46;
+  --color-sage: #e3e9df;
+  --color-ivory: #f8f6f0;
+  --color-terracotta: #b6532c;
+  --color-muted: #53615b;
+  --color-border: #e4e1d9;
+  --font-editorial: var(--font-lora), Georgia, serif;
+}
+
+body {
+  font-family: var(--font-editorial);
+}
