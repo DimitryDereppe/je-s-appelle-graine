@@ -1,7 +1,8 @@
 "use client";
-import { useRouter } from "next/navigation";
+
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import styles from "./page.module.css";
 
@@ -22,7 +23,7 @@ const categories = [
   { id: 3, name: "Feuillage persistant" },
 ];
 
-/* Associe les forêts présentes dans les données aux régions à afficher. */
+/* Associe les noms de forêt présents dans les données aux régions à afficher. */
 const forestRegions: Record<string, string> = {
   "Forêt de Brocéliande": "Bretagne",
   "Monts d'Arrée": "Bretagne",
@@ -57,6 +58,7 @@ function formatPrice(price: string): string {
 
 export default function TreesPage() {
   const router = useRouter();
+
   const [trees, setTrees] = useState<Tree[]>([]);
   const [selectedCategory, setSelectedCategory] = useState(0);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -222,21 +224,36 @@ export default function TreesPage() {
               {trees.map((tree) => (
                 <li className={styles.treeCard} key={tree.id}>
                   <div className={styles.treeImage}>
-                    <Image
-                      src={tree.photo_url}
-                      alt={tree.name}
-                      fill
-                      sizes="(max-width: 699px) 100vw, (max-width: 1099px) 50vw, 30vw"
-                    />
+                    <Link
+                      href={`/trees/${tree.id}`}
+                      className={styles.treeImageLink}
+                      aria-label={`Voir la fiche de ${tree.name}`}
+                    >
+                      <Image
+                        src={tree.photo_url}
+                        alt={tree.name}
+                        fill
+                        sizes="(max-width: 699px) 100vw, (max-width: 999px) 50vw, 30vw"
+                      />
+                    </Link>
                   </div>
 
                   <div className={styles.treeInfo}>
-                    <h2 className={styles.treeName}>{tree.name}</h2>
+                    <h2 className={styles.treeName}>
+                      <Link
+                        href={`/trees/${tree.id}`}
+                        className={styles.treeNameLink}
+                      >
+                        {tree.name}
+                      </Link>
+                    </h2>
+
                     <p className={styles.treeCategory}>
                       {getCategoryName(tree.category_id)}
                     </p>
+
                     <p className={styles.treeLocation}>
-                      {/* TODO : remplacer ce repère par le pictogramme de localisation. */}
+                      {/* TODO : ajouter le pictogramme de localisation. */}
                       <span
                         aria-hidden="true"
                         className={styles.locationIcon}
@@ -256,7 +273,7 @@ export default function TreesPage() {
                         disabled={addingTreeId === tree.id}
                         onClick={() => handleAddToCart(tree.id)}
                       >
-                        {/* Remplacer le chemin par celui du pictogramme utilisé dans le Header. */}
+                        {/* TODO : utiliser le même fichier d’icône panier que le header. */}
                         <Image
                           src="/images/cart.svg"
                           alt=""

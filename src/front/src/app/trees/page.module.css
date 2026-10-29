@@ -168,6 +168,12 @@
   background-color: var(--color-sage, #e3e9df);
 }
 
+.treeImageLink {
+  position: absolute;
+  inset: 0;
+  display: block;
+}
+
 .treeImage img {
   object-fit: cover;
 }
@@ -181,6 +187,23 @@
   font-family: var(--font-lora, Georgia), Georgia, serif;
   font-size: 1.125rem;
   line-height: 1.25;
+}
+
+.treeNameLink {
+  color: inherit;
+  text-decoration: none;
+}
+
+.treeNameLink:hover {
+  color: var(--color-primary-green, #245a46);
+  text-decoration: underline;
+  text-underline-offset: 0.2rem;
+}
+
+.treeImageLink:focus-visible,
+.treeNameLink:focus-visible {
+  outline: 3px solid var(--color-terracotta, #b6532c);
+  outline-offset: 3px;
 }
 
 .treeCategory {
@@ -312,7 +335,7 @@
     min-width: 0;
   }
 
-  /* Le fond du bouton couvre la moitié de la largeur de la carte. */
+  /* Le fond du bouton couvre la moitié de la largeur d’une carte. */
   .filterToggle {
     display: flex;
     flex: 0 0 auto;
