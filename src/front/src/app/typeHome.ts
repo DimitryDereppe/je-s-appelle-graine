@@ -9,9 +9,3 @@ export interface Feature {
   id: number;
   title: string;
 }
-
-export interface Achievement {
-  id: number;
-  title: string;
-  subtitle: string;
-}
