@@ -2,6 +2,94 @@
 
 Suivi de mon travail sur Je s’appelle Graine. Les décisions notées ici ont été prises avec l'équipe sur Discord ; le suivi de l'équipe est dans le [[Apothéose/apo-jesappellegraine/CARNET-DE-BORD-JE-S-APPELLE-GRAINE|carnet de bord Je s’appelle Graine]].
 
+## 2026-10-29 — Catalogue `findAllCatalog`, Docker de production et déploiement sur le VPS
+
+Le matin, branche `feat/datamappers/accueil`, fusionnée deux fois dans `back` (09:56 et 11:09). L'après-midi, branche `feat/deployment`, qui part du dernier merge.
+
+**✅ Le déploiement fonctionne.** Le site est en ligne en HTTPS sur le VPS Kourou, avec la branche `feat/deployment` (commit `38729f8`), et tous les tests passent.
+
+### Travail réalisé
+
+- **`findAll` renommée `findAllCatalog`** (commits `4af6ded` 09:47, `eb0df6f` 09:52, même message) :
+  - `treeDatamapper.ts` : jointure `JOIN availability ON tree.availability_id = availability.id` ajoutée à la requête du catalogue ;
+  - `treeController.ts` : `getAllTrees` appelle `treeDatamapper.findAllCatalog()`.
+- **Merge dans `back`** (commit `4e03f6e`, 09:56) : `feat/datamappers/accueil` et `origin`, avec le carnet de Shanna (PR #65).
+- **Dockerfile du front** (commit `5351488`, 10:14) : `RUN npm run build` remplace `RUN mkdir -p .next`. Le build crée aussi `.next` au nom de `node`, dont hérite le volume `.next` du dev.
+- **Catalogue limité aux arbres en vente** (commit `7651267`, 11:07) :
+  - colonnes préfixées par `tree.` (`tree.id`, `tree.name`…) ;
+  - `WHERE availability.name = 'available'`.
+  - Vérifié : `GET /api/trees` répond en 200, avec 13 arbres, tous `availabilityId: 1`.
+- **Merge dans `back`** (commit `12a44b9`, 11:09).
+- **Docker de production** (commit `38729f8`, carte #31), d'après la page wiki « Déployer sur un VPS Kourou, pas à pas » :
+  - `src/docker-compose.prod.yml` : 4 services (`db`, `api`, `front`, `nginx`), plus `certbot` lancé à la demande (profil `outils`), et `name: graine` ;
+  - `src/api/Dockerfile.prod` et `src/front/Dockerfile.prod` : construction en deux étapes, utilisateur `node` ;
+  - `src/nginx/default.conf.template` : HTTP renvoyé vers HTTPS, `/api/` vers l'API, le reste vers le front ;
+  - `src/.env.prod.example` ;
+  - `output: "standalone"` dans `next.config.ts` ;
+  - `!.env.prod.example` et `certbot/` dans `src/.gitignore` ;
+  - pile testée d'abord en local, sous un autre nom de projet Docker (images de 177 Mo pour l'API, 209 Mo pour le front).
+- **Déploiement sur le VPS** (<https://dimitrydereppe-server.eddi.cloud>) :
+  - clé SSH créée sur la VM ;
+  - clone, puis `git fetch` et `git switch feat/deployment` ;
+  - `.env` rempli (`chmod 600`) ;
+  - `up -d --build db api front` ;
+  - certificat d'essai (`--staging`), puis vrai certificat Let's Encrypt ;
+  - `up -d nginx`.
+- **Vérifications** :
+  - depuis Internet :
+    - certificat Let's Encrypt reconnu, valable jusqu'au 27/01/2027 ;
+    - `http://…/api/trees` renvoie `301` vers HTTPS ;
+    - `https://…/` répond `200` ;
+    - `/api/trees` renvoie 13 arbres, `/api/trees/featured` répond `200` ;
+    - ports 3000, 4000, 5432, 5433 et 8080 fermés ;
+  - sur la VM :
+    - 4 conteneurs `Up`, `db` en `(healthy)` ;
+    - `nginx -t` OK ;
+    - seuls 22, 80 et 443 sont à l'écoute sur `0.0.0.0` ;
+    - `restart: unless-stopped` sur les 4 conteneurs ;
+    - 21 arbres en base.
+- **Documentation** :
+  - `docs/specifications/CAHIER-DES-CHARGES-JE-S-APPELLE-GRAINE.md` (justification des choix) et `docs/conception/diagrammes/01-architecture.md` : décision Nginx et Certbot en conteneur ;
+  - Follow « Déployer sur un VPS Kourou » mis à jour (local et wiki, page 152) : chemins `src/`, pièges, check-list de vérifications sur la VM.
+
+### Décisions
+
+- **Nginx et Certbot dans des conteneurs**, et non installés sur le VPS (cf. cahier des charges et architecture). Raisons :
+  - leur configuration est versionnée dans le dépôt et relue en PR ;
+  - Nginx joint l'API et le front par leur nom de service (`api`, `front`) sur le réseau Docker, sans que leurs ports soient publiés ;
+  - la pile de production se teste d'abord en local ;
+  - un VPS neuf se remet en service avec `git clone` puis `docker compose`.
+  - Contrepartie : quelques commandes Certbot de plus qu'un `certbot --nginx` (`--standalone`, puis `--webroot` et une tâche cron).
+- **`name: graine` dans le compose de prod** : sans ce nom, Compose prendrait le nom du dossier (`src`), le même que le dev, et remplacerait les conteneurs de dev si on lançait la prod sur son poste.
+- **Pas de Node sur le VPS** : il tourne dans les images.
+- **Tester une branche sur le VPS avant de la fusionner** : elle doit être poussée, puis récupérée avec `git fetch` et `git switch`.
+
+### Difficultés
+
+- **`/api/trees` en 500 après `eb0df6f`** : `syntax error at or near "availability"`, en dev comme en prod.
+  - Le premier `JOIN` avait été placé après le `;` de `FROM tree;`, donc hors de la requête.
+  - En voulant corriger, le `;` est devenu une virgule (`FROM tree,`). Or un `JOIN` suit directement la table, sans virgule.
+  - Une fois la virgule retirée, `id` et `name` devenaient ambigus : les tables `tree` et `availability` ont toutes les deux ces colonnes. D'où le préfixe `tree.` partout, comme dans `findFeatured()`.
+- **Sur le VPS** :
+  - `git clone` : `Permission denied (publickey)`, parce qu'il n'y avait pas encore de clé SSH sur la VM ;
+  - `apt install npm` : série de `404 Not Found`, parce que la liste des paquets n'était pas à jour (`apt update` d'abord). Et npm était de toute façon inutile ;
+  - `cp .env.prod.example .env` : `cannot stat`, commande lancée à la racine alors que le fichier est dans `src/` ;
+  - Certbot `--staging` : `Service busy; retry later.`, serveur de test de Let's Encrypt surchargé. Ça a marché en relançant.
+- **Écarts avec le wiki** :
+  - SQL dans `api/src/data/` ;
+  - `index.ts` et `config.ts` à copier dans l'image de l'API ;
+  - pas de dossier `public/` dans le front ;
+  - la vérification `config --env-file …` échoue (`env_file: .env` obligatoire).
+
+### À poursuivre
+
+- **PR de `feat/deployment`** vers `back` / `main`, avec les deux documents (`docs/`) à commiter.
+- **Sur le VPS** : renouvellement automatique du certificat (`--dry-run`, puis ligne cron avec le chemin `…/src`) et sauvegarde de la base. `crontab -l` est encore vide.
+- **À valider avec l'équipe** : le seed dit que `out_of_stock` doit rester « visible, non commandable ». Or le catalogue masque maintenant les 5 arbres en rupture. Deux options : `WHERE availability.name <> 'withdrawn'` (18 arbres), ou mettre à jour le commentaire du seed.
+- `/api/health` est en commentaire dans `index.router.ts` : à rétablir, c'est le test de déploiement le plus simple.
+- Les photos des arbres ne sont pas servies (`express.static`). Il faudra ensuite copier les images dans `Dockerfile.prod`.
+- Mot de passe admin à changer en production quand argon2 et la connexion seront en place.
+
 ## 2026-10-28 (après-midi) — Datamapper `tree` et routes `/api/trees` de l'accueil
 
 Branche `feat/datamappers/accueil`, PR #61 fusionnée à 15:44 (après la PR #60 `.gitignore`, fusionnée à 10:29).
