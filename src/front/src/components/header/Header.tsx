@@ -7,7 +7,7 @@ import styles from "./header.module.css";
 
 const navigationLinks = [
   { href: "/", label: "Accueil" },
-  { href: "/catalogue", label: "Nos arbres" },
+  { href: "/trees", label: "Nos arbres" },
   { href: "/qui-sommes-nous", label: "Qui sommes-nous" },
   { href: "/connexion", label: "Connexion" },
 ];
@@ -22,7 +22,7 @@ export default function Header() {
         <Link
           className={styles.brand}
           href="/"
-          aria-label="Je m’appelle Graine, accueil"
+          aria-label="Je s’appelle Graine, accueil"
           onClick={() => setIsMenuOpen(false)}
         >
           {/* TODO : ajouter le pictogramme graine-2-germination. */}
