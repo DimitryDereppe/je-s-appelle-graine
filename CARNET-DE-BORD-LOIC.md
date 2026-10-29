@@ -45,7 +45,7 @@ Je me suis porté volontaire pour faire la première présentation des avancées
 
 ### Contexte :
 
-Lors du point matinal, Fabrice nous a proposé un planning devant servir à organiser la prochaine semaine en nous répartissant nos tâches à accomplir. Le planning a été validé. Ma première activité du matin se fait conjointement avec Dimitry. Nous relevons les meilleures compatibilités entre les dépendances et les versions à installer. 
+Lors du point matinal, Fabrice nous a proposé un planning devant servir à organiser la prochaine semaine en nous répartissant nos tâches à accomplir. Le planning a été validé. Ma première activité du matin se fait conjointement avec Dimitry. Nous relevons les meilleures compatibilités entre les dépendances et les versions à installer.
 
 ### Actions du jour :
 
@@ -54,4 +54,74 @@ Lors du point matinal, Fabrice nous a proposé un planning devant servir à orga
     <li>Validation collective de la maquette graphique</li>
     <li>Présentation de fin de sprint</li>
     <li>Checklist du materiel pour lancement du développement le 26/10</li>
+</ul>
+
+## 26/10/2026 - Sprint 1
+
+### Contexte :
+
+Après la présentation du sprint 0 le 23/10, tous les livrables de la période ont été validés et nous avons reçu l'autorisation de passer au sprint 1. Nous commençons à programmer en groupe en utilisant le live-share de Vs Code.
+
+### Actions du jour :
+
+<ul>
+    <li>Lancement du back-end :
+        <ul>
+            <li>Initialisation de la base de données</li>
+            <li>Initialisation de l'api</li>
+            <li>mise en place d'une route test</li>
+        </ul>
+    <li>Lancement de Docker :
+        <ul>
+            <li>contenarisation de la base de données</li>
+            <li>contenarisation de la base de l'api</li>
+        </ul>
+    </li>
+</ul>
+
+## 27/10/2026 - Sprint 1
+
+### Contexte :
+
+Nous continuons de programmer en groupe en utilisant le live-share de vsCode.
+
+### Actions du jour :
+
+<ul>
+    <li>Lancement du front:
+        <ul>
+            <li>Initialisation de NextJs</li>
+            <li>raccordement de l'api au front (hors-docker)</li>
+        </ul>
+    </li>
+    <li>Extansion du Docker-compose :
+        <ul>
+            <li>contenarisation du front</li>
+            <li>raccordement de l'api au front (dans docker)</li>
+        </ul>
+    </li>
+    <li>Installation et mise en service de husky</li>
+</ul>
+
+## 28/10/2026 - Sprint 1
+
+### Contexte :
+
+Le groupe s'est divisé en deux. Une équipe commence à travailler sur le back et une autre sur le front. Avec Shanna nous commençons à développer les pages du front. Nous nous sommes répartis les tâches en deux. Shanna gère le layout de toutes les pages tandis que je fais la page d'acceuil.
+
+### Actions du jour :
+
+<ul>
+    <li> Création des pages html sur la base des maquettes(rendu statique uniquement)</li>
+</ul>
+
+## 29/10/2026 - Sprint 1
+
+### Contexte :
+
+Shanna et moi continuons de produire le html des pages et nous les intégrons à Nextjs au fil de l'eau.
+
+<ul>
+    <li> Achèvement des pages layout, acceuil et catalogue</li>
+    <li> Liaison entre le front et le back sur la page d'acceuil avec un appel API pour hydrater le front </li>
 </ul>
