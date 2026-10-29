@@ -3,7 +3,7 @@ import { HttpClientError, NotFoundError } from "../lib/errors.ts";
 
 // aucune route trouvée, on lance une erreur
 export function notFoundMiddleware() {
-  throw new NotFoundError("Resource not found");
+  throw new NotFoundError("Ressource introuvable");
 }
 
 // Plusieurs façon d'appeler ce middleware :
@@ -23,7 +23,7 @@ export function globalErrorHandler(
   // - ex : throw new NotFoundError()
   // - ex : throw new ConflictError()
   if (error instanceof HttpClientError) {
-    console.error("HTTP Client error ", {
+    console.error("HTTP Client error", {
       error: error.message,
       status: error.status ?? "",
       stack: error.stack ?? "",
@@ -36,8 +36,7 @@ export function globalErrorHandler(
   }
 
   // Si l'erreur arrive à ce stade, il faut la logger avec un niveau approprié
-
-  console.error("HTTP Client error", {
+  console.error("Internal server error", {
     error: error.message,
     cause: error.cause ?? "",
     stack: error.stack ?? "",
@@ -48,7 +47,7 @@ export function globalErrorHandler(
   // - ex : la BDD plante
   // - ex : on a fait une erreur de syntaxe
   res.status(500).json({
-    error: "Internal server error",
+    error: "Le service est momentanément indisponible.",
     status: 500,
   });
 }

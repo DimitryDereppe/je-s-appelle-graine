@@ -2,7 +2,7 @@ import type { NextFunction, Request, Response } from "express";
 import { BadRequestError } from "../lib/errors.ts";
 
 // Middleware commun pour valider un id dans l'URL
-export function validateId(req: Request, res: Response, next: NextFunction) {
+export function validateId(req: Request, _res: Response, next: NextFunction) {
   // 1. Récupérer l'id dans l'URL
   const id = Number(req.params.id);
 
@@ -14,5 +14,5 @@ export function validateId(req: Request, res: Response, next: NextFunction) {
   }
 
   // cas par défaut : ID invalide
-  throw new BadRequestError("Id Invalid");
+  throw new BadRequestError("Identifiant invalide");
 }

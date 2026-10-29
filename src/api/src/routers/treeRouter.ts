@@ -4,7 +4,6 @@ import {
   getFeaturedTrees,
   getOneTree,
 } from "../controllers/treeController.ts";
-
 import { validateId } from "../middlewares/commonMiddleware.ts";
 
 export const router = Router();

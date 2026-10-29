@@ -1,5 +1,9 @@
 import { pool } from "../data/db-client.ts";
-import type { ITree, IFeaturedTree } from "../@types/index.d.ts";
+import type {
+  ITree,
+  IFeaturedTree,
+  ICatalogueTree,
+} from "../@types/index.d.ts";
 
 export const treeDatamapper = {
   // accueil : les 3 derniers arbres disponibles, le plus récent en premier
@@ -36,10 +40,10 @@ export const treeDatamapper = {
   },
 
   // catalogue : tous les arbres sauf "les retirés"
-  async findAllCatalog(): Promise<ITree[]> {
+  async findAllCatalog(): Promise<ICatalogueTree[]> {
     // Colonnes listées une par une pour pouvoir convertir le prix :
     // PostgreSQL stocke price en NUMERIC, que pg renvoie en texte ("9.90") ;
-    // CAST(... AS FLOAT) le transforme en nombre (9.9), comme annoncé dans ITree.
+    // CAST(... AS FLOAT) le transforme en nombre (9.9), comme annoncé dans ICatalogueTree.
     // Colonnes préfixées par "tree." : availability a aussi des colonnes id et name,
     // sans préfixe PostgreSQL ne saurait pas laquelle prendre (erreur "ambiguous").
     const sqlQuery = `
