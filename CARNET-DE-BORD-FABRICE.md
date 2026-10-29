@@ -2,6 +2,37 @@
 
 Suivi de mon travail sur Je s’appelle Graine. Les décisions notées ici ont été prises avec l'équipe ; le suivi de l'équipe est dans le [carnet de bord Je s’appelle Graine](CARNET-DE-BORD-JE-S-APPELLE-GRAINE.md), que je tiens à jour.
 
+## 2026-10-29 — Fiche d'un arbre, gestion des erreurs et tests de l'API
+
+### Travail réalisé
+
+- **Fiche d'un arbre** `GET /api/trees/:id` (bonus #22) : routeur, contrôleur et `findById` dans le DataMapper ; un arbre inexistant ou retiré → 404.
+- **Types de l'API** : `ICatalogueTree` pour le catalogue, `availabilityName` limité aux 3 valeurs de la table `availability`.
+- **Mise en place de la gestion des erreurs** avec Mahamadou (`feat/error-handling`) : middlewares errorMiddleware et commonMiddleware.
+- **Contrats #22 et #26** : messages d'erreur en français et champ `status`. **Carte #20** limitée aux erreurs du sprint 1.
+- **Fusion de `back` dans `main`** (PR #68).
+- **Tests de l'API** (#18) : branche `feat/test-setup` poussée, avec la config reprise du cours (base de test dans un conteneur, `--env-file`, `global-setup.ts`, `requester` axios, `createTree`) et un premier test d'intégration de `GET /api/trees/featured`. Dimitry prend la suite.
+- **Relecture du déploiement de Dimitry** (PR #66) : pile de production construite et testée en local ; points remontés (guide à mettre à jour).
+
+### Ce que j'ai appris
+
+- Nginx choisit la `location` la plus précise ; un seul domaine évite le CORS et garde le cookie du JWT sur un seul site.
+- Un Dockerfile _multi-stage_ sépare la construction (avec les outils de dev) de l'image finale, plus légère.
+- Les fichiers non commités n'appartiennent à aucune branche : ils suivent le `git switch`.
+- Un test unitaire vise une fonction pure (comme `isValidPassword` dans oQuiz) ; tester un contrôleur seul demande des _mocks_.
+- `console.error` écrit dans la sortie d'erreur, ce qui distingue les erreurs dans les logs Docker.
+
+### Décisions (prises avec l'équipe)
+
+- Messages d'erreur de l'API en français.
+- Chaque feature ajoute ses propres erreurs ; le sprint 1 ne traite que les siennes..
+
+### À poursuivre
+
+- Préparer la présentation du sprint 1.
+- Suivre les tests de Dimitry sur `feat/test-setup`, puis la PR vers `back`.
+- Photos des arbres : `express.static` dans l'API, puis Nginx et `Dockerfile.prod`.
+
 ## 2026-10-28 — Route de l'accueil, contrat d'API et préparation des tests
 
 ### Travail réalisé

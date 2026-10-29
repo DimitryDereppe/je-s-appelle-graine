@@ -1,5 +1,36 @@
 # Carnet de bord — Je s’appelle Graine
 
+## 2026-10-29 — Gestion des erreurs, fiche d'un arbre et mise en production
+
+### Travail réalisé
+
+- **Gestion des erreurs de l'API** (#20) par Mahamadou et Fabrice (PR #67 vers `back`, puis PR #68 de `back` vers `main`) :
+  - classes d'erreurs dans `src/api/src/lib/errors.ts` (`NotFoundError`, `BadRequestError`…) ;
+  - route inconnue → 404, id invalide → 400 (middleware `validateId`), erreur imprévue → 500 sans détail technique ;
+  - messages en français, avec le champ `status`.
+- **Catalogue et fiche d'un arbre** (bonus #22) :
+  - `GET /api/trees` (`findAllCatalog`) par Dimitry : les arbres en vente ;
+  - `GET /api/trees/:id` par Fabrice : la fiche, avec la description ; un arbre inexistant ou retiré → 404.
+- **Mise en production** (#31) par Dimitry (PR #66) :
+  - `docker-compose.prod.yml`, Dockerfiles de production, Nginx et Certbot dans des conteneurs ;
+  - guide [DEPLOIEMENT.md](DEPLOIEMENT.md) ;
+  - le site est en ligne en HTTPS sur sa VM.
+- **Page accueil et catalogue** (desktop et mobile) et header responsive par Shanna et Loïc.
+- **Tests de l'API** (#18) : branche `feat/test-setup` poussée, avec la base de test, `npm test` et un premier test d'intégration de `GET /api/trees/featured`(à poursuivre par Dimitry).
+
+### Décisions
+
+- Les messages d'erreur de l'API sont en français : le site s'adresse à un public français, et le front peut afficher le message tel quel.
+- Les cartes du sprint 1 ne traitent que les erreurs du sprint 1. Ceux qui développent les features suivantes ajoutent les erreurs qui les concernent.
+
+### À poursuivre
+
+- Dimitry reprend les tests (#18, #30) sur `feat/test-setup` : les autres cas de l'accueil (puis le catalogue, la fiche et les erreurs).
+- Photos des arbres : l'API ne les sert pas encore (`express.static`), ni en dev ni en production (Nginx et `Dockerfile.prod` à compléter).
+- Délai de connexion du `pg.Pool` : sans lui, une base arrêtée ne renvoie pas l'erreur 500.
+- Guide de déploiement : suivre `main` au lieu de `feat/deployment`.
+- Préparer la présentation du sprint 1.
+
 ## 2026-10-28 — Route de l'accueil et page d'accueil statique
 
 ### Travail réalisé
