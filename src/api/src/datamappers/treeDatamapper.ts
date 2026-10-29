@@ -6,14 +6,18 @@ export const treeDatamapper = {
     // Colonnes listées une par une pour pouvoir convertir le prix :
     // PostgreSQL stocke price en NUMERIC, que pg renvoie en texte ("9.90") ;
     // CAST(... AS FLOAT) le transforme en nombre (9.9), comme annoncé dans ITree.
+    // Colonnes préfixées par "tree." : availability a aussi des colonnes id et name,
+    // sans préfixe PostgreSQL ne saurait pas laquelle prendre (erreur "ambiguous").
     const sqlQuery = `
-            SELECT id, name, description, CAST(price AS FLOAT) AS price,
-                   photo_url AS "photoUrl", planting_location AS "plantingLocation",
-                   category_id AS "categoryId", availability_id AS "availabilityId"
-            FROM tree,
+            SELECT tree.id, tree.name, tree.description, CAST(tree.price AS FLOAT) AS price,
+                   tree.photo_url AS "photoUrl", tree.planting_location AS "plantingLocation",
+                   tree.category_id AS "categoryId", tree.availability_id AS "availabilityId"
+            FROM tree
             -- On y associe leur statut de disponibilité
             -- (clé étrangère tree.availability_id → availability.id)
-            JOIN availability ON tree.availability_id = availability.id;
+            JOIN availability ON tree.availability_id = availability.id
+            -- On ne garde que les arbres en vente
+            WHERE availability.name = 'available';
         `;
     const result = await pool.query(sqlQuery);
     return result.rows;
