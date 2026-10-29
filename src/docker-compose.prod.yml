@@ -1,0 +1,79 @@
+# Je s'appelle Graine : production sur le VPS (carte #31)
+# Lancer, depuis src/ : docker compose -f docker-compose.prod.yml up -d --build
+# Les valeurs viennent du fichier .env du VPS (copie de .env.prod.example, jamais commitée).
+# Différences avec docker-compose.yml (développement) : images compilées, aucun port
+# ouvert sauf 80 et 443 (Nginx), pas de dossier de code monté, pas d'Adminer.
+
+# Nom du projet : sans lui, Compose prendrait le nom du dossier ("src"), le même que le dev,
+# et remplacerait les conteneurs de dev si on lançait la prod sur sa machine.
+name: graine
+
+services:
+  db:
+    image: postgres:18-alpine
+    env_file: .env
+    volumes:
+      # Depuis PostgreSQL 18, le volume se monte sur /var/lib/postgresql (et non plus .../data)
+      - db-data:/var/lib/postgresql
+      # Joués une seule fois, au premier démarrage (fichiers montés un par un)
+      - ./api/src/data/01-schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+      - ./api/src/data/02-seed.sql:/docker-entrypoint-initdb.d/02-seed.sql:ro
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          'pg_isready -h 127.0.0.1 -U "$$POSTGRES_USER" -d "$$POSTGRES_DB"',
+        ]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 120s
+    # Pas de "ports:" : la base n'est joignable que par le réseau Docker, jamais depuis Internet
+    restart: unless-stopped
+
+  api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile.prod
+    env_file: .env
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  front:
+    build:
+      context: ./front
+      dockerfile: Dockerfile.prod
+    env_file: .env # API_URL=http://api:4000, SITE_URL=https://...
+    environment:
+      PORT: 3000 # le .env contient PORT=4000 (pour l'API) : le front garde 3000
+    depends_on:
+      - api
+    restart: unless-stopped
+
+  nginx:
+    image: nginx:1.30-alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      DOMAINE: ${DOMAINE} # remplacé dans nginx/*.template au démarrage du conteneur
+    volumes:
+      - ./nginx:/etc/nginx/templates:ro
+      - ./certbot/www:/var/www/certbot:ro
+      - ./certbot/conf:/etc/letsencrypt:ro
+    depends_on:
+      - api
+      - front
+    restart: unless-stopped
+
+  certbot:
+    image: certbot/certbot:v5.8.0
+    profiles: ["outils"] # ne démarre pas avec "up" : on le lance à la demande avec "run"
+    volumes:
+      - ./certbot/www:/var/www/certbot
+      - ./certbot/conf:/etc/letsencrypt
+
+volumes:
+  db-data:

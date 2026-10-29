@@ -1,5 +1,32 @@
 # Carnet de bord — Je s’appelle Graine
 
+## 2026-10-28 — Route de l'accueil et page d'accueil statique
+
+### Travail réalisé
+
+- **Route `GET /api/trees/featured`** par le trinôme du back (PR #61 et #63, fusionnées dans `back`) :
+  - DataMapper des arbres (`findAll`, `findFeatured`), contrôleur et routeur ;
+  - les 3 derniers arbres disponibles, avec la catégorie (`{ id, name }`), le lieu de plantation et le prix en nombre, comme la vignette de la maquette ;
+  - `GET /api/trees` renvoie aussi la liste complète des arbres (bonus #22) ;
+  - vérifiées avec REST Client (`src/api/test/test.tree.http`).
+- **Page d'accueil statique** par Loïc, sur la branche `welcomePage` (version desktop en cours).
+- **Kanban** mis à jour d'après les commits et le code.
+
+### Décisions
+
+- Chaque groupe écrit les tests de ses features ; l'autre groupe relit la PR.
+- Les PR du back vont vers la branche `back`, avant la fusion dans `main`.
+- Les PR du front vont vers la branche `Front`, avant la fusion dans `main`.
+
+### À poursuivre
+
+- Base de test séparée et `npm test` à la racine (#18), puis les tests de la route de l'accueil (#30)
+- Middleware d'erreur et délai de connexion à la base (#20) : sans eux, une panne de la base ne renvoie pas l'erreur 500 prévue par le contrat
+- Aligner le type `Tree` de la page d'accueil sur le contrat avant de la brancher sur l'API.
+- Valider le contrat #26 entre les deux groupes
+- Faire relire les PR du back par le binôme du front quand terminé (F1 + tests).
+- Faire valider carte #17 - README d'installation
+
 ## 2026-10-27 — Initialisation du front, Husky et environnement de développement
 
 ### Travail réalisé

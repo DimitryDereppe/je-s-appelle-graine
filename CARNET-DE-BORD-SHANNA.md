@@ -2,7 +2,6 @@ Carnet de bord du projet — Je s'appelle Graine
 Contribution consignée : Shanna.
 
 Les entrées sont classées de la plus récente à la plus ancienne.
-
 Sp1 - Jour 4
 
 Travail réalisé
