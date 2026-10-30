@@ -4,8 +4,8 @@ export interface Tree {
   scientific: string;
   price: string;
   description: string;
-  photo_url: string;
-  planting_location: string;
+  photoUrl: string;
+  plantingLocation: string;
   category_id: number;
   availability_id: number;
 }
