@@ -2,6 +2,49 @@
 
 Suivi de mon travail sur Je s’appelle Graine. Les décisions notées ici ont été prises avec l'équipe sur Discord ; le suivi de l'équipe est dans le [[Apothéose/apo-jesappellegraine/CARNET-DE-BORD-JE-S-APPELLE-GRAINE|carnet de bord Je s’appelle Graine]].
 
+## 2026-10-30 (soir) — Déploiement : certificat renouvelé et site mis à jour automatiquement
+
+Branche `docs/renouvellement-certificat` (commit `5b70c69`), créée depuis `main`.
+
+**Résultat** : sur la VM, deux tâches cron tournent. Elles ont été testées en conditions réelles, y compris après un redémarrage.
+
+### Travail réalisé
+
+- **[[Apothéose/apo-jesappellegraine/DEPLOIEMENT|DEPLOIEMENT.md]], section « Mettre à jour le site »** : `restart nginx` remplace `nginx -s reload`.
+  - L'image Nginx ne remplace `${DOMAINE}` dans le `.template` qu'au **démarrage** du conteneur.
+  - Un `reload` relit l'ancienne configuration : une nouvelle règle (comme `/images/trees/`) serait ignorée.
+  - Cette erreur venait du guide d'origine (commit `1dc6150`, écrit avec Claude).
+- **`src/crontab.prod`**, installé sur la VM avec `crontab crontab.prod` :
+  - **toutes les heures, à la minute 17** : `certbot renew --webroot`, puis `nginx -s reload` → `~/renouvellement-certificat.log` ;
+  - **au démarrage (`@reboot`)** : `sleep 60`, `git pull --ff-only origin main`, `up -d --build`, `restart nginx` → `~/mise-a-jour.log`.
+- **Clé SSH `~/.ssh/deploy_graine` sur la VM**, sans phrase de passe. Le dépôt de la VM l'utilise grâce à `git config core.sshCommand`.
+- **DEPLOIEMENT.md simplifié et vérifié** : une seule clé pour le clone et le cron, une section « Tâches automatiques (cron) », des pièges mis à jour.
+- **Tests** :
+  - en local, sur une copie de la config de prod, dans les conditions de cron (environnement vide, pas de terminal) ;
+  - sur la VM, essai à blanc du renouvellement : `Congratulations, all simulated renewals succeeded` ;
+  - à 17h20, passage réel de cron : `Certificate not yet due for renewal` (expiration le 27/01/2027), puis Nginx rechargé ;
+  - redémarrage à 17h35:44 : mise à jour lancée à 17h36:52, site et API en `200`.
+
+### Décisions
+
+- **Toutes les heures plutôt qu'une heure fixe** : la VM s'éteint chaque jour, et cron ne rattrape pas un passage manqué. Tant qu'il reste plus de 30 jours, Certbot ne fait rien, donc ça ne coûte rien. La minute 17 évite les heures pile, comme le demande Let's Encrypt.
+- **`--webroot` pour renouveler** : le premier certificat a été obtenu en `--standalone`, qui a besoin du port 80, déjà pris par Nginx.
+- **Clé ajoutée à mon compte GitHub**, faute de mieux : une _Deploy key_ en lecture seule demande un admin du dépôt, et nous n'avons que le droit WRITE. La doc recommande la _Deploy key_ pour les collègues.
+- **Aucun mot de passe dans le dépôt** : le mot de passe commun des VM n'aide pas pour `git pull`, et il serait lisible sur GitHub.
+
+### Difficultés
+
+- **Premier essai de renouvellement** : `Timeout during connect`, parce que la VM n'était pas rendue publique.
+- **`git pull` sous cron** : `Permission denied (publickey)`. La clé d'origine de la VM a une phrase de passe, et personne n'est là pour la taper.
+- **Push refusé vers `main`** : la branche avait été créée avec `git switch -c … origin/main`, donc elle suivait `main`. VS Code a poussé vers `main`.
+- **Doc périmée** : l'API renvoie 18 arbres et non 13, `/api/health` fonctionne, `/images/trees/` part vers l'API, et le JWT n'existe pas encore.
+
+### À poursuivre
+
+- `git push -u origin docs/renouvellement-certificat`, puis la PR vers `main`.
+- Supprimer la clé `deploy-graine` de mon compte GitHub quand la VM ne sert plus, ou la remplacer par une _Deploy key_ ajoutée par un admin.
+- Collègues : installer `crontab.prod` sur leur VM (DEPLOIEMENT.md, section 6).
+
 ## 2026-10-30 (après-midi) — Carte #45 : audit Lighthouse de l'accueil et plan de tests
 
 Branche `docs/plan-de-tests`, créée depuis `main`. Les tests d'intégration du matin sont sur `back` (PR #78, entrée « Tests d'intégration de l'API » sur cette branche).
