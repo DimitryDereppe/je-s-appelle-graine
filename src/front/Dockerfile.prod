@@ -19,8 +19,8 @@ ENV PORT=3000
 # standalone ne contient pas .next/static (CSS, JavaScript du navigateur) : on le copie à part
 COPY --from=build /app/.next/standalone ./
 COPY --from=build /app/.next/static ./.next/static
-# Pas encore de dossier public/ dans le front. Quand il existera, ajouter :
-# COPY --from=build /app/public ./public
+# standalone ne contient pas non plus public/ (logo, icônes, images) : on le copie aussi
+COPY --from=build /app/public ./public
 USER node
 EXPOSE 3000
 CMD ["node", "server.js"]
