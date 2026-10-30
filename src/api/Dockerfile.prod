@@ -1,0 +1,28 @@
+# Je s'appelle Graine : image de PRODUCTION de l'API (carte #31)
+# Deux étapes : on compile le TypeScript, puis on ne garde que le JavaScript et les dépendances utiles.
+
+# Étape 1 : compiler (a besoin de typescript et des @types, donc des devDependencies)
+FROM node:24.22.1-alpine AS build
+WORKDIR /app
+COPY package.json package-lock.json ./
+RUN npm ci
+# index.ts et config.ts sont à la racine de api/, le reste dans src/
+COPY tsconfig.json index.ts config.ts ./
+COPY src ./src
+RUN npm run build
+
+# Étape 2 : l'image qui tourne sur le VPS
+FROM node:24.22.1-alpine
+WORKDIR /app
+ENV NODE_ENV=production
+COPY package.json package-lock.json ./
+# --omit=dev : ni typescript, ni tsx, ni @types dans l'image finale
+RUN npm ci --omit=dev
+COPY --from=build /app/dist ./dist
+# Photos des arbres : app.ts compilé est dans dist/src/
+COPY src/public ./dist/src/public
+# Ne pas tourner en root dans le conteneur
+USER node
+EXPOSE 4000
+# npm start = node dist/index.js (script du package.json)
+CMD ["npm", "start"]

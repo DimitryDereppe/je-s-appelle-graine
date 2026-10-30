@@ -102,3 +102,26 @@ Nous continuons de programmer en groupe en utilisant le live-share de vsCode.
     </li>
     <li>Installation et mise en service de husky</li>
 </ul>
+
+## 28/10/2026 - Sprint 1
+
+### Contexte :
+
+Le groupe s'est divisé en deux. Une équipe commence à travailler sur le back et une autre sur le front. Avec Shanna nous commençons à développer les pages du front. Nous nous sommes répartis les tâches en deux. Shanna gère le layout de toutes les pages tandis que je fais la page d'acceuil.
+
+### Actions du jour :
+
+<ul>
+    <li> Création des pages html sur la base des maquettes(rendu statique uniquement)</li>
+</ul>
+
+## 29/10/2026 - Sprint 1
+
+### Contexte :
+
+Shanna et moi continuons de produire le html des pages et nous les intégrons à Nextjs au fil de l'eau.
+
+<ul>
+    <li> Achèvement des pages layout, acceuil et catalogue</li>
+    <li> Liaison entre le front et le back sur la page d'acceuil avec un appel API pour hydrater le front </li>
+</ul>

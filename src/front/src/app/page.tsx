@@ -56,7 +56,7 @@ export default async function Home() {
 
         <div className={styles.heroImage}>
           <Image
-            src="/images/pin-maritime.webp"
+            src="/images/trees/pin-maritime.webp"
             alt="Arbre"
             className={styles.heroImg}
             fill
@@ -75,7 +75,7 @@ export default async function Home() {
             <article key={tree.id} className={styles.card}>
               <div className={styles.cardImage}>
                 <Image
-                  src={tree.photo_url}
+                  src={tree.photoUrl}
                   alt={tree.name}
                   className={styles.cardImg}
                   fill
@@ -96,7 +96,7 @@ export default async function Home() {
                       />
                     </span>{" "}
                     <span className={styles.cardScientific}>
-                      {tree.planting_location}
+                      {tree.plantingLocation}
                     </span>
                   </p>
                 </div>

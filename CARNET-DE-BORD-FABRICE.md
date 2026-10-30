@@ -2,6 +2,77 @@
 
 Suivi de mon travail sur Je s’appelle Graine. Les décisions notées ici ont été prises avec l'équipe ; le suivi de l'équipe est dans le [carnet de bord Je s’appelle Graine](CARNET-DE-BORD-JE-S-APPELLE-GRAINE.md), que je tiens à jour.
 
+## 2026-10-29 — Fiche d'un arbre, gestion des erreurs et tests de l'API
+
+### Travail réalisé
+
+- **Fiche d'un arbre** `GET /api/trees/:id` (bonus #22) : routeur, contrôleur et `findById` dans le DataMapper ; un arbre inexistant ou retiré → 404.
+- **Types de l'API** : `ICatalogueTree` pour le catalogue, `availabilityName` limité aux 3 valeurs de la table `availability`.
+- **Mise en place de la gestion des erreurs** avec Mahamadou (`feat/error-handling`) : middlewares errorMiddleware et commonMiddleware.
+- **Contrats #22 et #26** : messages d'erreur en français et champ `status`. **Carte #20** limitée aux erreurs du sprint 1.
+- **Fusion de `back` dans `main`** (PR #68).
+- **Tests de l'API** (#18) : branche `feat/test-setup` poussée, avec la config reprise du cours (base de test dans un conteneur, `--env-file`, `global-setup.ts`, `requester` axios, `createTree`) et un premier test d'intégration de `GET /api/trees/featured`. Dimitry prend la suite.
+- **Relecture du déploiement de Dimitry** (PR #66) : pile de production construite et testée en local ; points remontés (guide à mettre à jour).
+
+### Ce que j'ai appris
+
+- Nginx choisit la `location` la plus précise ; un seul domaine évite le CORS et garde le cookie du JWT sur un seul site.
+- Un Dockerfile _multi-stage_ sépare la construction (avec les outils de dev) de l'image finale, plus légère.
+- Les fichiers non commités n'appartiennent à aucune branche : ils suivent le `git switch`.
+- Un test unitaire vise une fonction pure (comme `isValidPassword` dans oQuiz) ; tester un contrôleur seul demande des _mocks_.
+- `console.error` écrit dans la sortie d'erreur, ce qui distingue les erreurs dans les logs Docker.
+
+### Décisions (prises avec l'équipe)
+
+- Messages d'erreur de l'API en français.
+- Chaque feature ajoute ses propres erreurs ; le sprint 1 ne traite que les siennes..
+
+### À poursuivre
+
+- Préparer la présentation du sprint 1.
+- Suivre les tests de Dimitry sur `feat/test-setup`, puis la PR vers `back`.
+- Photos des arbres : `express.static` dans l'API, puis Nginx et `Dockerfile.prod`.
+
+## 2026-10-28 — Route de l'accueil, contrat d'API et préparation des tests
+
+### Travail réalisé
+
+- **Contrôleur des arbres** (`treeController.ts`) : `getAllTrees` et `getFeaturedTrees`, branchés sur le routeur et le DataMapper du trinôme (PR #61 et #63, fusionnées dans `back`).
+- **Revue et corrections de la route `GET /api/trees/featured`**, testée avec REST Client (`src/api/test/test.tree.http`) :
+  - requête `findFeatured` réécrite d'après le schéma : arbres disponibles seulement, le plus récent en premier, 3 au plus ;
+  - prix converti en nombre (`CAST(price AS FLOAT)`) ;
+  - catégorie jointe, renvoyée en objet `{ id, name }` ;
+  - lieu de plantation ajouté, après vérification de la maquette v7 (il est sur la vignette).
+- **Réponses de l'API en camelCase** (`photoUrl`, `plantingLocation`…), types `ITree` et `IFeaturedTree` alignés, règle ajoutée à la charte de nommage (PR #63).
+- **Contrat d'API #26 mis à jour** : tableau des champs, exemple de réponse, message d'erreur 500.
+- `.vscode/` ignoré et retiré du dépôt.
+- **Guide d'installation** : `mkdir -p src/front/.next` ajouté à l'installation, et dépannage du commit refusé quand ce dossier est au nom de `root`.
+- **Kanban mis à jour** d'après les commits et le code.
+
+### Ce que j'ai appris
+
+- Un fichier `.d.ts` n'est pas vérifié quand `skipLibCheck` est activé, et il s'importe avec `import type`.
+- `pg` renvoie une colonne `NUMERIC` en texte (`"9.90"`) : il faut la convertir dans le `SELECT`.
+- Un alias en camelCase doit être entre guillemets (`AS "photoUrl"`), sinon PostgreSQL le passe en minuscules.
+- Le préfixe donné à `app.use("/api", router)` s'ajoute aux chemins du routeur : il ne faut pas le répéter.
+- Après un changement de branche, `tsx watch` peut continuer à servir l'ancien code : il faut redémarrer le conteneur de l'API.
+- Docker crée en `root` le dossier `src/front/.next` sur la machine pour y monter le volume du cache ; Husky ne peut plus y écrire.
+- Sans délai de connexion, `pg.Pool` attend sans fin quand la base est arrêtée : l'API ne renvoie jamais d'erreur 500.
+
+### Décisions (prises avec l'équipe)
+
+- Les types de l'API restent dans `src/api/src/@types/index.d.ts`, avec le préfixe `I` (`ITree`, `IFeaturedTree`). La règle est ajoutée à la charte de nommage.
+- Les tests sont écrits par le groupe qui code la feature ; l'autre groupe relit la PR.
+- Les PR du back vont vers la branche `back` (idem pour le front).
+
+### À poursuivre
+
+- #18 : `node:test`, base de test séparée, `npm test` à la racine, premier test d'exemple, explication dans le README.
+- #20 : middleware d'erreur (JSON sans détail technique) et délai de connexion du `pg.Pool`, pour respecter l'erreur 500 du contrat.
+- #30 : tests d'intégration de `GET /api/trees/featured`, un par règle du contrat.
+- Faire valider le contrat #26 par le binôme du front ; le type `Tree` de la page d'accueil (`welcomePage`) doit s'aligner sur le contrat.
+- Faire relire les PR du back par l'autre groupe avant la fusion de `back` dans `main`.
+
 ## 2026-10-27 — Initialisation du front, Husky et environnement de développement
 
 ### Travail réalisé
