@@ -23,6 +23,77 @@ describe("treeController", () => {
       assert.strictEqual(body.length, 3);
     });
 
-    //TODO: autres tests (arbres seulement disponible / réponse 200 [] lorsque aucun arbre / ...)
+    it("should return only available trees", async () => {
+      // Arrange : 2 arbres disponibles, 1 en rupture de stock, 1 retiré
+      await libTests.createTree({ name: "Érable" });
+      await libTests.createTree({ name: "Hêtre" });
+      await libTests.createTree({
+        name: "Tilleul",
+        availability: "out_of_stock",
+      });
+      await libTests.createTree({
+        name: "Chêne",
+        availability: "withdrawn",
+      });
+
+      // Act : Appelle la route comme le ferait le front
+      const httpResponse = await libTests.requester.get("/trees/featured");
+      const body = httpResponse.data; // le JSON renvoyé (tableau d'arbres)
+
+      // Assert : La route répond et ne renvoie que les arbres disponibles
+      assert.strictEqual(httpResponse.status, 200);
+      assert.strictEqual(body.length, 2);
+    });
+
+    it("should return tree.id by order DESC", async () => {
+      // Arrange : 3 arbres disponibles avec des IDs différents
+      const tree1Id = await libTests.createTree({ name: "Érable" });
+      const tree2Id = await libTests.createTree({ name: "Hêtre" });
+      const tree3Id = await libTests.createTree({ name: "Tilleul" });
+
+      // Act : Appelle la route comme le ferait le front
+      const httpResponse = await libTests.requester.get("/trees/featured");
+      const body = httpResponse.data; // le JSON renvoyé (tableau d'arbres)
+
+      // Assert : La route répond et les arbres sont triés par ID décroissant
+      assert.strictEqual(httpResponse.status, 200);
+      assert.strictEqual(body.length, 3);
+      assert.strictEqual(body[0].id, tree3Id);
+      assert.strictEqual(body[1].id, tree2Id);
+      assert.strictEqual(body[2].id, tree1Id);
+    });
+
+    it("should return 200 with empty array when no trees", async () => {
+      // Arrange : aucun arbre en BDD
+
+      // Act : Appelle la route comme le ferait le front
+      const httpResponse = await libTests.requester.get("/trees/featured");
+      const body = httpResponse.data; // le JSON renvoyé (tableau d'arbres)
+
+      // Assert : La route répond et renvoie un tableau vide
+      assert.strictEqual(httpResponse.status, 200);
+      assert.deepStrictEqual(body, []);
+    });
+
+    it("should return 200 with empty array when no available trees", async () => {
+      // Arrange : 2 arbres en rupture de stock, 1 retiré
+      await libTests.createTree({
+        name: "Tilleul",
+        availability: "out_of_stock",
+      });
+      await libTests.createTree({
+        name: "Chêne",
+        availability: "withdrawn",
+      });
+
+      // Act : Appelle la route comme le ferait le front
+      const httpResponse = await libTests.requester.get("/trees/featured");
+      const body = httpResponse.data; // le JSON renvoyé (tableau d'arbres)
+
+      // Assert : La route répond et renvoie un tableau vide
+      assert.strictEqual(httpResponse.status, 200);
+      assert.deepStrictEqual(body, []);
+    });
+    // TODO : autres tests (réponse 200 [] lorsque aucun arbre / ...)
   });
 });
