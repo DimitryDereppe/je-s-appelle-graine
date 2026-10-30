@@ -1,5 +1,28 @@
 # Carnet de bord — Je s’appelle Graine
 
+## 2026-10-30 — Accueil branché sur l'API, tests et présentation du sprint 1
+
+### Travail réalisé
+
+- **Page d'accueil branchée sur l'API** (#29) par Loïc : les 3 derniers arbres viennent de `GET /api/trees/featured` (PR #73 vers `Front`, puis #74 et #75 vers `main`).
+- **Mise en page commune** du front par Shanna (PR #77 vers `Front`).
+- **Photos des arbres servies par l'API** par Fabrice (PR #72) : `express.static`, copie des photos dans l'image de production, règle Nginx `/images/trees/` et relais Next.js en dev.
+- **Build de production du front corrigé** par Dimitry (PR #76) : guide de déploiement mis à jour.
+- **Tests d'intégration de l'API** (#18, #30) par Dimitry, sur `feat/test-setup` : accueil (tri, disponibilité, limite de 3, ...).
+- **Présentation du sprint 1** (#38) par Fabrice et Mahamadou : le projet, l'organisation, l'initialisation, puis la feature F1 et sa démo.
+- **Kanban** : 20 cartes du sprint 1 terminées sur 28.
+
+### Décisions
+
+- L'API ne sert que les photos des arbres (`/images/trees/`) ; les autres images (logo, icônes) sont dans le `public/` du front.
+
+### À poursuivre
+
+- Fusionner les tests dans `main` (#30).
+- Appliquer le contrat #22 (`photoUrl`, `price` en nombre, `categoryName`), renommer `app/trees` en `app/arbres`, `lang="fr"`.
+- Valider le guide d'installation (#17) et déploiements - à faire individuels (#34 à #37).
+- Sprint planning du sprint 2 lundi.
+
 ## 2026-10-29 — Gestion des erreurs, fiche d'un arbre et mise en production
 
 ### Travail réalisé
