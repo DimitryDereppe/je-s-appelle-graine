@@ -39,10 +39,14 @@ before(async () => {
   execSync(`docker rm -f graine_test 2>/dev/null || true`);
 
   // Créer un conteneur BDD dédié aux tests
+  // --tmpfs : les données de PostgreSQL sont en mémoire vive (RAM), pas sur le disque
+  // - démarrage en ~3 s au lieu de ~45 s sur un disque dur classique
+  // - sans risque ici : la BDD de test est supprimée à la fin des tests
   execSync(`
     docker run \
     -d \
     --name graine_test \
+    --tmpfs /var/lib/postgresql \
     -p ${process.env.POSTGRES_PORT}:5432 \
     -e POSTGRES_USER=${process.env.POSTGRES_USER} \
     -e POSTGRES_PASSWORD=${process.env.POSTGRES_PASSWORD} \
