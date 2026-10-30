@@ -2,6 +2,10 @@ import Image from "next/image";
 import styles from "./Home.module.css";
 import { Tree, Feature } from "./typeHome";
 
+// Rendue à chaque requête, et non pendant `next build` : au build (docker build),
+// API_URL n'est pas défini et le conteneur api n'est pas joignable.
+export const dynamic = "force-dynamic";
+
 const features: Feature[] = [
   {
     id: 1,

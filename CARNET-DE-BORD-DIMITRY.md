@@ -2,6 +2,28 @@
 
 Suivi de mon travail sur Je s’appelle Graine. Les décisions notées ici ont été prises avec l'équipe sur Discord ; le suivi de l'équipe est dans le [[Apothéose/apo-jesappellegraine/CARNET-DE-BORD-JE-S-APPELLE-GRAINE|carnet de bord Je s’appelle Graine]].
 
+## 2026-10-30 — Le nouveau front n'apparaissait pas sur le VPS
+
+### Travail réalisé
+
+- Branche `fix/front-build-prod` (commit `238904a`, poussée) : `export const dynamic = "force-dynamic"` dans
+  `src/front/src/app/page.tsx`, et `COPY --from=build /app/public ./public` dans `src/front/Dockerfile.prod`.
+- `API_URL` retiré pour lancer `npm run build` en local : le build passe, `/` est rendu à la demande (`ƒ`).
+
+### Difficultés
+
+- Site en ligne sans en-tête ni pied de page, `/trees` en 404 → la VM était encore sur `feat/deployment`
+  (`1dc6150`) → passer sur `main`.
+- Sur `main`, `docker compose up --build` échouait : `TypeError: Invalid URL`, `input: 'undefined/api/trees'` →
+  l'accueil (composant serveur, `revalidate: 60`) était pré-rendu pendant `next build`, alors que `env_file` ne
+  sert qu'au lancement du conteneur et que `api` n'est pas joignable pendant un `docker build` → rendu à la
+  requête (`force-dynamic`). L'ancien conteneur `front` restait en service.
+- `public/` (logo, icônes) n'était pas copié dans l'image `standalone` → ligne `COPY` décommentée.
+
+### À poursuivre
+
+- Ouvrir la PR `fix/front-build-prod` → `main`, puis redéployer `main` sur la VM.
+
 ## 2026-10-29 — Catalogue `findAllCatalog`, Docker de production et déploiement sur le VPS
 
 Le matin, branche `feat/datamappers/accueil`, fusionnée deux fois dans `back` (09:56 et 11:09). L'après-midi, branche `feat/deployment`, qui part du dernier merge.
