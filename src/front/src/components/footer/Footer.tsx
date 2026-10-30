@@ -10,35 +10,9 @@ const footerLinks = [
   },
 ];
 
-const commitments = [
-  {
-    label: "Des arbres sélectionnés",
-    // iconComment: "TODO : ajouter l’icône de sélection.",
-  },
-  {
-    label: "Des projets de plantation",
-    // iconComment: "TODO : ajouter le pictogramme graine-5-arbuste.",
-  },
-  {
-    label: "Un suivi transparent",
-    // iconComment: "TODO : ajouter l’icône de suivi.",
-  },
-];
-
 export default function Footer() {
   return (
     <footer className={styles.footer}>
-      <ul className={styles.commitments} aria-label="Nos engagements">
-        {commitments.map(({ label }) => (
-          <li className={styles.commitment} key={label}>
-            <span className={styles.commitmentIcon} aria-hidden="true">
-              {/* {iconComment} */}
-            </span>
-            <span>{label}</span>
-          </li>
-        ))}
-      </ul>
-
       <div className={styles.footerMain}>
         <Link
           className={styles.brand}
