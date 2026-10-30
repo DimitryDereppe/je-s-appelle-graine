@@ -26,7 +26,13 @@ export default function Header() {
           aria-label="Je s’appelle Graine, accueil"
           onClick={() => setIsMenuOpen(false)}
         >
-          {/* TODO : ajouter le pictogramme graine-2-germination. */}
+          <Image
+            src="/assets/graine-2-germination.ico"
+            alt=""
+            className={styles.badgeIcon}
+            width={34}
+            height={34}
+          />{" "}
           <span className={styles.brandName}>Je s’appelle Graine</span>
         </Link>
 
