@@ -2,6 +2,53 @@
 
 Suivi de mon travail sur Je s’appelle Graine. Les décisions notées ici ont été prises avec l'équipe sur Discord ; le suivi de l'équipe est dans le [[Apothéose/apo-jesappellegraine/CARNET-DE-BORD-JE-S-APPELLE-GRAINE|carnet de bord Je s’appelle Graine]].
 
+## 2026-10-30 — Tests d'intégration de l'API
+
+Branche `feat/test-setup`.
+
+**✅ Les 15 tests d'intégration passent** (`npm run test:spec`, environ 5 s).
+
+### Travail réalisé
+
+- **Motif des tests entre guillemets** dans `src/api/package.json` (commit `a8a64d4`) : `"./**/*.spec.test.ts"`. Node lit lui-même les `**`, sans que le shell interprète le motif avant lui.
+- **Tests de `GET /api/trees/featured`** (commit `3f3a776`, puis compléments) :
+  - 3 arbres maximum ;
+  - seulement les arbres `available` (ni `out_of_stock`, ni `withdrawn`) ;
+  - tri par `id` décroissant ;
+  - le plus ancien disparaît quand il y a plus de 3 arbres (`map` + `includes`) ;
+  - `200` et `[]` sans arbre, ou sans arbre disponible.
+- **Tests de `GET /api/trees`** : `withdrawn` exclu, `out_of_stock` inclus, tri par `id` croissant, `200` et `[]` sans arbre.
+- **Tests de `GET /api/trees/:id`** :
+  - `200` avec la `description` ;
+  - `404` pour un arbre `withdrawn` et pour un id inexistant (`999`) ;
+  - `400` et `"Identifiant invalide"` pour `abc`.
+- **`src/api/src/app.spec.test.ts`** (nouveau fichier, à côté de `app.ts`) : `GET /api/health` en `200`, route inconnue en `404` avec `{ error: "Ressource introuvable", status: 404 }`.
+- **Rangement de `treeController.spec.test.ts`** : un seul `describe("treeController")` qui contient les 3 routes, et le titre de chaque test en français au-dessus de son `it`.
+
+### Décisions
+
+- **Tests d'intégration rangés à côté du fichier testé**, suffixe `.spec.test.ts`. Le dossier `test/` ne contient que les outils partagés : `requester`, `createTree()`, `global-setup.ts`, `.env.test`.
+- **BDD de test en mémoire vive** : `--tmpfs /var/lib/postgresql` dans le `docker run` de `test/config/global-setup.ts`. Sans risque : la base est supprimée à la fin des tests.
+- **Objets pliés pour une seule propriété, dépliés à partir de deux**, à la main. Aucune option Prettier ne compte les propriétés, et l'idée d'une règle ESLint (`@stylistic/object-curly-newline`) est abandonnée.
+
+### Difficultés
+
+- **Tous les tests annulés** (`cancelled`), avec `PostgreSQL indisponible après 10 tentatives` puis `ECONNRESET` :
+  - Docker range ses données sur le disque dur à plateaux (`/mnt/donnees/docker`, sur `sdb`) ;
+  - au premier démarrage, PostgreSQL force l'écriture de ses fichiers sur le disque : environ 45 s au total ;
+  - `waitForDatabase()` n'attend que 10 s.
+  - Avec `--tmpfs`, PostgreSQL démarre en 3 s.
+- **`Cannot find package 'axios'`** : déclaré dans `devDependencies`, mais pas encore installé → `npm install` dans `src/api/`.
+- **Valeurs de `availability` sans guillemets** (`availability: available`) : JavaScript les lisait comme des variables qui n'existent pas.
+- **Message d'erreur attendu faux** : `"invalid id"` alors que `validateId` renvoie `"Identifiant invalide"`.
+- **Deux `describe("treeController")`** : le `});` qui fermait le premier était placé avant le bloc `/api/trees`.
+
+### À poursuivre
+
+- Test de `GET /api/trees/:id` pour un arbre `out_of_stock` (attendu : `200`).
+- Test du format de la réponse : `price` en nombre, `photoUrl` et `categoryName` en camelCase.
+- Ouvrir la PR `feat/test-setup` → `main`. La branche est partie avant l'entrée du 30/10 sur le front : il faudra garder les deux entrées du carnet au moment de la fusion.
+
 ## 2026-10-29 — Catalogue `findAllCatalog`, Docker de production et déploiement sur le VPS
 
 Le matin, branche `feat/datamappers/accueil`, fusionnée deux fois dans `back` (09:56 et 11:09). L'après-midi, branche `feat/deployment`, qui part du dernier merge.
