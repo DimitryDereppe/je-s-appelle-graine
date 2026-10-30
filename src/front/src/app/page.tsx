@@ -3,6 +3,8 @@ import styles from "./Home.module.css";
 import type { Tree } from "./typeHome";
 import Commitments from "@/components/commitments/Commitments";
 
+export const dynamic = "force-dynamic";
+
 export default async function Home() {
   const res = await fetch(`${process.env.API_URL}/api/trees`, {
     next: { revalidate: 60 },
@@ -51,7 +53,9 @@ export default async function Home() {
       </section>
 
       {/* Sur l’accueil, le bandeau se trouve avant les arbres du moment */}
-      <Commitments />
+      <div className={styles.commitmentsDesktop}>
+        <Commitments />
+      </div>
 
       {/* Arbres du moment */}
 
@@ -65,7 +69,7 @@ export default async function Home() {
             <article key={tree.id} className={styles.card}>
               <div className={styles.cardImage}>
                 <Image
-                  src={tree.photo_url}
+                  src={tree.photoUrl}
                   alt={tree.name}
                   className={styles.cardImg}
                   fill
@@ -118,6 +122,10 @@ export default async function Home() {
           ))}
         </div>
       </section>
+      {/* Bandeau affiché juste avant le footer sur écran mobile */}
+      <div className={styles.commitmentsMobile}>
+        <Commitments />
+      </div>
     </main>
   );
 }
