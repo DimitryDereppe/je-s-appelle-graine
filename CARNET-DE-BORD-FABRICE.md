@@ -2,6 +2,35 @@
 
 Suivi de mon travail sur Je s’appelle Graine. Les décisions notées ici ont été prises avec l'équipe ; le suivi de l'équipe est dans le [carnet de bord Je s’appelle Graine](CARNET-DE-BORD-JE-S-APPELLE-GRAINE.md), que je tiens à jour.
 
+## 2026-10-30 — Photos des arbres, revue du front et présentation du sprint 1
+
+### Travail réalisé
+
+- **Photos des arbres** (PR #72) :
+  - `express.static` dans `app.ts`, avec le chemin calculé depuis le fichier (`import.meta.url`) ;
+  - copie des photos dans l'image de production (`dist/src/public`) ;
+  - règle Nginx `/images/trees/` vers l'API, et relais Next.js pour le dev ;
+  - pile de production testée en local avant la fusion.
+- **Relecture du front dans `main`** et message à Shanna et Loïc : dossier `app/trees` à renommer `app/arbres`, page du catalogue à aligner sur le contrat #22, icône du panier, interface `ITree`, `lang="fr"`.
+- **PR #69** : le front en cours de Shanna est arrivé dans `main` avec son carnet (travail non commité qui a suivi le `git switch`). Code gardé dans `main` ; rappel du `git status` et du commit `wip:` avant de changer de branche.
+- **Présentation du sprint 1** (#38) avec Mahamadou : Le projet, l'organisation, l'initialisation, puis F1 : Mahamadou présente le back de l'accueil, la démo montre l'accueil en ligne.
+
+### Ce que j'ai appris
+
+- Avec Next.js (App Router), le nom d'un dossier de `app/` devient l'adresse de la page : `app/trees` donne `/trees`.
+- L'image Nginx ne remplace les variables du `.template` qu'au démarrage du conteneur : après un changement de config, il faut `restart nginx`, pas `nginx -s reload`.
+- Un chemin calculé depuis le fichier (`import.meta.url`) ne dépend pas du dossier de lancement, mais après compilation le fichier est dans `dist/src/`.
+
+### Décisions (prises avec l'équipe)
+
+- L'API ne sert que `/images/trees/` ; les autres images restent dans le `public/` du front.
+- La présentation ne montre que l'accueil.
+
+### À poursuivre
+
+- Relire la PR des tests de Dimitry (`feat/test-setup` vers `back`).
+- Sprint planning du sprint 2 lundi.
+
 ## 2026-10-29 — Fiche d'un arbre, gestion des erreurs et tests de l'API
 
 ### Travail réalisé

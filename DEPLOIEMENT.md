@@ -1,66 +1,60 @@
 # Déploiement — Je s'appelle Graine
 
-Résumé de la mise en production sur le VPS Kourou fourni par O'Clock (carte #31).
+Mise en production sur le VPS Kourou fourni par O'Clock (carte #31).
 
-**État au 29/10/2026 :** le déploiement fonctionne. Le site est en ligne en HTTPS sur
-<https://dimitrydereppe-server.eddi.cloud>, avec la branche `feat/deployment` (commit `38729f8`),
-depuis fusionnée dans `main` (PR #66) : on déploie désormais `main`.
+**État au 30/10/2026 :** en ligne en HTTPS sur <https://dimitrydereppe-server.eddi.cloud>, branche
+`main`. Le site se met à jour tout seul à chaque démarrage de la VM, et le certificat se renouvelle
+tout seul (section 6).
 
-La procédure détaillée, étape par étape et avec le dépannage, est sur le wiki :
+Procédure détaillée, avec le dépannage, sur le wiki (connexion requise) :
 [Déployer sur un VPS Kourou, pas à pas](https://owikiclock.duckdns.org/books/follow-pas-a-pas/page/deployer-sur-un-vps-kourou-pas-a-pas).
+
+Dans les commandes, remplace `PSEUDO-server.eddi.cloud` par le nom de ta VM : celui de ta commande
+SSH, et non celui qu'affiche `hostname`.
 
 ---
 
-## 1. Architecture de production
+## 1. Architecture
 
 ```text
-Internet ──HTTPS:443 / HTTP:80──▶ nginx ── /api/…        ──▶ api:4000   (Express) ──▶ db:5432 (PostgreSQL)
-                                    │  └── tout le reste ──▶ front:3000 (Next.js)
+Internet ──HTTPS:443 / HTTP:80──▶ nginx ── /api/… et /images/trees/… ──▶ api:4000   (Express) ──▶ db:5432 (PostgreSQL)
+                                    │  └── tout le reste ──────────────▶ front:3000 (Next.js)
                                     └── /.well-known/acme-challenge/ (vérification Let's Encrypt)
 ```
 
-- **4 conteneurs** Docker Compose : `db`, `api`, `front`, `nginx`, plus `certbot`, qu'on lance à la demande.
+- **4 conteneurs** Docker Compose : `db`, `api`, `front`, `nginx`. Plus `certbot`, lancé seulement
+  quand on en a besoin.
 - **Seul Nginx est ouvert sur Internet** (ports 80 et 443). La base, l'API et le front ne sont
   joignables que par le réseau Docker.
-- **Un seul nom de domaine** : le navigateur appelle `/api/…` sur la même adresse que les pages,
-  donc pas de CORS, et le cookie du JWT reste sur un seul domaine.
+- **Un seul nom de domaine** : le navigateur appelle `/api/…` à la même adresse que les pages. Donc
+  pas de CORS, et les futurs cookies de connexion resteront sur un seul domaine.
 - **HTTPS** : certificat Let's Encrypt gratuit, valable 90 jours, obtenu avec Certbot.
 
-### Décision : Nginx et Certbot dans des conteneurs
-
-Plutôt qu'installés directement sur le VPS, pour quatre raisons :
-
-- leur configuration est dans le dépôt et relue en PR : la même pour toute l'équipe ;
-- Nginx joint l'API et le front par leur nom de service (`api`, `front`), sans publier leurs ports ;
-- toute la production se teste d'abord sur son poste ;
-- un VPS neuf se remet en service avec `git clone` puis `docker compose`.
-
-La contrepartie : quelques commandes Certbot de plus qu'avec un `certbot --nginx` (voir la section 3).
+Nginx et Certbot sont dans des conteneurs plutôt qu'installés sur la VM : leur configuration est
+dans le dépôt (la même pour toute l'équipe, relue en PR), et une VM neuve se remet en service avec
+`git clone` puis `docker compose`.
 
 ## 2. Les fichiers de production
 
 Tous sont dans `src/`. Les fichiers de développement ne changent pas.
 
-| Fichier                       | Rôle                                                                                          |
-| ----------------------------- | --------------------------------------------------------------------------------------------- |
-| `docker-compose.prod.yml`     | Lance les 4 services ; `name: graine` évite d'écraser le projet de dev (`src`)                |
-| `api/Dockerfile.prod`         | Compile le TypeScript, puis ne garde que `dist/` et les dépendances de prod                   |
-| `front/Dockerfile.prod`       | `next build` en mode `standalone`, puis `node server.js`                                      |
-| `front/next.config.ts`        | `output: "standalone"`                                                                        |
-| `nginx/default.conf.template` | HTTP renvoyé vers HTTPS, `/api/` vers l'API, le reste vers le front                           |
-| `.env.prod.example`           | Modèle du `.env` à remplir sur le VPS (jamais commité)                                        |
-| `.gitignore`                  | `!.env.prod.example` (sinon ignoré avec les `.env*`) et `certbot/` (clé privée du certificat) |
+| Fichier                       | Rôle                                                                           |
+| ----------------------------- | ------------------------------------------------------------------------------ |
+| `docker-compose.prod.yml`     | Lance les 4 services ; `name: graine` évite d'écraser le projet de dev (`src`) |
+| `api/Dockerfile.prod`         | Compile le TypeScript, ne garde que `dist/` et les dépendances de prod         |
+| `front/Dockerfile.prod`       | `next build` en mode `standalone`, puis `node server.js`                       |
+| `nginx/default.conf.template` | HTTP → HTTPS ; `/api/` et `/images/trees/` vers l'API ; le reste vers le front |
+| `.env.prod.example`           | Modèle du `.env` à remplir sur la VM (le `.env` n'est jamais commité)          |
+| `crontab.prod`                | Les 2 tâches automatiques : certificat et mise à jour au démarrage (section 6) |
 
-Différences avec le dev : pas de code monté, pas d'Adminer, aucun port publié sauf ceux de Nginx, et
-pas besoin de Node sur le VPS (il est dans les images).
+Le `.gitignore` de `src/` exclut aussi `certbot/` : il contient la clé privée du certificat.
 
-## 3. Premier déploiement (résumé)
+## 3. Premier déploiement
 
-**Avant de commencer :** la VM est démarrée et rendue publique sur la page Kourou VM Cloud. Il te faut
-aussi le mot de passe de la VM (pour `sudo`) et une clé SSH **créée sur la VM** et déclarée sur
-GitHub (`ssh-keygen -t ed25519`, puis `cat ~/.ssh/id_ed25519.pub`).
+**Avant de commencer :** la VM est démarrée et **rendue publique** sur la page Kourou VM Cloud, et
+tu connais le mot de passe de la VM (demandé par `sudo`).
 
-Toutes les commandes se lancent sur la VM, **depuis `~/apo-jesappellegraine/src`** :
+### 3.1 Préparer la VM et la clé SSH
 
 ```bash
 # 1. Mettre la VM à jour (toujours apt update d'abord)
@@ -69,94 +63,193 @@ sudo apt update && sudo apt upgrade -y
 # 2. Vérifier Docker (les paquets d'Ubuntu suffisent)
 docker --version && docker compose version
 
-# 3. Récupérer le code (branche main : feat/deployment y est fusionnée, PR #66)
-git clone git@github.com:O-clock-Kyoto/apo-jesappellegraine.git
+# 3. Créer la clé SSH de la VM pour GitHub, SANS phrase de passe (-N ""), puis l'afficher
+ssh-keygen -t ed25519 -N "" -C "deploy-graine" -f ~/.ssh/deploy_graine
+cat ~/.ssh/deploy_graine.pub
+```
+
+**Pourquoi sans phrase de passe :** le dépôt est privé, et la VM fait un `git pull` toute seule à
+chaque démarrage (section 6). Personne n'est là pour taper une phrase de passe : avec une, GitHub
+répond `Permission denied (publickey)`. Ne jamais écrire de mot de passe dans le dépôt à la place.
+
+**Déclarer la clé sur GitHub** (la ligne `ssh-ed25519 …` affichée par `cat`) :
+
+- **de préférence**, en _Deploy key_ : dépôt → _Settings_ → _Deploy keys_ → _Add deploy key_, titre =
+  nom de la VM, **sans** cocher _Allow write access_. La clé ne peut alors que **lire** ce dépôt.
+  Seul un **admin** du dépôt (l'équipe O'Clock) peut le faire : lui envoyer la ligne. C'est la
+  partie publique, elle peut circuler ;
+- **sinon**, dans ton compte : ta photo → _Settings_ → _SSH and GPG keys_ → _New SSH key_. Pas
+  besoin d'admin, mais la clé ouvre alors **tout** ton compte : la supprimer de GitHub quand la VM
+  ne sert plus.
+
+### 3.2 Installer le site
+
+```bash
+# 4. Récupérer le code avec cette clé
+#    (-c : Git enregistre dans ce dépôt qu'il doit toujours utiliser cette clé)
+#    À la première connexion, SSH demande "continue connecting (yes/no)?" : répondre yes
+cd ~
+git clone -c core.sshCommand="ssh -i ~/.ssh/deploy_graine -o IdentitiesOnly=yes" \
+  git@github.com:O-clock-Kyoto/apo-jesappellegraine.git
 cd apo-jesappellegraine/src
 
-# 4. Remplir le .env (même mot de passe dans POSTGRES_PASSWORD et DATABASE_URL)
+# 5. Remplir le .env
 cp .env.prod.example .env
-openssl rand -hex 32          # mot de passe sans / + @, qui casseraient DATABASE_URL
-nano .env                     # Ctrl+O, Entrée, Ctrl+X
-chmod 600 .env
+openssl rand -hex 32          # génère un mot de passe sans / + @ (ils casseraient DATABASE_URL)
+nano .env                     # enregistrer : Ctrl+O, Entrée ; quitter : Ctrl+X
+chmod 600 .env                # lisible par toi seul
 
-# 5. Lancer la base, l'API et le front
+# 6. Lancer la base, l'API et le front
 docker compose -f docker-compose.prod.yml up -d --build db api front
 
-# 6. Certificat : un essai d'abord (--staging), puis le vrai
+# 7. Obtenir le certificat : un essai sur le serveur de test (--staging), puis le vrai
+#    (--force-renewal : remplace le certificat d'essai par le vrai, sans poser de question)
 docker compose -f docker-compose.prod.yml run --rm -p 80:80 certbot certonly --standalone \
   --staging -d PSEUDO-server.eddi.cloud --email ton.email@exemple.fr --agree-tos --no-eff-email
 docker compose -f docker-compose.prod.yml run --rm -p 80:80 certbot certonly --standalone \
   --force-renewal -d PSEUDO-server.eddi.cloud --email ton.email@exemple.fr --agree-tos --no-eff-email
 
-# 7. Démarrer Nginx
+# 8. Démarrer Nginx
 docker compose -f docker-compose.prod.yml up -d nginx
+
+# 9. Installer les tâches automatiques : voir la section 6
 ```
 
 Dans le `.env` :
 
+- même mot de passe dans `POSTGRES_PASSWORD` et dans `DATABASE_URL` ;
 - `DOMAINE` s'écrit **sans** `https://` (`PSEUDO-server.eddi.cloud`) ;
 - `SITE_URL` s'écrit **avec** (`https://PSEUDO-server.eddi.cloud`).
 
-Utilise le nom en `.eddi.cloud`, celui de la commande SSH, et non celui qu'affiche `hostname`.
+**Pourquoi `--standalone` au premier certificat :** Nginx ne peut pas démarrer sans certificat, car
+sa configuration HTTPS pointe dessus. Certbot lance donc son propre petit serveur sur le port 80,
+avant Nginx. Pour les renouvellements, Nginx tourne déjà : on passe en `--webroot` (section 6).
 
-## 4. Vérifications
-
-**Depuis ton poste** (résultats relevés le 29/10) :
+**Dépôt déjà cloné avec une autre clé ?** Enregistrer la nouvelle clé dans le dépôt existant :
 
 ```bash
-curl -s -o /dev/null -w "%{http_code} → %{redirect_url}\n" http://PSEUDO-server.eddi.cloud/api/trees
-curl -s -o /dev/null -w "%{http_code}\n" https://PSEUDO-server.eddi.cloud/
-curl -s https://PSEUDO-server.eddi.cloud/api/trees/featured
-curl -s https://PSEUDO-server.eddi.cloud/api/trees | grep -o '"id":' | wc -l
+cd ~/apo-jesappellegraine
+git config core.sshCommand "ssh -i ~/.ssh/deploy_graine -o IdentitiesOnly=yes"
+git fetch origin main         # attendu : "main -> FETCH_HEAD", sans "Permission denied"
 ```
 
-Résultats attendus, ligne par ligne :
+## 4. Vérifier
 
-1. `301 → https://…/api/trees` : le HTTP est renvoyé vers HTTPS.
+**Depuis ton poste :**
+
+```bash
+curl -s -o /dev/null -w "%{http_code} → %{redirect_url}\n" http://PSEUDO-server.eddi.cloud/
+curl -s -o /dev/null -w "%{http_code}\n" https://PSEUDO-server.eddi.cloud/
+curl -s https://PSEUDO-server.eddi.cloud/api/health
+curl -s https://PSEUDO-server.eddi.cloud/api/trees/featured
+```
+
+Attendu, ligne par ligne :
+
+1. `301 → https://…/` : le HTTP est renvoyé vers HTTPS.
 2. `200` : la page d'accueil répond, et le certificat est reconnu.
-3. Les 3 arbres mis en avant, en JSON.
-4. `13` : le catalogue des arbres en vente.
+3. `{"message":"je s'appelle Graine"}` : l'API répond.
+4. Les arbres mis en avant, en JSON : l'API lit bien la base.
 
-Les ports 3000, 4000, 5432, 5433 et 8080 doivent être **fermés** depuis Internet.
+**Sur la VM**, depuis `~/apo-jesappellegraine/src` :
 
-**Sur la VM**, à refaire après chaque déploiement :
-
-| Commande                                                        | Attendu                                                               |
-| --------------------------------------------------------------- | --------------------------------------------------------------------- |
-| `docker compose -f docker-compose.prod.yml ps`                  | 4 services `Up`, `db` en `(healthy)`                                  |
-| `docker compose -f docker-compose.prod.yml logs --tail 5 api`   | `🚀 Server ready at http://localhost:4000`                            |
-| `docker compose -f docker-compose.prod.yml logs --tail 5 front` | `- Local: http://localhost:3000`                                      |
-| `docker compose -f docker-compose.prod.yml exec nginx nginx -t` | `syntax is ok`, `test is successful`                                  |
-| `ss -tln`                                                       | à l'écoute sur `0.0.0.0` : seulement 22, 80 et 443                    |
-| `ls -l .env`                                                    | `-rw-------`                                                          |
-| `df -h /` et `docker system df`                                 | assez de place ; sinon `docker image prune` et `docker builder prune` |
+| Commande                                                                     | Attendu                                     |
+| ---------------------------------------------------------------------------- | ------------------------------------------- |
+| `docker compose -f docker-compose.prod.yml ps`                               | 4 services `Up`, `db` en `(healthy)`        |
+| `docker compose -f docker-compose.prod.yml logs --tail 5 api`                | `🚀 Server ready at http://localhost:4000`  |
+| `docker compose -f docker-compose.prod.yml exec nginx nginx -t`              | `syntax is ok`, `test is successful`        |
+| `docker compose -f docker-compose.prod.yml run --rm -T certbot certificates` | `Expiry Date` : date de fin du certificat   |
+| `ss -tln`                                                                    | sur `0.0.0.0`, seulement 22, 80 et 443      |
+| `ls -l .env`                                                                 | `-rw-------`                                |
+| `df -h /`                                                                    | assez de place ; sinon `docker image prune` |
 
 ## 5. Mettre à jour le site
 
+**C'est automatique à chaque démarrage de la VM** (section 6). Pour mettre en ligne sans
+redémarrer, sur la VM :
+
 ```bash
 cd ~/apo-jesappellegraine/src
-git pull
+git pull origin main
 docker compose -f docker-compose.prod.yml up -d --build
-sleep 10
-docker compose -f docker-compose.prod.yml exec nginx nginx -s reload
+docker compose -f docker-compose.prod.yml restart nginx
 ```
 
-- Seules les images modifiées sont reconstruites, et la base garde ses données (volume `db-data`).
-- Un `502` pendant quelques secondes est normal : c'est le temps que le nouveau conteneur démarre.
-- Les scripts SQL ne sont joués qu'au **premier** démarrage. **Jamais** de `docker compose down -v`
-  en production : `-v` efface la base.
+- Seules les images modifiées sont reconstruites. La base garde ses données (volume `db-data`).
+- **`restart nginx`, et pas `nginx -s reload`.** Nginx ne fabrique sa configuration à partir du
+  template (en y remplaçant `${DOMAINE}`) qu'au **démarrage** du conteneur. Un `reload` relit
+  l'ancienne configuration : une règle ajoutée au template serait ignorée.
+- Un `502` ou un `500` pendant quelques secondes est normal : les conteneurs redémarrent.
+- **Jamais** de `docker compose down -v` en production : `-v` efface la base. Les scripts SQL ne
+  sont joués qu'au tout premier démarrage.
 
-## 6. Pièges rencontrés
+## 6. Tâches automatiques (cron)
 
-| Symptôme                                      | Cause                                             | Solution                                                     |
-| --------------------------------------------- | ------------------------------------------------- | ------------------------------------------------------------ |
-| `git clone` : `Permission denied (publickey)` | Pas de clé SSH sur la VM                          | La créer **sur la VM**, déclarer la partie `.pub` sur GitHub |
-| `apt install` : série de `404 Not Found`      | Liste des paquets pas à jour                      | `sudo apt update` d'abord                                    |
-| `apt install npm` : centaines de paquets      | Node est inutile sur la VM                        | Annuler : Node est dans les images                           |
-| `cp: cannot stat '.env.prod.example'`         | Commande lancée hors de `src/`                    | `cd src` ; `ls -a` montre les fichiers cachés                |
-| `no configuration file provided`              | Commande lancée hors de `src/`                    | `cd ~/apo-jesappellegraine/src`                              |
-| `env file …/src/.env not found`               | Pas de `.env` dans `src/`                         | `cp .env.prod.example .env`                                  |
-| Certbot : `Service busy; retry later.`        | Serveur Let's Encrypt surchargé                   | Relancer une ou deux minutes plus tard                       |
-| `sudo` demande un mot de passe                | Les fichiers de `certbot/` appartiennent à `root` | Le mot de passe de la VM                                     |
-| `/api/trees` en `500`                         | Erreur SQL dans le code, aussi en dev             | Rejouer en dev, corriger le datamapper                       |
-| `/api/health` : `Cannot GET` (404)            | Route en commentaire                              | Tester `/api/trees/featured`                                 |
+**cron** est le service Linux qui lance des commandes tout seul : à heure fixe, ou au démarrage de
+la machine. Nos deux lignes sont dans [src/crontab.prod](src/crontab.prod) :
+
+| Quand                             | Ce qui est fait                                                                  | Résultat dans                     |
+| --------------------------------- | -------------------------------------------------------------------------------- | --------------------------------- |
+| Toutes les heures, à la minute 17 | Renouvelle le certificat s'il expire dans moins de 30 jours, puis recharge Nginx | `~/renouvellement-certificat.log` |
+| À chaque démarrage de la VM       | Section 5 : `git pull` de `main`, reconstruction, relance                        | `~/mise-a-jour.log`               |
+
+**Pourquoi toutes les heures :** la VM s'éteint automatiquement chaque jour, et cron ne rattrape pas
+un passage manqué. À heure fixe (ex. 3h00), la ligne tomberait VM éteinte. Ça ne coûte rien : tant
+qu'il reste plus de 30 jours, Certbot ne fait rien (`Certificate not yet due for renewal`). La
+minute 17 plutôt que l'heure pile : Let's Encrypt demande d'éviter les heures rondes.
+
+**Pourquoi `--webroot` pour renouveler :** le mode `--standalone` du premier certificat a besoin du
+port 80, que Nginx occupe. Avec `--webroot`, Certbot dépose un fichier de preuve dans
+`certbot/www`, et c'est Nginx qui le montre à Let's Encrypt sur `/.well-known/acme-challenge/`.
+
+**Installer** (une seule fois, après la section 3) :
+
+```bash
+cd ~/apo-jesappellegraine/src
+
+# 1. Essai à blanc du renouvellement (serveur de test : le vrai certificat n'est pas touché)
+docker compose -f docker-compose.prod.yml run --rm -T certbot renew --webroot -w /var/www/certbot --dry-run
+#    attendu : "Congratulations, all simulated renewals succeeded"
+
+# 2. Installer les deux lignes
+crontab -l                    # doit répondre "no crontab" : l'étape suivante REMPLACE la crontab
+crontab crontab.prod
+crontab -l                    # affiche le contenu de crontab.prod
+
+# 3. Tester la mise à jour au démarrage
+sudo reboot
+#    attendre 2 à 3 minutes, rendre la VM publique si besoin, se reconnecter, puis :
+tail -20 ~/mise-a-jour.log    # attendu : la date, "Already up to date." (ou la liste des
+                              # fichiers mis à jour), puis les conteneurs "Started"
+```
+
+**Lire les lignes de `crontab.prod`** :
+
+- `17 * * * *` : minute 17, toutes les heures, tous les jours (`*` = n'importe laquelle).
+  `@reboot` : au démarrage de la VM.
+- `&&` : la commande suivante ne s'exécute que si la précédente a réussi.
+- `{ … ; } >> fichier.log 2>&1` : la sortie **et** les erreurs (`2>&1`) de toutes les commandes
+  entre accolades sont ajoutées au log. `date` en tête de chaque passage le date.
+- `-T` : sous cron, il n'y a pas de terminal ; sans `-T`, Docker Compose peut refuser de se lancer.
+- `sleep 60` : au démarrage, laisse au réseau et à Docker le temps d'être prêts.
+- `git pull --ff-only` : avance seulement si la VM n'a pas de commits à elle ; sinon s'arrête au
+  lieu de fusionner.
+
+Si `crontab.prod` change dans le dépôt, refaire `crontab crontab.prod` : cron ne relit pas le
+fichier tout seul.
+
+## 7. Pièges rencontrés
+
+| Symptôme                                                    | Cause                                                    | Solution                                                  |
+| ----------------------------------------------------------- | -------------------------------------------------------- | --------------------------------------------------------- |
+| `apt install` : série de `404 Not Found`                    | Liste des paquets pas à jour                             | `sudo apt update` d'abord                                 |
+| `apt install npm` : centaines de paquets                    | Node est inutile sur la VM                               | Annuler : Node est dans les images                        |
+| `git clone` ou `git pull` : `Permission denied (publickey)` | Clé absente de GitHub, ou avec phrase de passe sous cron | Section 3.1                                               |
+| `no configuration file provided`                            | Commande lancée hors de `src/`                           | `cd ~/apo-jesappellegraine/src`                           |
+| `env file …/src/.env not found`                             | Pas de `.env` dans `src/`                                | `cp .env.prod.example .env`                               |
+| Certbot : `Timeout during connect`                          | VM pas rendue publique (après un démarrage)              | La rendre publique sur Kourou VM Cloud, relancer          |
+| Certbot : `Service busy; retry later.`                      | Serveur Let's Encrypt surchargé                          | Relancer une ou deux minutes plus tard                    |
+| Règle ajoutée au template Nginx sans effet                  | `nginx -s reload` ne relit pas le template               | `docker compose -f docker-compose.prod.yml restart nginx` |
+| `502` ou `500` juste après une mise à jour                  | Les conteneurs redémarrent                               | Attendre 30 secondes                                      |
+| `mise-a-jour.log` : `Not possible to fast-forward`          | Des commits ont été faits sur la VM                      | `git status` pour les voir ; ne pas coder sur la VM       |
+| Une route de l'API en `500`                                 | Erreur dans le code (elle existe aussi en dev)           | La reproduire en dev et la corriger                       |

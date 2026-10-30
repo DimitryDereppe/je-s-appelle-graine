@@ -2,6 +2,126 @@
 
 Suivi de mon travail sur Je s’appelle Graine. Les décisions notées ici ont été prises avec l'équipe sur Discord ; le suivi de l'équipe est dans le [[Apothéose/apo-jesappellegraine/CARNET-DE-BORD-JE-S-APPELLE-GRAINE|carnet de bord Je s’appelle Graine]].
 
+## 2026-10-30 (soir) — Déploiement : certificat renouvelé et site mis à jour automatiquement
+
+Branche `docs/renouvellement-certificat` (commit `5b70c69`), créée depuis `main`.
+
+**Résultat** : sur la VM, deux tâches cron tournent. Elles ont été testées en conditions réelles, y compris après un redémarrage.
+
+### Travail réalisé
+
+- **[[Apothéose/apo-jesappellegraine/DEPLOIEMENT|DEPLOIEMENT.md]], section « Mettre à jour le site »** : `restart nginx` remplace `nginx -s reload`.
+  - L'image Nginx ne remplace `${DOMAINE}` dans le `.template` qu'au **démarrage** du conteneur.
+  - Un `reload` relit l'ancienne configuration : une nouvelle règle (comme `/images/trees/`) serait ignorée.
+  - Cette erreur venait du guide d'origine (commit `1dc6150`, écrit avec Claude).
+- **`src/crontab.prod`**, installé sur la VM avec `crontab crontab.prod` :
+  - **toutes les heures, à la minute 17** : `certbot renew --webroot`, puis `nginx -s reload` → `~/renouvellement-certificat.log` ;
+  - **au démarrage (`@reboot`)** : `sleep 60`, `git pull --ff-only origin main`, `up -d --build`, `restart nginx` → `~/mise-a-jour.log`.
+- **Clé SSH `~/.ssh/deploy_graine` sur la VM**, sans phrase de passe. Le dépôt de la VM l'utilise grâce à `git config core.sshCommand`.
+- **DEPLOIEMENT.md simplifié et vérifié** : une seule clé pour le clone et le cron, une section « Tâches automatiques (cron) », des pièges mis à jour.
+- **Tests** :
+  - en local, sur une copie de la config de prod, dans les conditions de cron (environnement vide, pas de terminal) ;
+  - sur la VM, essai à blanc du renouvellement : `Congratulations, all simulated renewals succeeded` ;
+  - à 17h20, passage réel de cron : `Certificate not yet due for renewal` (expiration le 27/01/2027), puis Nginx rechargé ;
+  - redémarrage à 17h35:44 : mise à jour lancée à 17h36:52, site et API en `200`.
+
+### Décisions
+
+- **Toutes les heures plutôt qu'une heure fixe** : la VM s'éteint chaque jour, et cron ne rattrape pas un passage manqué. Tant qu'il reste plus de 30 jours, Certbot ne fait rien, donc ça ne coûte rien. La minute 17 évite les heures pile, comme le demande Let's Encrypt.
+- **`--webroot` pour renouveler** : le premier certificat a été obtenu en `--standalone`, qui a besoin du port 80, déjà pris par Nginx.
+- **Clé ajoutée à mon compte GitHub**, faute de mieux : une _Deploy key_ en lecture seule demande un admin du dépôt, et nous n'avons que le droit WRITE. La doc recommande la _Deploy key_ pour les collègues.
+- **Aucun mot de passe dans le dépôt** : le mot de passe commun des VM n'aide pas pour `git pull`, et il serait lisible sur GitHub.
+
+### Difficultés
+
+- **Premier essai de renouvellement** : `Timeout during connect`, parce que la VM n'était pas rendue publique.
+- **`git pull` sous cron** : `Permission denied (publickey)`. La clé d'origine de la VM a une phrase de passe, et personne n'est là pour la taper.
+- **Push refusé vers `main`** : la branche avait été créée avec `git switch -c … origin/main`, donc elle suivait `main`. VS Code a poussé vers `main`.
+- **Doc périmée** : l'API renvoie 18 arbres et non 13, `/api/health` fonctionne, `/images/trees/` part vers l'API, et le JWT n'existe pas encore.
+
+### À poursuivre
+
+- `git push -u origin docs/renouvellement-certificat`, puis la PR vers `main`.
+- Supprimer la clé `deploy-graine` de mon compte GitHub quand la VM ne sert plus, ou la remplacer par une _Deploy key_ ajoutée par un admin.
+- Collègues : installer `crontab.prod` sur leur VM (DEPLOIEMENT.md, section 6).
+
+## 2026-10-30 (après-midi) — Carte #45 : audit Lighthouse de l'accueil et plan de tests
+
+Branche `docs/plan-de-tests`, créée depuis `main`. Les tests d'intégration du matin sont sur `back` (PR #78, entrée « Tests d'intégration de l'API » sur cette branche).
+
+**Résultat** : accessibilité **96** ✅, SEO **82** ❌ (objectif : 90), en mobile comme en bureau.
+
+### Travail réalisé
+
+- **Audit Lighthouse** (12.8.2) du site en ligne, mobile et bureau :
+  - accessibilité 96, SEO 82, bonnes pratiques 93 ;
+  - performance : 83 en mobile, 100 en bureau.
+- **Vérification manuelle avec Firefox** (Playwright, 1280 px et 375 px) : arbres affichés, contenu des vignettes, navigation au clavier, largeur sur mobile, erreurs 404.
+- **Plan de tests créé** : `docs/tests/PLAN-DE-TESTS.md`, relié depuis le README.
+  - Colonnes : n°, cas, type, attendu, obtenu.
+  - Pour F1 : 7 cas d'intégration (6 ✅, 1 à écrire), 11 cas manuels et l'audit Lighthouse.
+
+### Décisions
+
+- **Audit lancé dans un conteneur Docker jetable** (`node:22-bookworm` + Chromium). PageSpeed Insights avait épuisé son quota du jour, et le Chrome téléchargé ne démarrait pas dans le terminal isolé.
+- **Lien du plan de tests en Markdown classique dans le README**, comme les autres liens : il doit fonctionner sur GitHub.
+
+### Difficultés
+
+- **L'accueil n'affiche pas les bons arbres** :
+  - `page.tsx` appelle `/api/trees` (le catalogue) et garde les 3 premiers ;
+  - en ligne, il affiche donc Pin maritime, Pin sylvestre et Pin d'Alep (ids 1, 2, 3, les plus anciens) ;
+  - `/api/trees/featured` renvoie Chêne vert, Filaire à larges feuilles et Arbousier (ids 20, 19, 16) ;
+  - un arbre en rupture peut apparaître, puisque le catalogue les inclut.
+- **Autres écarts avec les critères de F1** :
+  - pas de catégorie sur les vignettes ;
+  - prix affiché `9.9 TTC` (sans `€` ni 2 décimales) ;
+  - bouton « Voir nos arbres » sans lien ;
+  - pas d'état d'erreur ni de message « aucun arbre » ;
+  - la page plante s'il y a moins de 3 arbres (`treesAll[i]` vaut `undefined`).
+- **SEO** : pas de `<title>` ni de `<meta description>`, car `layout.tsx` n'exporte pas de `metadata`. Et `lang="en"` sur un site en français.
+- **Accessibilité** :
+  - `aria-label="Je m’appelle Graine, accueil"` dans `Footer.tsx` (faute : « m’appelle ») ;
+  - `alt="Arbre"` sur l'image d'accueil, peu précis.
+- **Bonnes pratiques et performance** :
+  - icône `arbres-selectionnes.png` (200 × 263) déformée en 24 × 24 ;
+  - image d'accueil chargée en différé (`loading="lazy"`), alors que c'est le plus gros élément visible : 4,7 s sur mobile.
+- **Carte #19 fermée, mais le plan de tests n'existait sur aucune branche.**
+
+### À poursuivre
+
+- Créer les cartes pour le front (Loïc et Shanna) :
+  - accueil branché sur `/featured`, avec les états erreur et vide ;
+  - vignette : catégorie et prix en `€` ;
+  - `metadata` et `lang="fr"` ;
+  - petits correctifs d'accessibilité et d'images.
+- Écrire le test F1-INT-7 : format d'une vignette (`price` en nombre, champs en camelCase).
+- Commit et PR de `docs/plan-de-tests`, puis cocher « Plan de tests à jour pour F1 » sur la carte #45.
+- Relancer l'audit après les correctifs du front.
+- Supprimer l'image Docker `node:22-bookworm` si elle ne sert plus.
+
+## 2026-10-30 — Le nouveau front n'apparaissait pas sur le VPS
+
+### Travail réalisé
+
+- Branche `fix/front-build-prod` (commit `238904a`, poussée) : `export const dynamic = "force-dynamic"` dans
+  `src/front/src/app/page.tsx`, et `COPY --from=build /app/public ./public` dans `src/front/Dockerfile.prod`.
+- `API_URL` retiré pour lancer `npm run build` en local : le build passe, `/` est rendu à la demande (`ƒ`).
+
+### Difficultés
+
+- Site en ligne sans en-tête ni pied de page, `/trees` en 404 → la VM était encore sur `feat/deployment`
+  (`1dc6150`) → passer sur `main`.
+- Sur `main`, `docker compose up --build` échouait : `TypeError: Invalid URL`, `input: 'undefined/api/trees'` →
+  l'accueil (composant serveur, `revalidate: 60`) était pré-rendu pendant `next build`, alors que `env_file` ne
+  sert qu'au lancement du conteneur et que `api` n'est pas joignable pendant un `docker build` → rendu à la
+  requête (`force-dynamic`). L'ancien conteneur `front` restait en service.
+- `public/` (logo, icônes) n'était pas copié dans l'image `standalone` → ligne `COPY` décommentée.
+
+### À poursuivre
+
+- Ouvrir la PR `fix/front-build-prod` → `main`, puis redéployer `main` sur la VM.
+
 ## 2026-10-30 — Tests d'intégration de l'API
 
 Branche `feat/test-setup`.
