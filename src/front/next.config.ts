@@ -15,6 +15,11 @@ const nextConfig: NextConfig = {
         source: "/api/:path*",
         destination: `${process.env.API_URL ?? "http://localhost:4050"}/api/:path*`,
       },
+      // photos des arbres, servies par l'API
+      {
+        source: "/images/trees/:path*",
+        destination: `${process.env.API_URL ?? "http://localhost:4050"}/images/trees/:path*`,
+      },
     ];
   },
 };
