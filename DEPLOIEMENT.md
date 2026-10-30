@@ -3,7 +3,8 @@
 Résumé de la mise en production sur le VPS Kourou fourni par O'Clock (carte #31).
 
 **État au 29/10/2026 :** le déploiement fonctionne. Le site est en ligne en HTTPS sur
-<https://dimitrydereppe-server.eddi.cloud>, avec la branche `feat/deployment` (commit `38729f8`).
+<https://dimitrydereppe-server.eddi.cloud>, avec la branche `feat/deployment` (commit `38729f8`),
+depuis fusionnée dans `main` (PR #66) : on déploie désormais `main`.
 
 La procédure détaillée, étape par étape et avec le dépannage, est sur le wiki :
 [Déployer sur un VPS Kourou, pas à pas](https://owikiclock.duckdns.org/books/follow-pas-a-pas/page/deployer-sur-un-vps-kourou-pas-a-pas).
@@ -68,11 +69,9 @@ sudo apt update && sudo apt upgrade -y
 # 2. Vérifier Docker (les paquets d'Ubuntu suffisent)
 docker --version && docker compose version
 
-# 3. Récupérer le code (ici, une branche à tester avant de la fusionner)
+# 3. Récupérer le code (branche main : feat/deployment y est fusionnée, PR #66)
 git clone git@github.com:O-clock-Kyoto/apo-jesappellegraine.git
-cd apo-jesappellegraine
-git fetch origin feat/deployment && git switch feat/deployment
-cd src
+cd apo-jesappellegraine/src
 
 # 4. Remplir le .env (même mot de passe dans POSTGRES_PASSWORD et DATABASE_URL)
 cp .env.prod.example .env
