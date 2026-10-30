@@ -135,7 +135,7 @@ Les ports 3000, 4000, 5432, 5433 et 8080 doivent être **fermés** depuis Intern
 
 ```bash
 cd ~/apo-jesappellegraine/src
-git pull
+git pull origin main
 docker compose -f docker-compose.prod.yml up -d --build
 sleep 10
 docker compose -f docker-compose.prod.yml exec nginx nginx -s reload
