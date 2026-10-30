@@ -1,4 +1,5 @@
 export interface Tree {
+  photo_url: string | StaticImport;
   id: number;
   name: string;
   scientific: string;
