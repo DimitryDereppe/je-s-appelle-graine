@@ -1,3 +1,5 @@
+import { StaticImport } from "next/dist/shared/lib/get-img-props";
+
 export interface Tree {
   photo_url: string | StaticImport;
   id: number;
