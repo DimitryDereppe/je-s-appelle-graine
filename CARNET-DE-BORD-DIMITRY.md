@@ -2,6 +2,61 @@
 
 Suivi de mon travail sur Je s’appelle Graine. Les décisions notées ici ont été prises avec l'équipe sur Discord ; le suivi de l'équipe est dans le [[Apothéose/apo-jesappellegraine/CARNET-DE-BORD-JE-S-APPELLE-GRAINE|carnet de bord Je s’appelle Graine]].
 
+## 2026-10-30 (après-midi) — Carte #45 : audit Lighthouse de l'accueil et plan de tests
+
+Branche `docs/plan-de-tests`, créée depuis `main`. Les tests d'intégration du matin sont sur `back` (PR #78, entrée « Tests d'intégration de l'API » sur cette branche).
+
+**Résultat** : accessibilité **96** ✅, SEO **82** ❌ (objectif : 90), en mobile comme en bureau.
+
+### Travail réalisé
+
+- **Audit Lighthouse** (12.8.2) du site en ligne, mobile et bureau :
+  - accessibilité 96, SEO 82, bonnes pratiques 93 ;
+  - performance : 83 en mobile, 100 en bureau.
+- **Vérification manuelle avec Firefox** (Playwright, 1280 px et 375 px) : arbres affichés, contenu des vignettes, navigation au clavier, largeur sur mobile, erreurs 404.
+- **Plan de tests créé** : `docs/tests/PLAN-DE-TESTS.md`, relié depuis le README.
+  - Colonnes : n°, cas, type, attendu, obtenu.
+  - Pour F1 : 7 cas d'intégration (6 ✅, 1 à écrire), 11 cas manuels et l'audit Lighthouse.
+
+### Décisions
+
+- **Audit lancé dans un conteneur Docker jetable** (`node:22-bookworm` + Chromium). PageSpeed Insights avait épuisé son quota du jour, et le Chrome téléchargé ne démarrait pas dans le terminal isolé.
+- **Lien du plan de tests en Markdown classique dans le README**, comme les autres liens : il doit fonctionner sur GitHub.
+
+### Difficultés
+
+- **L'accueil n'affiche pas les bons arbres** :
+  - `page.tsx` appelle `/api/trees` (le catalogue) et garde les 3 premiers ;
+  - en ligne, il affiche donc Pin maritime, Pin sylvestre et Pin d'Alep (ids 1, 2, 3, les plus anciens) ;
+  - `/api/trees/featured` renvoie Chêne vert, Filaire à larges feuilles et Arbousier (ids 20, 19, 16) ;
+  - un arbre en rupture peut apparaître, puisque le catalogue les inclut.
+- **Autres écarts avec les critères de F1** :
+  - pas de catégorie sur les vignettes ;
+  - prix affiché `9.9 TTC` (sans `€` ni 2 décimales) ;
+  - bouton « Voir nos arbres » sans lien ;
+  - pas d'état d'erreur ni de message « aucun arbre » ;
+  - la page plante s'il y a moins de 3 arbres (`treesAll[i]` vaut `undefined`).
+- **SEO** : pas de `<title>` ni de `<meta description>`, car `layout.tsx` n'exporte pas de `metadata`. Et `lang="en"` sur un site en français.
+- **Accessibilité** :
+  - `aria-label="Je m’appelle Graine, accueil"` dans `Footer.tsx` (faute : « m’appelle ») ;
+  - `alt="Arbre"` sur l'image d'accueil, peu précis.
+- **Bonnes pratiques et performance** :
+  - icône `arbres-selectionnes.png` (200 × 263) déformée en 24 × 24 ;
+  - image d'accueil chargée en différé (`loading="lazy"`), alors que c'est le plus gros élément visible : 4,7 s sur mobile.
+- **Carte #19 fermée, mais le plan de tests n'existait sur aucune branche.**
+
+### À poursuivre
+
+- Créer les cartes pour le front (Loïc et Shanna) :
+  - accueil branché sur `/featured`, avec les états erreur et vide ;
+  - vignette : catégorie et prix en `€` ;
+  - `metadata` et `lang="fr"` ;
+  - petits correctifs d'accessibilité et d'images.
+- Écrire le test F1-INT-7 : format d'une vignette (`price` en nombre, champs en camelCase).
+- Commit et PR de `docs/plan-de-tests`, puis cocher « Plan de tests à jour pour F1 » sur la carte #45.
+- Relancer l'audit après les correctifs du front.
+- Supprimer l'image Docker `node:22-bookworm` si elle ne sert plus.
+
 ## 2026-10-30 — Le nouveau front n'apparaissait pas sur le VPS
 
 ### Travail réalisé
