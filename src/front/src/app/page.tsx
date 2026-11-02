@@ -1,5 +1,5 @@
 import Image from "next/image";
-import styles from "./Home.module.css";
+import styles from "./page.module.css";
 import type { IFeaturedTree } from "../@types";
 import Commitments from "@/components/commitments/Commitments";
 import { getAllTrees } from "./utils/apiCall";
