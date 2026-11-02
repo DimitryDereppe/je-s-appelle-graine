@@ -2,6 +2,44 @@
 
 Suivi de mon travail sur Je s’appelle Graine. Les décisions notées ici ont été prises avec l'équipe sur Discord ; le suivi de l'équipe est dans le [[Apothéose/apo-jesappellegraine/CARNET-DE-BORD-JE-S-APPELLE-GRAINE|carnet de bord Je s’appelle Graine]].
 
+## 2026-11-02 (fin de journée) — Carte #86 : en-tête connecté, déconnexion, page de connexion à la maquette
+
+Branche `feat/formulaires-connexion-inscription`, commits `aa62b94`, `aba6336` et `7d2bb4d` (pas encore poussés). Fichiers : `src/front/src/components/header/Header.tsx` et `header.module.css`, `src/front/src/app/connexion/page.tsx`, `LoginForm.tsx` et `page.module.css` (nouveau).
+
+**Résultat** : l'en-tête affiche « Bonjour {prénom} » et un bouton « Déconnexion » pour une personne connectée, et « Connexion » pour un visiteur (US20, US21). La page `/connexion` suit la maquette v7. Rien ne fonctionne encore de bout en bout : l'API n'a aucune route d'authentification.
+
+### Travail réalisé
+
+- **État connecté** (commit `aa62b94`) : state `user` (`useState<User | null>(null)`) et `useEffect` qui appelle `GET /api/users/me` au premier affichage. `200` → `setUser(data)` ; `401` ou API injoignable → `null`, sans message d'erreur. « Connexion » sort du tableau `navigationLinks` et s'affiche sous condition : `{user ? (prénom + bouton) : <Link>}`, avec un fragment `<>…</>`.
+- **Déconnexion** (commit `aba6336`) : `handleLogout` appelle `DELETE /api/auth`, puis `setUser(null)`, ferme le menu mobile et renvoie vers `/` (`router.push`).
+- **Page de connexion à la maquette** (commit `7d2bb4d`) : maquette v7 page 4 ([maquette](docs/design/maquettes/maquette-complete-je-sappelle-graine-v7.pdf)) préférée au wireframe, plus ancien. Sur-titre « Votre espace », trait terracotta sous le titre (`::after`), « * (champs obligatoires) », photo `acceuil.png` à droite sur ordinateur et au-dessus en mobile (`order`).
+- **En-tête à la maquette** : « Connexion » et « Bonjour … » en texte simple. Un cadre vert ajouté plus tôt a été retiré.
+- **Correctif mobile** : sous 375 px, l'icône panier sortait de l'écran. Le logo avait `flex: 0 0 auto` et ne pouvait pas rétrécir. Passé à `flex: 0 1 auto` + `min-width: 0`, et nom du site en `font-size: clamp(1rem, 5vw, 1.25rem)`.
+- **Vérifications** : ESLint (`--max-warnings=0`), `tsc --noEmit` et Prettier passent. Rendu vérifié dans Firefox (Playwright) à 320, 375 et 1280 px.
+
+### Décisions
+
+- **Le front ne lit jamais le cookie JWT** : il est `httpOnly`, donc invisible pour `document.cookie`, ce qui protège le token d'un script malveillant (XSS). Le navigateur l'envoie tout seul, et seule l'API peut dire qui est connecté (`GET /api/users/me`) ou supprimer le cookie (`DELETE /api/auth`, réponse `204` avec un cookie expiré).
+- **`GET /api/users/me` renvoie `200`, pas `201`** : `201 Created` répond à une création (`POST`) ; un `GET` ne fait que lire.
+- **Après la déconnexion, `setUser(null)` est obligatoire** : React ne sait rien du cookie et ne réaffiche le composant que si un state change.
+- **`Refs #86` et non `Closes #86` dans la PR** : la carte se fermerait à la fusion alors que deux critères « Fini quand » ne sont pas remplis (bout en bout, clavier).
+
+### Difficultés
+
+- **Commit refusé par husky / lint-staged** : `'user' is assigned a value but never used`. Avec `--max-warnings=0`, un seul avertissement bloque le commit. Solution : faire l'étape suivante, qui utilise `user`, avant de commiter, plutôt que `--no-verify`.
+- **Même erreur une 2e fois** : le fichier avait changé après le `git add` (`git status` : `MM`). Lint-staged ne vérifie que la version indexée ; il fallait réindexer.
+- **Connexion impossible avec les comptes de `bdd-arbres.json`** : l'API répond `404 {"error":"Ressource introuvable"}` à `POST /api/auth`. Seules `/health` et `/trees…` existent. Le formulaire a donc affiché le message générique, comme prévu.
+
+### À poursuivre
+
+- **Routes de l'API à créer** (à répartir avec le trinôme, pas de carte vue) : `POST /api/auth`, `GET /api/users/me`, `DELETE /api/auth`.
+- **Ouvrir la PR de la branche** : description préparée (`Refs #86`), relecteur `loicRoch` (cf. carte).
+- **Tester au clavier** (Tab / Entrée) la page et l'en-tête, puis de bout en bout quand l'API sera prête.
+- Le commit `7d2bb4d` a deux titres collés dans son message : à corriger avant de pousser si souhaité.
+- La page `/inscription` n'existe pas : « Créer un compte » mène à une 404.
+- Aucun message si la déconnexion échoue : à décider avec le trinôme.
+- Le dossier `.playwright-mcp/` (captures de Playwright) n'est pas dans le `.gitignore`.
+
 ## 2026-11-02 (soir, suite) — Carte #86 : retour après la connexion (US06)
 
 Branche `feat/formulaires-connexion-inscription`. Commit `b7dce3e` : `connexion/LoginForm.tsx`, `connexion/page.tsx` et `arbres/AddToCartButton.tsx` (dans `src/front/src/app/`).
