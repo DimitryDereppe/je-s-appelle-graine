@@ -29,7 +29,7 @@ Branche `feat/formulaires-connexion-inscription`. Commit `b7dce3e` : `connexion/
     - **`router.back()` seul** (première version) : simple, mais renvoie hors du site quand on arrive sur `/connexion` depuis un e-mail ou un moteur de recherche, et ne fait rien dans un onglet neuf.
   - **Pourquoi US06** : c'est la seule option qui ramène le visiteur au geste qu'il était en train de faire (ajouter un arbre au panier), donc qui ne casse pas le parcours d'achat. Le coût est faible (une dizaine de lignes) parce que `AddToCartButton` passait déjà un paramètre `next` (vers `/trees`, inexistant) et que le modèle `searchParams` existe déjà dans `arbres/page.tsx`.
   - **`router.back()` et l'accueil gardés en secours** quand `next` est absent ou refusé.
-  - **À valider avec le trinôme (Fabrice, Shanna)** : soit la carte #86 est mise à jour (« retour vers la page d'origine »), soit on revient au panier quand `/panier` existera.
+  - **Validé par le trinôme (Fabrice, Shanna) le 02/11** : la carte #86 dit maintenant « après connexion, retour vers la page d'origine, filtres compris (US06) » au lieu de « retour vers le panier ».
 - **`next` vérifié avant la redirection** : il doit commencer par `/`, mais ni par `//` ni par `/\` (que le navigateur lit comme l'adresse d'un autre site). Sans ce contrôle, un lien piégé `/connexion?next=https://faux-site.fr` renverrait l'utilisateur, juste connecté, vers un site pirate.
 - **`searchParams` côté page serveur plutôt que `useSearchParams`** : reprend un modèle déjà présent dans le projet, et évite le `<Suspense>` que Next.js exige autour de `useSearchParams`.
 
@@ -40,7 +40,6 @@ Branche `feat/formulaires-connexion-inscription`. Commit `b7dce3e` : `connexion/
 
 ### À poursuivre
 
-- Faire valider le choix d'US06 par Fabrice et Shanna, puis mettre à jour le texte de la carte #86 (« retour vers le panier »).
 - Prévenir l'équipe front de la modification de `AddToCartButton.tsx`.
 - Tester quand `POST /api/auth` existera : depuis `/arbres?category=...` → retour au même filtre ; `/connexion` tapé dans un onglet neuf → `/` ; `next=//exemple.com` → pas de sortie du site.
 - Limite connue : sans `next`, `router.back()` peut ramener hors du site (arrivée depuis un e-mail ou Google).
