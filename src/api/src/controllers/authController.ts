@@ -3,6 +3,11 @@ import type { Request, Response } from "express";
 import { z } from "zod";
 import { UnauthorizedError, ForbiddenError } from "../lib/errors.ts";
 import { accountDatamapper } from "../datamappers/accountDatamapper.ts";
+import {
+  ACCESS_COOKIE_NAME,
+  accessCookieOptions,
+  createAccessToken,
+} from "../lib/token.ts";
 
 export async function login(req: Request, res: Response) {
   // schema attendu du body
@@ -31,6 +36,15 @@ export async function login(req: Request, res: Response) {
       "Ce compte est désactivé, veuillez contacter l'administrateur",
     );
   }
+
+  // Création du jeton JWT (id et role dans le payload)
+  const accessToken = createAccessToken({
+    userId: searchedUser.id,
+    userRole: searchedUser.role,
+  });
+
+  // Intégration de accessToken et envoi du cookie (nom du cookie, l'accessToken et les options du cookie)
+  res.cookie(ACCESS_COOKIE_NAME, accessToken, accessCookieOptions);
 
   res.status(200).json({
     id: searchedUser.id,
