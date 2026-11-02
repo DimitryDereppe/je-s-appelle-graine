@@ -2,7 +2,7 @@
 
 Suivi de mon travail sur Je s’appelle Graine. Les décisions notées ici ont été prises avec l'équipe sur Discord ; le suivi de l'équipe est dans le [[Apothéose/apo-jesappellegraine/CARNET-DE-BORD-JE-S-APPELLE-GRAINE|carnet de bord Je s’appelle Graine]].
 
-## 2026-10-30 (soir) — Déploiement : certificat renouvelé et site mis à jour automatiquement
+## 2026-10-30 (soir) — Carte #114 : certificat renouvelé et site mis à jour automatiquement
 
 Branche `docs/renouvellement-certificat` (commit `5b70c69`), créée depuis `main`.
 
@@ -42,6 +42,8 @@ Branche `docs/renouvellement-certificat` (commit `5b70c69`), créée depuis `mai
 ### À poursuivre
 
 - `git push -u origin docs/renouvellement-certificat`, puis la PR vers `main`.
+- Carte #114 : ajouter l'étape « si Docker n'est pas installé » (étape 2 du chap. 3).
+- Carte #114 : PR relue dans le groupe, puis approuvée par quelqu'un d'un autre groupe.
 - Supprimer la clé `deploy-graine` de mon compte GitHub quand la VM ne sert plus, ou la remplacer par une _Deploy key_ ajoutée par un admin.
 - Collègues : installer `crontab.prod` sur leur VM (DEPLOIEMENT.md, section 6).
 
