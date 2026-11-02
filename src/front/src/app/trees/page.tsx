@@ -1,11 +1,10 @@
-"use client";
-
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
 import styles from "./page.module.css";
 import type { IFeaturedTree } from "../typeHome";
+import { TreesFilters } from "./TreesFilters";
+import { AddToCartButton } from "./AddToCartButton";
+import { getAllTrees } from "../utils/apiCall";
 
 const categories = [
   { id: 0, name: "Tous nos arbres" },
@@ -14,84 +13,32 @@ const categories = [
   { id: 3, name: "Feuillage persistant" },
 ];
 
-export default function TreesPage() {
-  const router = useRouter();
+interface TreesPageProps {
+  searchParams: Promise<{ category?: string }>;
+}
 
-  const [trees, setTrees] = useState<IFeaturedTree[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState(0);
-  const [isFilterOpen, setIsFilterOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [cartMessage, setCartMessage] = useState("");
-  const [addingTreeId, setAddingTreeId] = useState<number | null>(null);
+export default async function TreesPage({ searchParams }: TreesPageProps) {
+  const { category } = await searchParams;
+  const selectedCategory = categories.some((c) => String(c.id) === category)
+    ? Number(category)
+    : 0;
 
-  useEffect(() => {
-    const controller = new AbortController();
+  let trees: IFeaturedTree[] = [];
+  let error: string | null = null;
 
-    async function fetchTrees() {
-      setIsLoading(true);
-      setError(null);
+  try {
+    const response = await getAllTrees();
 
-      try {
-        const query =
-          selectedCategory === 0 ? "" : `?category=${selectedCategory}`;
-
-        const response = await fetch(`/api/trees${query}`, {
-          signal: controller.signal,
-        });
-
-        if (!response.ok) {
-          throw new Error("Impossible de charger les arbres pour le moment.");
-        }
-
-        const result: IFeaturedTree[] = await response.json();
-        setTrees(result);
-      } catch (fetchError) {
-        if (fetchError instanceof Error && fetchError.name !== "AbortError") {
-          setError(fetchError.message);
-        }
-      } finally {
-        if (!controller.signal.aborted) {
-          setIsLoading(false);
-        }
-      }
+    if (!response) {
+      throw new Error("Impossible de charger les arbres pour le moment.");
     }
 
-    fetchTrees();
-
-    return () => controller.abort();
-  }, [selectedCategory]);
-
-  async function handleAddToCart(treeId: number) {
-    setAddingTreeId(treeId);
-    setCartMessage("");
-
-    try {
-      const response = await fetch("/api/cart/items", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ tree_id: treeId, quantity: 1 }),
-      });
-
-      if (response.status === 401 || response.status === 403) {
-        router.push("/connexion?next=/trees");
-        return;
-      }
-
-      if (!response.ok) {
-        throw new Error("L’ajout au panier n’a pas fonctionné.");
-      }
-
-      setCartMessage("L’arbre a été ajouté au panier.");
-    } catch (addError) {
-      setCartMessage(
-        addError instanceof Error
-          ? addError.message
-          : "Une erreur est survenue.",
-      );
-    } finally {
-      setAddingTreeId(null);
-    }
+    trees = response;
+  } catch (fetchError) {
+    error =
+      fetchError instanceof Error
+        ? fetchError.message
+        : "Impossible de charger les arbres pour le moment.";
   }
 
   return (
@@ -111,7 +58,7 @@ export default function TreesPage() {
 
           <div className={styles.titleRow}>
             <h1 className={styles.title}>Nos arbres</h1>
-            {!isLoading && !error && (
+            {!error && (
               <p className={styles.treeCount}>
                 {trees.length} {trees.length > 1 ? "arbres" : "arbre"}
               </p>
@@ -121,63 +68,23 @@ export default function TreesPage() {
       </div>
 
       <div className={styles.catalogueLayout}>
-        <button
-          className={styles.filterToggle}
-          type="button"
-          aria-label={
-            isFilterOpen
-              ? "Masquer les filtres par catégorie"
-              : "Afficher les filtres par catégorie"
-          }
-          aria-expanded={isFilterOpen}
-          aria-controls="tree-filters"
-          onClick={() => setIsFilterOpen((open) => !open)}
-        >
-          <svg aria-hidden="true" viewBox="0 0 24 24" focusable="false">
-            <path d="M4 5h16l-6.5 7.2V19l-3-1.5v-5.3L4 5Z" />
-          </svg>
-        </button>
-
-        <aside
-          id="tree-filters"
-          className={`${styles.filters} ${isFilterOpen ? styles.filtersOpen : ""}`}
-          aria-label="Filtres du catalogue"
-        >
-          <fieldset className={styles.categoryFilters}>
-            <legend>Catégories</legend>
-
-            {categories.map((category) => (
-              <label className={styles.categoryOption} key={category.id}>
-                <input
-                  type="radio"
-                  name="category"
-                  value={category.id}
-                  checked={selectedCategory === category.id}
-                  onChange={() => {
-                    setSelectedCategory(category.id);
-                    setIsFilterOpen(false);
-                  }}
-                />
-                <span>{category.name}</span>
-              </label>
-            ))}
-          </fieldset>
-        </aside>
+        <TreesFilters
+          categories={categories}
+          selectedCategory={selectedCategory}
+        />
 
         <section className={styles.results} aria-label="Liste des arbres">
-          {isLoading && <p role="status">Chargement des arbres…</p>}
-
           {error && (
             <p className={styles.errorMessage} role="alert">
               {error}
             </p>
           )}
 
-          {!isLoading && !error && trees.length === 0 && (
+          {!error && trees.length === 0 && (
             <p>Aucun arbre n’est disponible dans cette catégorie.</p>
           )}
 
-          {!isLoading && !error && trees.length > 0 && (
+          {!error && trees.length > 0 && (
             <ul className={styles.treeGrid}>
               {trees.map((tree) => (
                 <li className={styles.treeCard} key={tree.id}>
@@ -227,30 +134,13 @@ export default function TreesPage() {
                     <div className={styles.priceAndCart}>
                       <p className={styles.treePrice}>{tree.price}€ TTC</p>
 
-                      <button
-                        className={styles.addToCart}
-                        type="button"
-                        aria-label={`Ajouter ${tree.name} au panier`}
-                        disabled={addingTreeId === tree.id}
-                        onClick={() => handleAddToCart(tree.id)}
-                      >
-                        <Image
-                          src="/assets/panier.svg"
-                          alt=""
-                          width={22}
-                          height={22}
-                        />
-                      </button>
+                      <AddToCartButton treeId={tree.id} treeName={tree.name} />
                     </div>
                   </div>
                 </li>
               ))}
             </ul>
           )}
-
-          <p className={styles.cartMessage} role="status" aria-live="polite">
-            {cartMessage}
-          </p>
         </section>
       </div>
     </main>
