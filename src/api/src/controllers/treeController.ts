@@ -18,7 +18,7 @@ export async function getAllCatalog(_req: Request, res: Response) {
 export async function getOneTree(req: Request, res: Response) {
   const id = Number(req.params.id);
   const tree = await treeDatamapper.findById(id);
-  if (!tree || tree.availabilityName === "withdrawn") {
+  if (!tree || tree.availabilityName === "retiré") {
     throw new NotFoundError("Arbre introuvable");
   }
   res.status(200).json(tree);

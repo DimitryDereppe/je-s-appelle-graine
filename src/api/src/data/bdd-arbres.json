@@ -18,15 +18,15 @@
   "availability": [
     {
       "id": 1,
-      "name": "available"
+      "name": "disponible"
     },
     {
       "id": 2,
-      "name": "out_of_stock"
+      "name": "en rupture de stock"
     },
     {
       "id": 3,
-      "name": "withdrawn"
+      "name": "retiré"
     }
   ],
   "category": [
@@ -51,7 +51,7 @@
       "firstname": "Dimitry",
       "lastname": "Dereppe",
       "address": null,
-      "account_type": "individual",
+      "account_type": "particulier",
       "organization_name": null,
       "is_active": true,
       "role_id": 2
@@ -63,7 +63,7 @@
       "firstname": "Loïc",
       "lastname": "Roch",
       "address": null,
-      "account_type": "individual",
+      "account_type": "particulier",
       "organization_name": null,
       "is_active": true,
       "role_id": 2
@@ -75,7 +75,7 @@
       "firstname": "Shanna",
       "lastname": "Etna",
       "address": null,
-      "account_type": "individual",
+      "account_type": "particulier",
       "organization_name": null,
       "is_active": true,
       "role_id": 2
@@ -87,7 +87,7 @@
       "firstname": "Mahamadou",
       "lastname": "Doucantji",
       "address": null,
-      "account_type": "individual",
+      "account_type": "particulier",
       "organization_name": null,
       "is_active": true,
       "role_id": 2
@@ -99,7 +99,7 @@
       "firstname": "Fabrice",
       "lastname": "Seny Couty",
       "address": null,
-      "account_type": "individual",
+      "account_type": "particulier",
       "organization_name": null,
       "is_active": true,
       "role_id": 2
@@ -111,7 +111,7 @@
       "firstname": "Camille",
       "lastname": "Martin",
       "address": "12 rue des Tilleuls, 35000 Rennes",
-      "account_type": "individual",
+      "account_type": "particulier",
       "organization_name": null,
       "is_active": true,
       "role_id": 1
@@ -123,7 +123,7 @@
       "firstname": "Julien",
       "lastname": "Bernard",
       "address": null,
-      "account_type": "individual",
+      "account_type": "particulier",
       "organization_name": null,
       "is_active": false,
       "role_id": 1
@@ -147,7 +147,7 @@
       "firstname": "Thomas",
       "lastname": "Dubois",
       "address": "48 avenue Jean Jaurès, 11000 Carcassonne",
-      "account_type": "company",
+      "account_type": "entreprise",
       "organization_name": "Dubois Menuiserie SARL",
       "is_active": false,
       "role_id": 1
@@ -159,7 +159,7 @@
       "firstname": "Nadia",
       "lastname": "Benali",
       "address": null,
-      "account_type": "company",
+      "account_type": "entreprise",
       "organization_name": "Verdure & Co",
       "is_active": true,
       "role_id": 1

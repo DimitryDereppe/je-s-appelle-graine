@@ -27,7 +27,7 @@ export const treeDatamapper = {
             -- (clé étrangère tree.availability_id → availability.id)
             JOIN availability ON tree.availability_id = availability.id
             -- On ne garde que les arbres en vente
-            WHERE availability.name = 'available'
+            WHERE availability.name = 'disponible'
             -- Du plus récent au plus ancien (id le plus grand en premier)
             ORDER BY tree.id DESC
             -- On n'en garde que 3
@@ -55,7 +55,7 @@ export const treeDatamapper = {
             JOIN category ON tree.category_id = category.id
             JOIN availability ON tree.availability_id = availability.id
             -- <> veut dire « différent de » : on écarte les arbres retirés
-            WHERE availability.name <> 'withdrawn'
+            WHERE availability.name <> 'retiré'
             -- du plus petit id au plus grand (ordre d'ajout au catalogue)
             ORDER BY tree.id;
         `;

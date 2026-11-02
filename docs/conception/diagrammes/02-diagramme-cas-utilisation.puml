@@ -28,7 +28,7 @@ rectangle "Je s’appelle Graine" {
   usecase "Supprimer son compte" as UC_delete
 
   usecase "Gérer le catalogue\n(ajouter, modifier, supprimer\nun arbre jamais commandé)" as UC_admin_trees
-  usecase "Changer la disponibilité d'un arbre\n(disponible, épuisé, retiré)" as UC_admin_avail
+  usecase "Changer la disponibilité d'un arbre\n(disponible, en rupture de stock, retiré)" as UC_admin_avail
   usecase "Gérer les commandes\n(consulter, changer le statut :\npayée, plantée, annulée)" as UC_admin_orders
   usecase "Gérer les comptes clients\n(consulter, activer ou désactiver,\nsupprimer)" as UC_admin_users
 }
