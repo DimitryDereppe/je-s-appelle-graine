@@ -1,25 +1,21 @@
-import { StaticImport } from "next/dist/shared/lib/get-img-props";
-
-export interface Tree {
-  photo_url: string | StaticImport;
+export interface IFeaturedTree {
   id: number;
   name: string;
-  scientific: string;
-  price: string;
-  description: string;
-  photoUrl: string;
-  plantingLocation: string;
-  category_id: number;
-  availability_id: number;
+  price: number;
+  photoUrl: string | null;
+  plantingLocation: string | null;
+  categoryName: string;
+  categoryId: number;
+  availabilityName: string;
 }
 
-export interface Feature {
-  id: number;
-  title: string;
+// Catalogue
+// extends : reprend tous les champs de IFeaturedTree, et en ajoute un
+export interface ICatalogueTree extends IFeaturedTree {
+  availabilityName: "available" | "out_of_stock" | "withdrawn";
 }
 
-export interface Feature {
-  id: number;
-  title: string;
-  icon: string;
+// Fiche
+export interface ITree extends ICatalogueTree {
+  description: string | null;
 }

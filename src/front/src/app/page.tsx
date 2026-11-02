@@ -1,20 +1,13 @@
 import Image from "next/image";
 import styles from "./Home.module.css";
-import type { Tree } from "./typeHome";
+import type { IFeaturedTree } from "./typeHome";
 import Commitments from "@/components/commitments/Commitments";
+import { getAllTrees } from "./utils/apiCall";
 
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
-  const res = await fetch(`${process.env.API_URL}/api/trees`, {
-    next: { revalidate: 60 },
-  });
-
-  if (!res.ok) {
-    throw new Error(`Erreur HTTP ${res.status}`);
-  }
-
-  const treesAll: Tree[] = await res.json();
+  const treesAll: IFeaturedTree[] = await getAllTrees();
   const trees = treesAll.slice(0, 3);
 
   return (
@@ -43,7 +36,7 @@ export default async function Home() {
 
         <div className={styles.heroImage}>
           <Image
-            src="/images/trees/pin-maritime.webp"
+            src="/assets/acceuil.png"
             alt="Pin maritime"
             className={styles.heroImg}
             fill
@@ -51,36 +44,36 @@ export default async function Home() {
           />
         </div>
       </section>
-
-      {/* Sur l’accueil, le bandeau se trouve avant les arbres du moment */}
       <div className={styles.commitmentsDesktop}>
         <Commitments />
       </div>
-
-      {/* Arbres du moment */}
-
       <section className={styles.homepage}>
         <h2 className={styles.sectionTitle}>
           <span className={styles.underline}>Les</span> arbres du moment
         </h2>
-
         <div className={styles.cardsGrid}>
           {trees.map((tree) => (
             <article key={tree.id} className={styles.card}>
               <div className={styles.cardImage}>
-                <Image
-                  src={tree.photoUrl}
-                  alt={tree.name}
-                  className={styles.cardImg}
-                  fill
-                />
+                {tree.photoUrl && (
+                  <Image
+                    src={tree.photoUrl}
+                    alt={tree.name}
+                    className={styles.cardImg}
+                    fill
+                    sizes="(min-width: 600px) 30vw, 90vw"
+                  />
+                )}
               </div>
-
               <div className={styles.cardBody}>
                 <div className={styles.cardInfo}>
-                  <h3 className={styles.cardTitle}>{tree.name}</h3>
-                  <p className={styles.cardScientific}>{tree.scientific}</p>
-
+                  <h3 className={styles.cardTitle}>
+                    {tree.name} -{" "}
+                    <span className={styles.cardScientific}>
+                      {tree.availabilityName}
+                    </span>
+                  </h3>
+                  <p className={styles.cardScientific}>{tree.categoryName}</p>
                   <p className={styles.cardLocation}>
                     <span className={styles.locationIcon}>
                       <Image

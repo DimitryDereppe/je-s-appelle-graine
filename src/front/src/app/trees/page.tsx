@@ -5,16 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import styles from "./page.module.css";
-
-type Tree = {
-  id: number;
-  name: string;
-  price: string;
-  photo_url: string;
-  planting_location: string;
-  category_id: number;
-  availability_id: number;
-};
+import type { IFeaturedTree } from "../typeHome";
 
 const categories = [
   { id: 0, name: "Tous nos arbres" },
@@ -23,43 +14,10 @@ const categories = [
   { id: 3, name: "Feuillage persistant" },
 ];
 
-/* Associe les noms de forêt présents dans les données aux régions à afficher. */
-const forestRegions: Record<string, string> = {
-  "Forêt de Brocéliande": "Bretagne",
-  "Monts d'Arrée": "Bretagne",
-  "Forêt des Landes de Gascogne": "Nouvelle-Aquitaine",
-  "Massif des Corbières": "Occitanie",
-  "Massif des Maures": "Provence-Alpes-Côte d’Azur",
-  "Massif du Jura": "Bourgogne-Franche-Comté",
-};
-
-function getCategoryName(categoryId: number): string {
-  return (
-    categories.find((category) => category.id === categoryId)?.name ?? "Arbre"
-  );
-}
-
-function getLocationLabel(location: string): string {
-  const forestName = location.split(" — ")[0].trim();
-  const region = forestRegions[forestName];
-
-  return region ? `${forestName}, ${region}` : forestName;
-}
-
-function formatPrice(price: string): string {
-  const amount = Number(price);
-
-  if (Number.isNaN(amount)) {
-    return `${price}€ TTC`;
-  }
-
-  return `${amount.toFixed(2).replace(".", ",")}€ TTC`;
-}
-
 export default function TreesPage() {
   const router = useRouter();
 
-  const [trees, setTrees] = useState<Tree[]>([]);
+  const [trees, setTrees] = useState<IFeaturedTree[]>([]);
   const [selectedCategory, setSelectedCategory] = useState(0);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -86,7 +44,7 @@ export default function TreesPage() {
           throw new Error("Impossible de charger les arbres pour le moment.");
         }
 
-        const result: Tree[] = await response.json();
+        const result: IFeaturedTree[] = await response.json();
         setTrees(result);
       } catch (fetchError) {
         if (fetchError instanceof Error && fetchError.name !== "AbortError") {
@@ -229,12 +187,14 @@ export default function TreesPage() {
                       className={styles.treeImageLink}
                       aria-label={`Voir la fiche de ${tree.name}`}
                     >
-                      <Image
-                        src={tree.photo_url}
-                        alt={tree.name}
-                        fill
-                        sizes="(max-width: 699px) 100vw, (max-width: 999px) 50vw, 30vw"
-                      />
+                      {tree.photoUrl && (
+                        <Image
+                          src={tree.photoUrl}
+                          alt={tree.name}
+                          fill
+                          sizes="(max-width: 699px) 100vw, (max-width: 999px) 50vw, 30vw"
+                        />
+                      )}
                     </Link>
                   </div>
 
@@ -248,23 +208,24 @@ export default function TreesPage() {
                       </Link>
                     </h2>
 
-                    <p className={styles.treeCategory}>
-                      {getCategoryName(tree.category_id)}
-                    </p>
+                    <p className={styles.treeCategory}>{tree.categoryName}</p>
 
                     <p className={styles.treeLocation}>
-                      {/* TODO : ajouter le pictogramme de localisation. */}
+                      <Image
+                        src="/assets/localisation.svg"
+                        alt=""
+                        width={22}
+                        height={22}
+                      />{" "}
                       <span
                         aria-hidden="true"
                         className={styles.locationIcon}
                       />
-                      {getLocationLabel(tree.planting_location)}
+                      {tree.plantingLocation}
                     </p>
 
                     <div className={styles.priceAndCart}>
-                      <p className={styles.treePrice}>
-                        {formatPrice(tree.price)}
-                      </p>
+                      <p className={styles.treePrice}>{tree.price}€ TTC</p>
 
                       <button
                         className={styles.addToCart}
@@ -273,9 +234,8 @@ export default function TreesPage() {
                         disabled={addingTreeId === tree.id}
                         onClick={() => handleAddToCart(tree.id)}
                       >
-                        {/* TODO : utiliser le même fichier d’icône panier que le header. */}
                         <Image
-                          src="/images/cart.svg"
+                          src="/assets/panier.svg"
                           alt=""
                           width={22}
                           height={22}
