@@ -12,6 +12,6 @@ Dockerfile
 .dockerignore
 .gitignore
 README.md
-tests
+test
 .claude
 *.log
