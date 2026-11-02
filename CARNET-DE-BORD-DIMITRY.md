@@ -2,7 +2,50 @@
 
 Suivi de mon travail sur Je s’appelle Graine. Les décisions notées ici ont été prises avec l'équipe sur Discord ; le suivi de l'équipe est dans le [[Apothéose/apo-jesappellegraine/CARNET-DE-BORD-JE-S-APPELLE-GRAINE|carnet de bord Je s’appelle Graine]].
 
-## 2026-10-30 (soir) — Déploiement : certificat renouvelé et site mis à jour automatiquement
+## 2026-11-02 — Valeurs métier en français
+
+Branche `feat/deployment` (commit `abeb3b0`).
+
+**Résultat** : les valeurs que le client peut voir sont maintenant en français, dans la base, le code et la documentation. Les rôles (`customer`, `admin`), que le client ne voit jamais, restent en anglais.
+
+### Travail réalisé
+
+- **Nouvelles valeurs** :
+  - `availability.name` : `disponible`, `en rupture de stock`, `retiré` ;
+  - `purchase.status` : `en attente`, `payée`, `plantée`, `annulée` ;
+  - `account.account_type` : `particulier`, `association`, `entreprise` ;
+  - `purchase.payment_method` : `virement`, `chèque`.
+- **Code** : `01-schema.sql` (`DEFAULT` et `CHECK`), `02-seed.sql`, `bdd-arbres.json`, `treeDatamapper.ts` (`= 'disponible'` pour l'accueil, `<> 'retiré'` pour le catalogue), `treeController.ts` (404 si `"retiré"`) et le type `availabilityName`.
+- **Doc** :
+  - [[Apothéose/apo-jesappellegraine/docs/conception/modele-de-donnees/00-dictionnaire-de-donnees|dictionnaire de données]], [[Apothéose/apo-jesappellegraine/docs/conception/modele-de-donnees/06-mld|MLD]], [[Apothéose/apo-jesappellegraine/docs/conception/modele-de-donnees/07-mpd|MPD]] et le SVG drawio du MPD ;
+  - [[Apothéose/apo-jesappellegraine/docs/specifications/CAHIER-DES-CHARGES-JE-S-APPELLE-GRAINE|cahier des charges]], user stories, entités et diagrammes `.puml` 02, 03 et 04.
+- **« Épuisé » devient « en rupture de stock »** partout, pour que la doc emploie le même mot que la base.
+- **Tests** dans une base temporaire (schéma et seed chargés, puis base supprimée) :
+  - 13 arbres disponibles, 5 en rupture, 3 retirés ;
+  - l'accueil renvoie les arbres 20, 19 et 16, et le catalogue 18 arbres ;
+  - 7 particuliers, 2 entreprises, 1 association ;
+  - une commande payée par `chèque` est acceptée et prend le statut `en attente` ; une commande payée par `check` est refusée par le `CHECK` ;
+  - `typecheck` et `lint` passent.
+
+### Décisions
+
+- **Tout ce qui est affiché au client passe en français**, avec l'équipe : le front pourra afficher la valeur telle quelle, sans table de traduction.
+- **`paid` et `planted` traduits aussi**, pour ne pas avoir une liste de statuts à moitié en anglais.
+- **Les noms de colonnes ne changent pas** (`paid_at`, `planted_at`, `cancelled_at`) : seules les valeurs changent.
+- **Les anciennes entrées des carnets ne changent pas** : ce sont des historiques.
+
+### Difficultés
+
+- **Code et base doivent changer ensemble** : avec les anciennes valeurs encore en base, l'accueil serait vide, les arbres retirés apparaîtraient dans le catalogue et leur fiche ne renverrait plus 404.
+- **`db:seed` ne suffit plus** : il ne recrée pas le schéma, donc les anciennes contraintes `CHECK` refuseraient `'particulier'`. Il faut `db:reset`.
+
+### À poursuivre
+
+- Prévenir l'équipe : `npm run db:reset` après le pull.
+- Production : écrire la migration (supprimer les `CHECK`, `UPDATE` des valeurs, recréer les `CHECK`) avant de fusionner dans `main`, car le cron ne relance pas le seed.
+- Réexporter les PNG des diagrammes 02, 03 et 04 avec l'extension PlantUML (Java absent de la machine).
+
+## 2026-10-30 (soir) — Carte #114 : certificat renouvelé et site mis à jour automatiquement
 
 Branche `docs/renouvellement-certificat` (commit `5b70c69`), créée depuis `main`.
 
@@ -42,6 +85,8 @@ Branche `docs/renouvellement-certificat` (commit `5b70c69`), créée depuis `mai
 ### À poursuivre
 
 - `git push -u origin docs/renouvellement-certificat`, puis la PR vers `main`.
+- Carte #114 : ajouter l'étape « si Docker n'est pas installé » (étape 2 du chap. 3). → **Fait** (commit `5a54291`, PR #118).
+- Carte #114 : PR relue dans le groupe, puis approuvée par quelqu'un d'un autre groupe. → PR #118 fusionnée le 02/11, **sans relecture enregistrée sur GitHub**.
 - Supprimer la clé `deploy-graine` de mon compte GitHub quand la VM ne sert plus, ou la remplacer par une _Deploy key_ ajoutée par un admin.
 - Collègues : installer `crontab.prod` sur leur VM (DEPLOIEMENT.md, section 6).
 
@@ -416,6 +461,33 @@ Travail fait en groupe.
 - Ajouter `start_period` au healthcheck, pour que la première initialisation ne soit plus déclarée « unhealthy ».
 - ~~Garder un seul dossier de données : `api/data/` et `api/src/data/` contiennent les mêmes fichiers.~~ → fait le 2026-10-27 (`api/src/data/` conservé).
 - Installer l'extension VS Code YAML (Red Hat) : elle signale les erreurs de `docker-compose.yml` pendant la frappe.
+
+## 2026-10-23 — Jeu de données JSON et photos des arbres
+
+### Travail réalisé
+
+- **Jeu de données en JSON** : [bdd-arbres.json](src/api/src/data/bdd-arbres.json), tiré de [[Apothéose/divers/bdd arbres|bdd arbres]]. Il reprend les noms de tables et de colonnes du [[Apothéose/apo-jesappellegraine/docs/conception/modele-de-donnees/00-dictionnaire-de-donnees|dictionnaire de données]] : `role`, `availability`, `category`, `account`, `tree`.
+  - **10 comptes** : 5 admins (Dimitry, Loïc, Shanna, Mahamadou, Fabrice) et 5 clients de test, dont 2 bloqués (`is_active: false`). Les clients couvrent les 3 types de compte : particulier, association, entreprise.
+  - **21 arbres répartis** : 13 disponibles, 5 en rupture (If, Sorbier, Chêne tauzin, Chêne-liège, Olivier sauvage), 3 retirés (Épicéa, Laurier noble, Pin parasol). Chaque lieu garde au moins 2 arbres disponibles.
+- **Photos des arbres** : [src/api/src/public/images/trees/](src/api/src/public/images/trees/) (copie dans [src/front/public/images/trees/](src/front/public/images/trees/)).
+  - 21 photos d'arbres **entiers**, prises sur **Wikimedia Commons** : 19 sous licence CC BY ou CC BY-SA, 2 dans le domaine public. Elles remplacent les anciennes photos Pexels et Commons, qui montraient souvent seulement un détail (écorce, baies, feuilles).
+  - Converties en **WebP**, 1200 px maximum sur le plus grand côté, de 180 à 440 Ko chacune.
+  - Les noms de fichiers suivent le chemin `/images/trees/<arbre>.webp` attendu par le seed SQL. Les `photo_url` du JSON ont été mis à jour : les 21 fichiers existent bien.
+  - Les crédits (auteur, licence, page source) sont dans [[Apothéose/apo-jesappellegraine/src/api/src/public/images/trees/CREDITS|CREDITS]] et `credits.json`.
+
+### Décisions
+
+- **Les crédits des photos sont obligatoires** pour les licences CC BY et CC BY-SA : il faut citer l'auteur et la licence (avec un lien). Comme les photos ont été redimensionnées et converties, il faut aussi le signaler (« redimensionnée »).
+- **Les crédits restent hors de la table `tree`** pour l'instant : le dictionnaire de données n'a pas de colonne pour l'auteur ou la licence.
+- **Les mots de passe du JSON sont en clair** (comptes de test seulement). Un script qui lirait ce JSON devrait les hacher avec Argon2 avant l'`INSERT`.
+
+### À poursuivre
+
+- Aligner `02-seed.sql` sur le JSON : le seed n'a qu'un admin et seulement 2 arbres non disponibles (20 retiré, 21 épuisé). → **Fait** (vérifié le 02/11 : 10 comptes, 13 disponibles, 5 en rupture de stock, 3 retirés).
+- Remplacer les noms de famille provisoires (« GreenRoots ») des 4 autres admins dans le JSON. → **Fait** (vérifié le 02/11).
+- Copier `public/images/trees/` dans le dossier du front. → **Fait** (vérifié le 02/11 : 21 photos dans `src/front/public/images/trees/`).
+- Choisir où stocker les crédits des photos (fichier à part ou colonne dans `tree`) et les afficher sous chaque photo. → Stockés dans `CREDITS.md` et `credits.json` ; **pas encore affichés** dans le front (au 02/11).
+- Mettre à jour la section « Photos » de [[Apothéose/divers/bdd arbres|bdd arbres]], qui décrit encore les anciennes photos. → **Toujours à faire** au 02/11 (la section parle encore de Pexels).
 
 ## 2026-10-23 — Versions communes et scripts SQL
 
