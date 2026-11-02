@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import styles from "./page.module.css";
 
 interface LoginFormProps {
   next?: string;
@@ -57,11 +58,14 @@ export function LoginForm({ next }: LoginFormProps) {
   }
 
   return (
-    <form action={handleLogin}>
-      <p>* Champ obligatoire</p>
+    <form className={styles.form} action={handleLogin}>
+      <p className={styles.requiredNote}>* (champs obligatoires)</p>
 
-      <label htmlFor="email">Adresse e-mail *</label>
+      <label className={styles.label} htmlFor="email">
+        Adresse e-mail *
+      </label>
       <input
+        className={styles.input}
         id="email"
         name="email"
         type="email"
@@ -70,8 +74,11 @@ export function LoginForm({ next }: LoginFormProps) {
         required
       />
 
-      <label htmlFor="password">Mot de passe *</label>
+      <label className={styles.label} htmlFor="password">
+        Mot de passe *
+      </label>
       <input
+        className={styles.input}
         id="password"
         name="password"
         type="password"
@@ -79,9 +86,15 @@ export function LoginForm({ next }: LoginFormProps) {
         required
       />
 
-      {errorMessage && <p role="alert">{errorMessage}</p>}
+      {errorMessage && (
+        <p className={styles.error} role="alert">
+          {errorMessage}
+        </p>
+      )}
 
-      <button type="submit">Se connecter</button>
+      <button className={styles.submit} type="submit">
+        Se connecter
+      </button>
     </form>
   );
 }

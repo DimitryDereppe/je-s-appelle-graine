@@ -113,12 +113,10 @@ export default function Header() {
           {/* Connecté : prénom + déconnexion ; visiteur : lien vers la connexion */}
           {user ? (
             <>
-              <span className={styles.navigationLink}>
-                Bonjour {user.firstname}
-              </span>
+              <span className={styles.greeting}>Bonjour {user.firstname}</span>
               <button
                 type="button"
-                className={styles.navigationLink}
+                className={`${styles.navigationLink} ${styles.logoutButton}`}
                 onClick={handleLogout}
               >
                 Déconnexion
