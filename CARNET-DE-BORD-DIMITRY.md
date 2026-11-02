@@ -2,6 +2,43 @@
 
 Suivi de mon travail sur Je s’appelle Graine. Les décisions notées ici ont été prises avec l'équipe sur Discord ; le suivi de l'équipe est dans le [[Apothéose/apo-jesappellegraine/CARNET-DE-BORD-JE-S-APPELLE-GRAINE|carnet de bord Je s’appelle Graine]].
 
+## 2026-11-02 (après-midi) — Production : build de l'API cassé par les tests
+
+Branche `fix/build-api-sans-tests` (commit `74ec70e`), créée depuis `main`.
+
+**Résultat** : l'image de production de l'API se construit à nouveau (testé en local avec `Dockerfile.prod`). Sur la VM, rien n'a changé : le site tourne toujours avec l'ancienne image et l'ancienne base, qui sont cohérentes entre elles.
+
+### Travail réalisé
+
+- **Mise à jour de la VM tentée** (passage des valeurs en français) : `docker compose -f docker-compose.prod.yml up -d --build` a échoué au build de l'API (`TS2307: Cannot find module '../test/index.ts'`).
+- **Correction** :
+  - `src/api/tsconfig.build.json` : reprend `tsconfig.json` sans `test/` ni les `*.spec.test.ts` / `*.unit.test.ts` ;
+  - `npm run build` lance `tsc -p tsconfig.build.json` ; `Dockerfile.prod` copie ce fichier ;
+  - `.dockerignore` : `tests` corrigé en `test`.
+- **Tests** :
+  - erreur reproduite en local en compilant sans `test/`, comme dans l'image ;
+  - après correction : `build`, `typecheck` (tests compris) et `lint` passent ;
+  - image construite avec `Dockerfile.prod` : aucun fichier de test dans `dist/`, photos présentes ; conteneur démarré sur la base locale → `/api/health`, `/api/trees/featured` et une photo en `200`.
+- **Guide** « mettre à jour la bdd vm apres modifs.md » (pas encore commité) : quand et comment mettre à jour la base de la VM après une modification du schéma ou du seed (recréer la base, ou migration SQL).
+
+### Décisions
+
+- **Un `tsconfig.build.json` à part** plutôt que d'exclure les tests de `tsconfig.json` : `npm run typecheck` continue de vérifier les tests.
+- **Réinstallation complète de la VM** plutôt qu'une remise à zéro de la base : ce n'est pas un vrai site, et sur une VM neuve PostgreSQL joue lui-même le schéma et le seed en français.
+
+### Difficultés
+
+- **Commandes lancées depuis `~` sur la VM** : `open /home/student/docker-compose.prod.yml: no such file or directory`. Le chemin `-f` est lu à partir du dossier courant ; il faut d'abord `cd ~/apo-jesappellegraine/src`.
+- **Le build marchait sur ma machine** : `test/` y existe. Dans l'image, seul `src/` est copié, et `tsc` compile tous les `.ts`, tests compris.
+- **Ne pas recréer la base avant de réparer le build** : la base passerait en français alors que l'ancienne image de l'API cherche encore `'available'` (accueil vide).
+
+### À poursuivre
+
+- Pousser `fix/build-api-sans-tests` et faire passer la PR vers `main`.
+- Puis réinstaller la VM (DEPLOIEMENT.md, section 3) et vérifier : accueil (`id` 20, 19, 16), catalogue (18 arbres), `SELECT * FROM availability` en français.
+- Prévenir l'équipe : même build cassé sur leur VM tant que la correction n'est pas dans `main`.
+- Décider du nom et de la branche du guide de mise à jour de la base, puis le commiter.
+
 ## 2026-11-02 (suite) — Dépendances npm, ménage des branches et carnet
 
 Branches `back` (PR #126) et `docs/carnet-dimitry`.
