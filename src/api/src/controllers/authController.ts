@@ -12,8 +12,8 @@ import {
 export async function login(req: Request, res: Response) {
   // schema attendu du body
   const loginBodySchema = z.object({
-    email: z.email(),
-    password: z.string(),
+    email: z.email({ error: "Email invalide." }),
+    password: z.string({ error: "Mot de passe obligatoire." }),
   });
 
   // validation du body par Zod
@@ -21,19 +21,19 @@ export async function login(req: Request, res: Response) {
 
   const searchedUser = await accountDatamapper.findByEmail(email);
   if (!searchedUser) {
-    throw new UnauthorizedError("Email ou mot de passe incorrect");
+    throw new UnauthorizedError("Email ou mot de passe incorrect.");
   }
 
   // searchedUser.password --> mot de passe hashé et stocké dans la BDD
   // password --> mot de passe en clair reçu du body
   if (!(await argon2.verify(searchedUser.password, password))) {
-    throw new UnauthorizedError("Email ou mot de passe incorrect");
+    throw new UnauthorizedError("Email ou mot de passe incorrect.");
   }
 
   // vérification du compte (n'a pas été désactivé par l'admin)
   if (!searchedUser.isActive) {
     throw new ForbiddenError(
-      "Ce compte est désactivé, veuillez contacter l'administrateur",
+      "Ce compte est désactivé, veuillez contacter l'administrateur.",
     );
   }
 
