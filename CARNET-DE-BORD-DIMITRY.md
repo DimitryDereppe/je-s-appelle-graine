@@ -2,6 +2,41 @@
 
 Suivi de mon travail sur Je s’appelle Graine. Les décisions notées ici ont été prises avec l'équipe sur Discord ; le suivi de l'équipe est dans le [[Apothéose/apo-jesappellegraine/CARNET-DE-BORD-JE-S-APPELLE-GRAINE|carnet de bord Je s’appelle Graine]].
 
+## 2026-11-02 (soir, suite) — Carte #86 : retour après la connexion (US06)
+
+Branche `feat/formulaires-connexion-inscription`. Modifications **pas encore commitées** : `connexion/LoginForm.tsx`, `connexion/page.tsx` et `arbres/AddToCartButton.tsx` (dans `src/front/src/app/`).
+
+**Résultat** : après une connexion réussie, l'utilisateur revient sur la page d'où il venait, filtres compris (ex. `/arbres?category=fruitier`). L'évolution US06 du cahier des charges est donc faite en avance sur le MVP.
+
+### Travail réalisé
+
+- **Cahier des charges relu** ([[Apothéose/apo-jesappellegraine/docs/specifications/CAHIER-DES-CHARGES-JE-S-APPELLE-GRAINE|cahier des charges]] §parcours d'achat, [[Apothéose/apo-jesappellegraine/docs/specifications/user-stories|user stories]] US05, US05b, US06) : la page où renvoyer après la connexion n'est pas fixée ; le retour automatique est une **évolution** (US06).
+- **`AddToCartButton.tsx`** : sur un 401/403, envoie vers `/connexion?next=<page actuelle>` (`window.location.pathname + window.location.search`, encodé avec `encodeURIComponent`). Remplace `next=/trees`, une page qui n'existe pas.
+- **`connexion/page.tsx`** : lit `next` dans `searchParams` (même modèle que `arbres/page.tsx`) et le passe en prop à `LoginForm`.
+- **`LoginForm.tsx`**, après une réponse réussie, dans l'ordre :
+  1. `next` présent et adresse du site → `router.push(next)` ;
+  2. sinon, s'il y a une page précédente (`window.history.length > 1`) → `router.back()` ;
+  3. sinon → `router.push("/")`.
+- **Vérifications** : `tsc --noEmit` et ESLint passent ; `/connexion?next=...` répond 200. Pas de test en navigateur (Firefox de Playwright pas installé, `POST /api/auth` absente).
+
+### Décisions
+
+- **Retour sur la page d'origine plutôt qu'une page fixe** : demandé pour reprendre l'achat là où il a été laissé.
+- **`next` vérifié avant la redirection** : il doit commencer par `/`, mais ni par `//` ni par `/\` (que le navigateur lit comme l'adresse d'un autre site). Sans ce contrôle, un lien piégé `/connexion?next=https://faux-site.fr` renverrait l'utilisateur, juste connecté, vers un site pirate.
+- **`searchParams` côté page serveur plutôt que `useSearchParams`** : reprend un modèle déjà présent dans le projet, et évite le `<Suspense>` que Next.js exige autour de `useSearchParams`.
+
+### Difficultés
+
+- **`/home` n'existe pas** : dans l'App Router, chaque dossier de `src/app/` est une adresse ; la page d'accueil (`src/app/page.tsx`) est `/`.
+- **Un `else` jamais atteint** : `if (response.ok) ... else ...` après le `if (!response.ok) return;` — la condition à tester était « y a-t-il une page où revenir ? », pas « la réponse est-elle bonne ? ».
+
+### À poursuivre
+
+- Commiter les 3 fichiers (ex. `feat: revenir à la page d'origine après la connexion (#86)`).
+- Prévenir l'équipe front de la modification de `AddToCartButton.tsx`.
+- Tester quand `POST /api/auth` existera : depuis `/arbres?category=...` → retour au même filtre ; `/connexion` tapé dans un onglet neuf → `/` ; `next=//exemple.com` → pas de sortie du site.
+- Limite connue : sans `next`, `router.back()` peut ramener hors du site (arrivée depuis un e-mail ou Google).
+
 ## 2026-11-02 (soir) — Carte #86 : page de connexion (front)
 
 Branche `feat/formulaires-connexion-inscription`, fichier `src/front/src/app/connexion/LoginForm.tsx`.
