@@ -30,11 +30,11 @@ describe("treeController", () => {
       await libTests.createTree({ name: "Hêtre" });
       await libTests.createTree({
         name: "Tilleul",
-        availability: "out_of_stock",
+        availability: "en rupture de stock",
       });
       await libTests.createTree({
         name: "Chêne",
-        availability: "withdrawn",
+        availability: "retiré",
       });
 
       // Act : Appelle la route comme le ferait le front
@@ -83,11 +83,11 @@ describe("treeController", () => {
       // Arrange : 2 arbres en rupture de stock, 1 retiré
       await libTests.createTree({
         name: "Tilleul",
-        availability: "out_of_stock",
+        availability: "en rupture de stock",
       });
       await libTests.createTree({
         name: "Chêne",
-        availability: "withdrawn",
+        availability: "retiré",
       });
 
       // Act : Appelle la route comme le ferait le front
@@ -135,11 +135,11 @@ describe("treeController", () => {
       await libTests.createTree({ name: "Hêtre" });
       await libTests.createTree({
         name: "Tilleul",
-        availability: "out_of_stock",
+        availability: "en rupture de stock",
       });
       await libTests.createTree({
         name: "Chêne",
-        availability: "withdrawn",
+        availability: "retiré",
       });
 
       // Act : Appelle la route comme le ferait le front
@@ -211,7 +211,7 @@ describe("treeController", () => {
       // Arrange : 1 arbre retiré
       const treeId = await libTests.createTree({
         name: "Chêne",
-        availability: "withdrawn",
+        availability: "retiré",
       });
 
       // Act : Appelle la route comme le ferait le front

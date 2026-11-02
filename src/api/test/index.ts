@@ -19,7 +19,7 @@ interface ITestTree {
   plantingLocation?: string | null;
   category?: string;
   // seulement les 3 valeurs possible de la table availability
-  availability?: "available" | "out_of_stock" | "withdrawn";
+  availability?: "disponible" | "en rupture de stock" | "retiré";
 }
 
 // --------------------------------
@@ -34,7 +34,7 @@ export async function createTree(tree: ITestTree): Promise<number> {
     photoUrl = null,
     plantingLocation = null,
     category = "Feuillage caduc",
-    availability = "available",
+    availability = "disponible",
   } = tree;
 
   // la catégorie et la disponibilité sont créées si elles n'existent pas encore :
