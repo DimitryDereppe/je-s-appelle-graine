@@ -1,6 +1,19 @@
+"use client";
+
+function handleLogin(formData: FormData) {
+  const email = formData.get("email");
+  const password = formData.get("password");
+  if (typeof email !== "string" || typeof password !== "string") {
+    return;
+  }
+  // Provisoire : l'appel à POST /api/auth arrive à l'étape 4.
+  // Le mot de passe n'est jamais écrit dans les logs.
+  console.log("Connexion demandée pour :", email);
+}
+
 export function LoginForm() {
   return (
-    <form>
+    <form action={handleLogin}>
       <p>* Champ obligatoire</p>
 
       <label htmlFor="email">Adresse e-mail *</label>
