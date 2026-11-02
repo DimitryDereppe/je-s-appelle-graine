@@ -32,7 +32,6 @@ export function validateCategoryQuery(
   if (category === undefined) {
     return next();
   }
-
   const categoryId = Number(category);
 
   // un entier > 0 qui tient dans une colonne INT
@@ -42,4 +41,31 @@ export function validateCategoryQuery(
 
   // cas par défaut : catégorie invalide
   throw new BadRequestError("Catégorie invalide");
+}
+
+// Longueur maximale autorisée pour une recherche
+const MAX_SEARCH_LENGTH = 100;
+
+// Vérifie que ?search=... est un texte de longueur raisonnable
+export function validateSearchQuery(
+  req: Request,
+  _res: Response,
+  next: NextFunction,
+) {
+  const { search } = req.query;
+
+  // Pas de recherche : rien à valider
+  if (search === undefined) {
+    return next();
+  }
+
+  // Un texte (pas un tableau) qui ne dépasse pas la longueur maximale
+  if (typeof search === "string" && search.trim().length <= MAX_SEARCH_LENGTH) {
+    return next();
+  }
+
+  // Cas par défaut : recherche invalide
+  throw new BadRequestError(
+    `Recherche invalide : un seul texte de ${MAX_SEARCH_LENGTH} caractères maximum`,
+  );
 }
