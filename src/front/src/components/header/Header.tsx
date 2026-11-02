@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import styles from "./header.module.css";
 import Image from "next/image";
@@ -19,6 +19,7 @@ interface User {
 
 export default function Header() {
   const pathname = usePathname();
+  const router = useRouter();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   // null = aucun utilisateur connecté (ou pas encore de réponse de l'API)
   const [user, setUser] = useState<User | null>(null);
@@ -42,6 +43,21 @@ export default function Header() {
     }
     fetchCurrentUser();
   }, []);
+
+  // Au clic sur « Déconnexion » : l'API supprime le cookie, puis on oublie l'utilisateur
+  async function handleLogout() {
+    try {
+      const response = await fetch("/api/auth", { method: "DELETE" });
+      if (!response.ok) {
+        return;
+      }
+      setUser(null);
+      setIsMenuOpen(false);
+      router.push("/");
+    } catch {
+      // API injoignable : on reste connecté, rien n'a changé
+    }
+  }
 
   return (
     <header className={styles.header}>
@@ -100,7 +116,11 @@ export default function Header() {
               <span className={styles.navigationLink}>
                 Bonjour {user.firstname}
               </span>
-              <button type="button" className={styles.navigationLink}>
+              <button
+                type="button"
+                className={styles.navigationLink}
+                onClick={handleLogout}
+              >
                 Déconnexion
               </button>
             </>
