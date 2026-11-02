@@ -1,17 +1,22 @@
 "use client";
 
-function handleLogin(formData: FormData) {
-  const email = formData.get("email");
-  const password = formData.get("password");
-  if (typeof email !== "string" || typeof password !== "string") {
-    return;
-  }
-  // Provisoire : l'appel à POST /api/auth arrive à l'étape 4.
-  // Le mot de passe n'est jamais écrit dans les logs.
-  console.log("Connexion demandée pour :", email);
-}
+import { useState } from "react";
 
 export function LoginForm() {
+  const [errorMessage, setErrorMessage] = useState("");
+
+  function handleLogin(formData: FormData) {
+    setErrorMessage("");
+    const email = formData.get("email");
+    const password = formData.get("password");
+    if (typeof email !== "string" || typeof password !== "string") {
+      return;
+    }
+    // Provisoire : l'appel à POST /api/auth arrive à l'étape 4.
+    // Le mot de passe n'est jamais écrit dans les logs.
+    console.log("Connexion demandée pour :", email);
+  }
+
   return (
     <form action={handleLogin}>
       <p>* Champ obligatoire</p>
@@ -34,6 +39,8 @@ export function LoginForm() {
         autoComplete="current-password"
         required
       />
+
+      {errorMessage && <p role="alert">{errorMessage}</p>}
 
       <button type="submit">Se connecter</button>
     </form>
