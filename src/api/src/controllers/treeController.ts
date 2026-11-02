@@ -1,4 +1,4 @@
-import type { Request, Response } from "express";
+import type { NextFunction, Request, Response } from "express";
 import { treeDatamapper } from "../datamappers/treeDatamapper.ts";
 import { NotFoundError } from "../lib/errors.ts";
 
@@ -11,6 +11,23 @@ export async function getFeaturedTrees(_req: Request, res: Response) {
 // la liste des arbres du catalogue
 export async function getAllCatalog(_req: Request, res: Response) {
   const trees = await treeDatamapper.findAllCatalog();
+  res.status(200).json(trees);
+}
+
+// les arbres d'une catégorie, si ?category=:id est dans l'URL
+export async function getTreesByCategory(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  const { category } = req.query;
+
+  // pas de filtre : on passe la main à getAllCatalog
+  if (category === undefined) {
+    return next();
+  }
+
+  const trees = await treeDatamapper.findByCategory(Number(category));
   res.status(200).json(trees);
 }
 

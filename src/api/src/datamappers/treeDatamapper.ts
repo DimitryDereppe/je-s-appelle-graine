@@ -63,6 +63,24 @@ export const treeDatamapper = {
     return result.rows;
   },
 
+  // catalogue filtré : les arbres d'une catégorie, sauf "les retirés"
+  async findByCategory(categoryId: number): Promise<ICatalogueTree[]> {
+    const sqlQuery = `
+            SELECT tree.id, tree.name, CAST(tree.price AS FLOAT) AS price,
+                   tree.photo_url AS "photoUrl", tree.planting_location AS "plantingLocation",
+                   category.name AS "categoryName", availability.name AS "availabilityName"
+            FROM tree
+            JOIN category ON tree.category_id = category.id
+            JOIN availability ON tree.availability_id = availability.id
+            WHERE availability.name <> 'retiré'
+            -- on garde seulement la catégorie demandée
+            AND tree.category_id = $1
+            ORDER BY tree.id;
+        `;
+    const result = await pool.query(sqlQuery, [categoryId]);
+    return result.rows;
+  },
+
   // fiche : un arbre selon son id, ou undefined s'il n'existe pas
   async findById(id: number): Promise<ITree | undefined> {
     const sqlQuery = `
