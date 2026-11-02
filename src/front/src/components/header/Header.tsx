@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import styles from "./header.module.css";
+import Image from "next/image";
 
 const navigationLinks = [
   { href: "/", label: "Accueil" },
@@ -68,7 +69,13 @@ export default function Header() {
           aria-label="Voir le panier"
           onClick={() => setIsMenuOpen(false)}
         >
-          {/* TODO : ajouter ici l’image de l’icône panier. */}
+          <Image
+            src={"/assets/panier.svg"}
+            alt=""
+            className={styles.badgeIcon}
+            width={24}
+            height={24}
+          />
           <span className={styles.visuallyHidden}>Panier</span>
         </Link>
       </div>
