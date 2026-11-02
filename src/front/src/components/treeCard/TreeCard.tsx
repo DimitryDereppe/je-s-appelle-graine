@@ -1,6 +1,6 @@
 import styles from "./TreeCard.module.css";
 import Image from "next/image";
-import type { IFeaturedTree } from "../../app/typeHome";
+import type { IFeaturedTree } from "../../@types";
 
 interface FeaturedTreeProps {
   tree: IFeaturedTree;

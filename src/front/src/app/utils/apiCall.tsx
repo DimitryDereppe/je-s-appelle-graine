@@ -1,4 +1,4 @@
-import type { IFeaturedTree } from "../typeHome";
+import type { IFeaturedTree } from "../../@types";
 export const dynamic = "force-dynamic";
 
 export async function getAllTrees(): Promise<IFeaturedTree[]> {

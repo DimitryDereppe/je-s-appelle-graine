@@ -1,6 +1,6 @@
 import Image from "next/image";
 import styles from "./Home.module.css";
-import type { IFeaturedTree } from "./typeHome";
+import type { IFeaturedTree } from "../@types";
 import Commitments from "@/components/commitments/Commitments";
 import { getAllTrees } from "./utils/apiCall";
 import TreeCard from "@/components/treeCard/TreeCard";

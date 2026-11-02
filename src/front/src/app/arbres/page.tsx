@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import styles from "./page.module.css";
-import type { IFeaturedTree } from "../typeHome";
+import type { IFeaturedTree } from "../../@types";
 import { TreesFilters } from "./TreesFilters";
 import { AddToCartButton } from "./AddToCartButton";
 import { getAllTrees } from "../utils/apiCall";
