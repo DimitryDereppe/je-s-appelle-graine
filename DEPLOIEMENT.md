@@ -60,9 +60,23 @@ tu connais le mot de passe de la VM (demandé par `sudo`).
 # 1. Mettre la VM à jour (toujours apt update d'abord)
 sudo apt update && sudo apt upgrade -y
 
-# 2. Vérifier Docker (les paquets d'Ubuntu suffisent)
+# 2. Vérifier Docker : chaque commande doit afficher une version
 docker --version && docker compose version
+```
 
+**Si Docker n'est pas installé** (`command not found`) :
+
+```bash
+sudo apt install -y docker.io docker-compose-v2   # paquets Docker d'Ubuntu (ils suffisent)
+sudo usermod -aG docker $USER                     # t'ajoute au groupe docker : docker sans sudo
+exit                                              # se déconnecter : le groupe compte à la connexion suivante
+ssh student@PSEUDO-server.eddi.cloud              # depuis ton poste : se reconnecter à la VM
+docker run hello-world                            # attendu : "Hello from Docker!"
+```
+
+Le groupe `docker` sert aussi aux tâches automatiques (section 6) : cron lance `docker` sans `sudo`.
+
+```bash
 # 3. Créer la clé SSH de la VM pour GitHub, SANS phrase de passe (-N ""), puis l'afficher
 ssh-keygen -t ed25519 -N "" -C "deploy-graine" -f ~/.ssh/deploy_graine
 cat ~/.ssh/deploy_graine.pub
@@ -244,6 +258,7 @@ fichier tout seul.
 | ----------------------------------------------------------- | -------------------------------------------------------- | --------------------------------------------------------- |
 | `apt install` : série de `404 Not Found`                    | Liste des paquets pas à jour                             | `sudo apt update` d'abord                                 |
 | `apt install npm` : centaines de paquets                    | Node est inutile sur la VM                               | Annuler : Node est dans les images                        |
+| `docker` : `permission denied` … `docker.sock`              | Groupe `docker` pas encore pris en compte                | `exit`, puis se reconnecter en SSH                        |
 | `git clone` ou `git pull` : `Permission denied (publickey)` | Clé absente de GitHub, ou avec phrase de passe sous cron | Section 3.1                                               |
 | `no configuration file provided`                            | Commande lancée hors de `src/`                           | `cd ~/apo-jesappellegraine/src`                           |
 | `env file …/src/.env not found`                             | Pas de `.env` dans `src/`                                | `cp .env.prod.example .env`                               |
