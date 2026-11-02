@@ -18,3 +18,20 @@ export interface ICatalogueTree extends IFeaturedTree {
 export interface ITree extends ICatalogueTree {
   description: string | null;
 }
+
+// Compte client
+export interface IAccount {
+  id: number;
+  firstname: string;
+  lastname: string;
+  email: string;
+  accountType: "particulier" | "association" | "entreprise";
+  organizationName: string | null;
+  role: "admin" | "customer";
+}
+
+// Compte client pour le login : avec le mot de passe haché et compte actif
+export interface IAccountLogin extends IAccount {
+  isActive: boolean;
+  password: string;
+}
