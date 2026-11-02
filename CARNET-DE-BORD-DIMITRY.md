@@ -2,9 +2,52 @@
 
 Suivi de mon travail sur Je s’appelle Graine. Les décisions notées ici ont été prises avec l'équipe sur Discord ; le suivi de l'équipe est dans le [[Apothéose/apo-jesappellegraine/CARNET-DE-BORD-JE-S-APPELLE-GRAINE|carnet de bord Je s’appelle Graine]].
 
+## 2026-11-02 (suite) — Dépendances npm, ménage des branches et carnet
+
+Branches `back` (PR #126) et `docs/carnet-dimitry`.
+
+**Résultat** : les dépendances sont dédoublonnées et npm évite les doublons pour toute l'équipe (`prefer-dedupe`). Il ne reste que 4 branches : `main`, `Front`, `back` et `docs/carnet-dimitry`.
+
+### Travail réalisé
+
+- **Audit des dépendances** (racine, `src/api`, `src/front`) : tous les paquets déclarés sont utilisés, `npm ls` ne signale aucun paquet en trop, manquant ou de mauvaise version.
+- **`npm dedupe`** (commit `2c1551c`) : dans l'API, `globals` passe de 17.13.0 à 17.14.0 ; dans le front, 2 copies en double sont retirées et `@eslint-community/eslint-utils` n'existe plus qu'en 4.9.1.
+- **`directories.test`** de `src/api/package.json` corrigé : `"tests"` → `"test"`, le vrai nom du dossier.
+- **Réinstallation propre** (`npm ci`) dans les 3 dossiers, et `src/front/.next` local supprimé (70 Mo, recréé par `npm run build`).
+- **`.npmrc` avec `prefer-dedupe=true`** dans les 3 dossiers (commit `53fd6cf`) : npm réutilise une version déjà installée quand elle convient, au lieu d'en ajouter une autre.
+- **Vérifications** : `typecheck` et `lint` de l'API et du front, les 15 tests d'intégration passent.
+- **Ménage des branches** : 9 branches locales et 6 sur GitHub supprimées, toutes entièrement fusionnées dans `main` (aucun commit perdu).
+- **Deux branches de sauvegarde comparées avec `main`, puis supprimées** :
+  - `sauvegarde-stash-erd` : le MCD est identique à celui de `main` (38 formes, mêmes libellés, mêmes positions ; seul le format, compressé, change). Le lien README ajouté menait à `divers/08-erd.md`, hors du dépôt.
+  - `sauvegarde-carnet-dimitry` : le tableau de versions du README est déjà dans `main`, mais l'entrée du carnet du 23/10 (jeu de données JSON, photos et crédits) n'existait plus nulle part.
+- **Carnet** : branche reconstruite à partir de `main`, entrée du 23/10 récupérée (liens mis à jour, points « À poursuivre » vérifiés au 02/11), titre « Carte #114 » et 2 points « À poursuivre » de l'entrée du 30/10 (soir) rétablis.
+
+### Décisions
+
+- **`prefer-dedupe` dans un `.npmrc` commité** plutôt qu'un `npm dedupe` dans le hook `pre-commit` : le hook modifierait le `package-lock.json` pendant le commit, et `npm find-dupes` ne renvoie pas d'erreur quand il trouve un doublon.
+- **`npm audit` non corrigé** : la faille modérée de `minimatch` vient d'ESLint, qui ne sert qu'en développement. `npm audit fix --force` installerait ESLint 4.0.0, qui casserait la configuration : on attend une mise à jour d'ESLint.
+- **Seules les branches entièrement fusionnées dans `main` sont supprimées** ; `Front` (9 commits de Loïc pas encore dans `main`) est gardée.
+- **Anciennes entrées du carnet** : on ne les réécrit pas, mais on rétablit ce qu'une fusion a effacé et on note l'état d'un point « À poursuivre » avec sa date.
+- **Le carnet est poussé en fin de journée seulement.**
+
+### Difficultés
+
+- **`git pull` bloqué par des fichiers non fusionnés** : un `git stash pop` du stash « maj carnet » (fait sur `back`) avait créé un conflit dans le carnet. Son contenu était déjà dans la branche (commit `d8c1f74`) → fichier remis comme dans `HEAD` (`git restore --source=HEAD --staged --worktree`), stash supprimé.
+- **`git restore` : « ne correspond à aucun fichier connu »** : le terminal n'était pas à la racine du dépôt, et Git lit un chemin à partir du dossier courant.
+- **`git pull` : « impossible de trouver la référence distante »** : la branche avait été supprimée sur GitHub après la fusion de la PR #117 (`[disparue]` dans `git status`).
+- **Branche `back` recréée sur GitHub par erreur** : supprimée après la PR #125, mais `git fetch` sans `--prune` gardait l'ancienne référence locale `origin/back`.
+- **Fusion `18d2d43` (`docs/installation-docker`)** : la résolution de conflit avait remis l'ancien titre « Déploiement » et effacé 2 points « À poursuivre » de l'entrée du 30/10 (soir). Un premier contrôle par `grep '^[+-][^+-]'` ne les voyait pas, car ces lignes commencent par un tiret.
+
+### À poursuivre
+
+- Prévenir Loïc : `welcomePage` a été supprimée sur GitHub (entièrement dans `main`).
+- Carte #114 : la PR #118 a été fusionnée sans relecture enregistrée sur GitHub.
+- Suivre la mise à jour d'ESLint qui corrigera la faille `minimatch`.
+- Fin de journée : pousser `docs/carnet-dimitry` et ouvrir la PR vers `main`.
+
 ## 2026-11-02 — Valeurs métier en français
 
-Branche `feat/deployment` (commit `abeb3b0`).
+Branche `feat/deployment` (commit `abeb3b0`, fusionné dans `main` par la PR #124), puis `back` pour les tests (commit `c4c2719`).
 
 **Résultat** : les valeurs que le client peut voir sont maintenant en français, dans la base, le code et la documentation. Les rôles (`customer`, `admin`), que le client ne voit jamais, restent en anglais.
 
@@ -26,6 +69,7 @@ Branche `feat/deployment` (commit `abeb3b0`).
   - 7 particuliers, 2 entreprises, 1 association ;
   - une commande payée par `chèque` est acceptée et prend le statut `en attente` ; une commande payée par `check` est refusée par le `CHECK` ;
   - `typecheck` et `lint` passent.
+- **Tests d'intégration** (`test/index.ts` et `treeController.spec.test.ts`) : `createTree` crée par défaut un arbre `"disponible"`, et les arbres de test passent en `"en rupture de stock"` ou `"retiré"`. Avant : 6 tests sur 15 échouaient ; après : **les 15 passent**.
 
 ### Décisions
 
@@ -38,11 +82,12 @@ Branche `feat/deployment` (commit `abeb3b0`).
 
 - **Code et base doivent changer ensemble** : avec les anciennes valeurs encore en base, l'accueil serait vide, les arbres retirés apparaîtraient dans le catalogue et leur fiche ne renverrait plus 404.
 - **`db:seed` ne suffit plus** : il ne recrée pas le schéma, donc les anciennes contraintes `CHECK` refuseraient `'particulier'`. Il faut `db:reset`.
+- **Tests d'intégration en échec** : `createTree` crée lui-même la ligne `availability` avec le nom qu'on lui donne (`"available"` par défaut). Le code filtrant sur `'disponible'`, aucun arbre de test ne correspondait.
 
 ### À poursuivre
 
 - Prévenir l'équipe : `npm run db:reset` après le pull.
-- Production : écrire la migration (supprimer les `CHECK`, `UPDATE` des valeurs, recréer les `CHECK`) avant de fusionner dans `main`, car le cron ne relance pas le seed.
+- **Urgent — production** : le changement est déjà dans `main` (PR #124). Au prochain redémarrage de la VM, le cron `@reboot` récupère `main` sans toucher à la base : accueil vide, arbres retirés visibles. Écrire et passer la migration (supprimer les `CHECK`, `UPDATE` des valeurs, recréer les `CHECK`) avant, ou ne pas redémarrer la VM d'ici là.
 - Réexporter les PNG des diagrammes 02, 03 et 04 avec l'extension PlantUML (Java absent de la machine).
 
 ## 2026-10-30 (soir) — Carte #114 : certificat renouvelé et site mis à jour automatiquement
