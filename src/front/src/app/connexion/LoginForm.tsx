@@ -30,7 +30,7 @@ export function LoginForm() {
         return;
       }
       if (!response.ok) {
-        throw new Error("Quelque chose n’a pas fonctionné.");
+        setErrorMessage("Quelque chose n’a pas fonctionné.");
         return;
       }
       console.log("Connecté");
