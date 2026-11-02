@@ -47,7 +47,7 @@ endif
 
 if (Tous les arbres sont disponibles ?) then (non)
   :Refuser la commande;
-  :Afficher les articles épuisés ou retirés;
+  :Afficher les articles en rupture de stock ou retirés;
   :Inviter le client à modifier son panier;
   stop
 else (oui)
