@@ -1,9 +1,15 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-export function LoginForm() {
+interface LoginFormProps {
+  next?: string;
+}
+
+export function LoginForm({ next }: LoginFormProps) {
   const [errorMessage, setErrorMessage] = useState("");
+  const router = useRouter();
 
   async function handleLogin(formData: FormData) {
     setErrorMessage("");
@@ -33,7 +39,19 @@ export function LoginForm() {
         setErrorMessage("Quelque chose n’a pas fonctionné.");
         return;
       }
-      console.log("Connecté");
+      // N'accepte qu'une adresse du site : "/arbres" oui, "//autre-site.fr" ou "https://..." non.
+      if (
+        next !== undefined &&
+        next.startsWith("/") &&
+        !next.startsWith("//") &&
+        !next.startsWith("/\\")
+      ) {
+        router.push(next);
+      } else if (window.history.length > 1) {
+        router.back();
+      } else {
+        router.push("/");
+      }
     } catch {
       setErrorMessage("Une erreur est survenue.");
     }
