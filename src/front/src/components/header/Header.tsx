@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import styles from "./header.module.css";
 import Image from "next/image";
 
@@ -10,12 +10,38 @@ const navigationLinks = [
   { href: "/", label: "Accueil" },
   { href: "/arbres", label: "Nos arbres" },
   { href: "/qui-sommes-nous", label: "Qui sommes-nous" },
-  { href: "/connexion", label: "Connexion" },
 ];
+
+// Ce dont l'en-tête a besoin dans la réponse de GET /api/users/me
+interface User {
+  firstname: string;
+}
 
 export default function Header() {
   const pathname = usePathname();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  // null = aucun utilisateur connecté (ou pas encore de réponse de l'API)
+  const [user, setUser] = useState<User | null>(null);
+
+  // Au premier affichage : demander à l'API qui est connecté (le navigateur envoie le cookie)
+  useEffect(() => {
+    async function fetchCurrentUser() {
+      try {
+        const response = await fetch("/api/users/me");
+        if (!response.ok) {
+          // 401 : simplement pas connecté, ce n'est pas une erreur à afficher
+          setUser(null);
+          return;
+        }
+        const data: User = await response.json();
+        setUser(data);
+      } catch {
+        // API injoignable : on affiche l'en-tête comme pour un visiteur
+        setUser(null);
+      }
+    }
+    fetchCurrentUser();
+  }, []);
 
   return (
     <header className={styles.header}>
@@ -67,6 +93,29 @@ export default function Header() {
               {label}
             </Link>
           ))}
+
+          {/* Connecté : prénom + déconnexion ; visiteur : lien vers la connexion */}
+          {user ? (
+            <>
+              <span className={styles.navigationLink}>
+                Bonjour {user.firstname}
+              </span>
+              <button type="button" className={styles.navigationLink}>
+                Déconnexion
+              </button>
+            </>
+          ) : (
+            <Link
+              className={`${styles.navigationLink} ${
+                pathname === "/connexion" ? styles.activeLink : ""
+              }`}
+              href="/connexion"
+              aria-current={pathname === "/connexion" ? "page" : undefined}
+              onClick={() => setIsMenuOpen(false)}
+            >
+              Connexion
+            </Link>
+          )}
         </nav>
 
         <Link
