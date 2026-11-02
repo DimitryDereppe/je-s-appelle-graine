@@ -2,6 +2,37 @@
 
 Suivi de mon travail sur Je s’appelle Graine. Les décisions notées ici ont été prises avec l'équipe sur Discord ; le suivi de l'équipe est dans le [[Apothéose/apo-jesappellegraine/CARNET-DE-BORD-JE-S-APPELLE-GRAINE|carnet de bord Je s’appelle Graine]].
 
+## 2026-11-02 (soir) — Carte #86 : page de connexion (front)
+
+Branche `feat/formulaires-connexion-inscription`, fichier `src/front/src/app/connexion/LoginForm.tsx`.
+
+**Résultat** : la page `/connexion` envoie l'e-mail et le mot de passe à `POST /api/auth` et affiche un message clair pour chaque cas d'erreur. Elle ne redirige pas encore après une connexion réussie.
+
+### Travail réalisé
+
+- **Formulaire statique** (commit `57088d4`) : champs e-mail et mot de passe, lien vers `/inscription`.
+- **Interception de l'envoi** avec `<form action={handleLogin}>` (commit `84a329d`).
+- **Message d'erreur** (commit `9dd24e2`) : état `errorMessage` (`useState`), affiché dans un `<p role="alert">` au-dessus du bouton et vidé au début de `handleLogin`.
+- **Appel à l'API** (commit `b3d1322`) : `fetch` en `POST` et en JSON, vérification `typeof` des champs avant l'envoi, messages pour le 401 (identifiants incorrects) et le 403 (compte bloqué), `try/catch` avec un message générique.
+- **Correction du cas `!response.ok`** (commit `2a2da2f`) : un `throw` suivi d'un `return` jamais exécuté. Le `catch` sans paramètre perdait le message du `throw` et affichait « Une erreur est survenue. ». Le bloc reprend la forme du 401/403 : `setErrorMessage("Quelque chose n’a pas fonctionné.")` puis `return`.
+
+### Décisions
+
+- **Le `catch` est réservé au serveur injoignable** : `fetch` ne lève pas d'erreur pour un 404 ou un 500 (c'est une réponse) ; il en lève une seulement quand aucune réponse n'arrive.
+
+### Difficultés
+
+- **Code après un `throw`** : `throw` quitte le bloc `try` tout de suite et saute dans le `catch` ; le `return` placé après ne s'exécute jamais.
+
+### À poursuivre
+
+- **Étape 5 — redirection après connexion réussie** :
+  1. rediriger vers une page fixe (`useRouter` + `router.push`, comme dans `AddToCartButton.tsx`) ;
+  2. lire le paramètre `next` de l'adresse pour revenir à la page d'origine ;
+  3. n'accepter qu'un `next` qui commence par `/` (pas de redirection vers un autre site).
+- **`AddToCartButton.tsx` ligne 30** envoie vers `/connexion?next=/trees`, mais la page des arbres est `/arbres` (pas de dossier `trees` dans `src/app/`).
+- **La route `POST /api/auth` n'existe pas encore dans l'API** (ni sur `main`, ni sur `back`) : elle répond 404 pour l'instant. Tester les cas 401, 403 et la connexion réussie quand elle sera faite.
+
 ## 2026-11-02 (après-midi) — Production : build de l'API cassé par les tests
 
 Branche `fix/build-api-sans-tests` (commit `74ec70e`), créée depuis `main`.
