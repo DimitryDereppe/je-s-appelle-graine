@@ -49,7 +49,7 @@ else Données de paiement valides
   DM -> DB : BEGIN ; lire le panier, les arbres et le compte
   DB --> DM : Articles, disponibilités, prix actuels, acheteur
 
-  alt Panier vide ou arbre épuisé ou retiré
+  alt Panier vide ou arbre en rupture de stock ou retiré
     DM -> DB : ROLLBACK
     DM --> Services : Échec de vérification
     Services --> API : Refuser la commande (409)
@@ -58,7 +58,7 @@ else Données de paiement valides
   else Panier valide
     Services -> Services : Recalculer le total côté serveur
     Services -> DM : Enregistrer la commande et ses lignes
-    DM -> DB : Créer la commande (pending)\navec l'identité de l'acheteur
+    DM -> DB : Créer la commande (en attente)\navec l'identité de l'acheteur
     DM -> DB : Créer les lignes\n(nom, prix payé et lieu de plantation)
     DM -> DB : Vider le panier ; COMMIT
     DB --> DM : Commande enregistrée
