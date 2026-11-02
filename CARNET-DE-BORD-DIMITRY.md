@@ -4,7 +4,7 @@ Suivi de mon travail sur Je s’appelle Graine. Les décisions notées ici ont �
 
 ## 2026-11-02 (soir, suite) — Carte #86 : retour après la connexion (US06)
 
-Branche `feat/formulaires-connexion-inscription`. Modifications **pas encore commitées** : `connexion/LoginForm.tsx`, `connexion/page.tsx` et `arbres/AddToCartButton.tsx` (dans `src/front/src/app/`).
+Branche `feat/formulaires-connexion-inscription`. Commit `b7dce3e` : `connexion/LoginForm.tsx`, `connexion/page.tsx` et `arbres/AddToCartButton.tsx` (dans `src/front/src/app/`).
 
 **Résultat** : après une connexion réussie, l'utilisateur revient sur la page d'où il venait, filtres compris (ex. `/arbres?category=fruitier`). L'évolution US06 du cahier des charges est donc faite en avance sur le MVP.
 
@@ -21,7 +21,15 @@ Branche `feat/formulaires-connexion-inscription`. Modifications **pas encore com
 
 ### Décisions
 
-- **Retour sur la page d'origine plutôt qu'une page fixe** : demandé pour reprendre l'achat là où il a été laissé.
+- **Implémenter US06 (retour sur la page d'origine) dès maintenant, alors qu'elle est classée en évolution** :
+  - **Ce que disent les documents** : le cahier des charges ne fixe pas la page où renvoyer après la connexion pour le MVP (le client « revient sur la fiche de l'arbre » lui-même) ; US05b (MVP) demande seulement de pouvoir « accéder au panier » une fois connecté ; US06 (Évo) demande le retour automatique « pour reprendre mon achat là où je l'avais laissé ». La carte #86, elle, dit « après connexion, retour vers le panier ».
+  - **Options écartées** :
+    - **page fixe `/`** (accueil) : le visiteur perd sa place dans le catalogue et ses filtres, il doit tout refaire pour ajouter son arbre ;
+    - **retour vers le panier** (texte de la carte) : la page `/panier` n'existe pas encore, et le panier serait vide puisque l'ajout a été refusé avant la connexion ;
+    - **`router.back()` seul** (première version) : simple, mais renvoie hors du site quand on arrive sur `/connexion` depuis un e-mail ou un moteur de recherche, et ne fait rien dans un onglet neuf.
+  - **Pourquoi US06** : c'est la seule option qui ramène le visiteur au geste qu'il était en train de faire (ajouter un arbre au panier), donc qui ne casse pas le parcours d'achat. Le coût est faible (une dizaine de lignes) parce que `AddToCartButton` passait déjà un paramètre `next` (vers `/trees`, inexistant) et que le modèle `searchParams` existe déjà dans `arbres/page.tsx`.
+  - **`router.back()` et l'accueil gardés en secours** quand `next` est absent ou refusé.
+  - **À valider avec le trinôme (Fabrice, Shanna)** : soit la carte #86 est mise à jour (« retour vers la page d'origine »), soit on revient au panier quand `/panier` existera.
 - **`next` vérifié avant la redirection** : il doit commencer par `/`, mais ni par `//` ni par `/\` (que le navigateur lit comme l'adresse d'un autre site). Sans ce contrôle, un lien piégé `/connexion?next=https://faux-site.fr` renverrait l'utilisateur, juste connecté, vers un site pirate.
 - **`searchParams` côté page serveur plutôt que `useSearchParams`** : reprend un modèle déjà présent dans le projet, et évite le `<Suspense>` que Next.js exige autour de `useSearchParams`.
 
@@ -32,7 +40,7 @@ Branche `feat/formulaires-connexion-inscription`. Modifications **pas encore com
 
 ### À poursuivre
 
-- Commiter les 3 fichiers (ex. `feat: revenir à la page d'origine après la connexion (#86)`).
+- Faire valider le choix d'US06 par Fabrice et Shanna, puis mettre à jour le texte de la carte #86 (« retour vers le panier »).
 - Prévenir l'équipe front de la modification de `AddToCartButton.tsx`.
 - Tester quand `POST /api/auth` existera : depuis `/arbres?category=...` → retour au même filtre ; `/connexion` tapé dans un onglet neuf → `/` ; `next=//exemple.com` → pas de sortie du site.
 - Limite connue : sans `next`, `router.back()` peut ramener hors du site (arrivée depuis un e-mail ou Google).
