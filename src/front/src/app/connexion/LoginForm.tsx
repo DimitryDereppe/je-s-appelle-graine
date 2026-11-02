@@ -19,7 +19,6 @@ export function LoginForm({ next }: LoginFormProps) {
       setErrorMessage("Adresse e-mail et mot de passe requis.");
       return;
     }
-    console.log("Connexion demandée pour :", email);
     try {
       const response = await fetch("/api/auth", {
         method: "POST",
