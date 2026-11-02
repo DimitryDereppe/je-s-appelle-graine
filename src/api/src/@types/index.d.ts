@@ -19,8 +19,7 @@ export interface ITree extends ICatalogueTree {
   description: string | null;
 }
 
-// Client
-
+// Compte client
 export interface IAccount {
   id: number;
   firstname: string;
@@ -31,6 +30,7 @@ export interface IAccount {
   role: "admin" | "customer";
 }
 
+// Compte client pour le login : avec le mot de passe haché et compte actif
 export interface IAccountLogin extends IAccount {
   isActive: boolean;
   password: string;
