@@ -18,6 +18,7 @@ Voir le [guide d'installation](INSTALLATION.md).
 - [Cahier des charges](docs/specifications/CAHIER-DES-CHARGES-JE-S-APPELLE-GRAINE.md)
 - [Charte de nommage](docs/conventions/CHARTE-NOMMAGE-JE-S-APPELLE-GRAINE.md)
 - [User stories](docs/specifications/user-stories.md)
+- [Plan de tests](docs/tests/PLAN-DE-TESTS.md)
 
 ### Diagrammes
 

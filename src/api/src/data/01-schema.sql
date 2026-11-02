@@ -26,7 +26,7 @@ CREATE TABLE category (
 
 CREATE TABLE availability (
   id   INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-  name VARCHAR(50) NOT NULL UNIQUE                 -- 'available', 'out_of_stock', 'withdrawn'
+  name VARCHAR(50) NOT NULL UNIQUE                 -- 'disponible', 'en rupture de stock', 'retiré'
 );
 
 -- -----------------------------------------------------------------------------
@@ -40,8 +40,8 @@ CREATE TABLE account (
   firstname         VARCHAR(100) NOT NULL,
   lastname          VARCHAR(100) NOT NULL,
   address           VARCHAR(255),
-  account_type      VARCHAR(20)  NOT NULL DEFAULT 'individual'
-                    CHECK (account_type IN ('individual', 'association', 'company')),
+  account_type      VARCHAR(20)  NOT NULL DEFAULT 'particulier'
+                    CHECK (account_type IN ('particulier', 'association', 'entreprise')),
   organization_name VARCHAR(150),
   is_active         BOOLEAN      NOT NULL DEFAULT TRUE,
   role_id           INT          NOT NULL REFERENCES role (id)
@@ -81,11 +81,11 @@ CREATE TABLE cart_item (
 CREATE TABLE purchase (
   id                 INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   purchase_date      TIMESTAMPTZ   NOT NULL DEFAULT now(),
-  status             VARCHAR(20)   NOT NULL DEFAULT 'pending'
-                     CHECK (status IN ('pending', 'paid', 'planted', 'cancelled')),
+  status             VARCHAR(20)   NOT NULL DEFAULT 'en attente'
+                     CHECK (status IN ('en attente', 'payée', 'plantée', 'annulée')),
   total_amount       NUMERIC(10,2) NOT NULL CHECK (total_amount >= 0),
   payment_method     VARCHAR(20)   NOT NULL
-                     CHECK (payment_method IN ('transfer', 'check')),
+                     CHECK (payment_method IN ('virement', 'chèque')),
   -- Identité de l'acheteur figée au moment de la commande
   buyer_firstname    VARCHAR(100)  NOT NULL,
   buyer_lastname     VARCHAR(100)  NOT NULL,

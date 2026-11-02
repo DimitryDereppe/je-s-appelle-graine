@@ -11,7 +11,7 @@ export interface IFeaturedTree {
 // Catalogue
 // extends : reprend tous les champs de IFeaturedTree, et en ajoute un
 export interface ICatalogueTree extends IFeaturedTree {
-  availabilityName: "available" | "out_of_stock" | "withdrawn";
+  availabilityName: "disponible" | "en rupture de stock" | "retiré";
 }
 
 // Fiche

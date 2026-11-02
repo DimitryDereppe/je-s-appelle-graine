@@ -27,7 +27,7 @@
 ## Disponibilité
 
 - **code disponibilité** (identifiant unique)
-- libellé (disponible, épuisé, retiré du catalogue), unique
+- libellé (disponible, en rupture de stock, retiré du catalogue), unique
 
 ## Catégorie
 
