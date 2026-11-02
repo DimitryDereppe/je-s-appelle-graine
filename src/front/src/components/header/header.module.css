@@ -20,7 +20,7 @@
 .brand {
   display: flex;
   flex: 0 0 auto;
-  flex-direction: column;
+  flex-direction: row;
   color: inherit;
   text-decoration: none;
 }
