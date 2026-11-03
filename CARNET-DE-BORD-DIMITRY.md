@@ -2,6 +2,51 @@
 
 Suivi de mon travail sur Je s’appelle Graine. Les décisions notées ici ont été prises avec l'équipe sur Discord ; le suivi de l'équipe est dans le [[Apothéose/apo-jesappellegraine/CARNET-DE-BORD-JE-S-APPELLE-GRAINE|carnet de bord Je s’appelle Graine]].
 
+## 2026-11-03 (après-midi) — Carte #84 : création du compte, 415, JSON mal formé, PR prête
+
+Branche `feat/userRouter`, poussée, à jour avec GitHub, sans conflit avec `back-F3`. Commits `50ceaee` (INSERT + hachage), `53b2e79` et `8c00331` (415), `57467ab` et `0e095fb` (JSON mal formé), `eb89adc` (middleware de connexion, hors carte), `43a1f60` (renommage `indexRouter.ts`). Fichiers : `accountDatamapper.ts`, `userController.ts`, `validateContentTypeMiddleware.ts` (nouveau), `isConnectedMiddleware.ts` (nouveau), `errors.ts`, `errorMiddleware.ts`, `app.ts`, `@types/index.d.ts`, `test.user.http`.
+
+**Résultat** : `POST /api/users` crée vraiment le compte : `201` avec l'`id`, sans le mot de passe, hash `$argon2id` en base, rôle `customer`. Un body non JSON renvoie `415`, un JSON mal formé `400` au lieu de `500`. Tous les cas de `test.user.http` donnent le code attendu. Le code de la carte #84 est fini ; la description de la PR est prête, la PR pas encore ouverte.
+
+### Travail réalisé
+
+- **Création du compte** (commit `50ceaee`) : `accountDatamapper.createAccount` :
+  - `INSERT INTO account (...) VALUES ($1, ..., $6, ...)` paramétré (protège de l'injection SQL) ;
+  - `role_id` par sous-requête `(SELECT id FROM role WHERE name = 'customer')`, sans id en dur ;
+  - `RETURNING` des champs du contrat avec alias camelCase, **sans** `password`, plus `'customer' AS "role"` (valeur fixe, évite une jointure) ;
+  - dans `register` : `password: hashedPassword`, `organizationName ?? null`, puis `res.status(201).json(newAccount)`.
+- **415** (commits `53b2e79`, `8c00331`) : classe `ContentTypeError` (415) dans `errors.ts` ; middleware `validateContentType` sur le modèle de `validateId` :
+  - ne contrôle que POST, PUT et PATCH (`["POST", "PUT", "PATCH"].includes(req.method)`) ;
+  - lit l'en-tête avec `req.get("Content-Type")` et accepte `application/json; charset=utf-8` grâce à `startsWith` ;
+  - branché dans `app.ts` avant `cookieParser` et `apiRouter`.
+- **JSON mal formé → 400** (commits `57467ab`, `0e095fb`) : `if (error instanceof SyntaxError)` dans `globalErrorHandler`, placé avant le `500`, message du contrat « Les données envoyées sont mal formées. ».
+- **Contrat #83 modifié** : `"role": "customer"` ajouté à la réponse `201` de `POST /api/users` (même forme que `POST /api/auth`).
+- **`test.user.http`** : mots de passe des comptes du seed corrigés (alice avait celui des admins), connexion de `robert` (absent du seed) remplacée par `dimitry`, ajout de `bob` (compte désactivé → `403`).
+- **Hors carte** (commit `eb89adc`) : `isConnected` (pas de cookie ou JWT invalide/expiré → `401`, `jwt.verify` dans un `try/catch`) et `checkRoles([...])` (rôle non autorisé → `403`), type `AuthenticatedRequest` dans `@types/index.d.ts`. Branchés sur aucune route. Relève de la carte #85 (Fabrice).
+
+### Décisions
+
+- **415 seulement sur POST, PUT, PATCH** : GET et DELETE n'ont pas de body ; sinon `GET /api/trees` et le logout seraient bloqués.
+- **`startsWith` et non `===`** sur le `Content-Type` : un client peut ajouter `; charset=utf-8`.
+- **Garder `role` dans la réponse 201** et mettre le contrat à jour plutôt que retirer le champ : même réponse que la connexion, rien ne casse côté front.
+- **Tests d'intégration hors de la carte #84** : ils sont dans la carte #88 (Fabrice). La carte #84 dit encore « Tests écrits et au vert » : à signaler dans la PR.
+- **`Closes #84` dans la PR** : relie la PR à la carte, mais ne la ferme pas au merge (la base est `back-F3`, pas `main`).
+
+### Difficultés
+
+- **`500` sur l'inscription** : virgule après le dernier champ du body dans `test.user.http`. JSON l'interdit ; `express.json()` levait une `SyntaxError` → `500`. D'où le cas « JSON mal formé → 400 ».
+- **Message Zod trompeur sans 415** : un body `text/plain` n'est pas lu par `express.json()`, `req.body` vaut `undefined` et Zod répondait `400` « expected object, received undefined ».
+- **API plantée** : guillemet en trop à la fin de l'import de `validateContentType` dans `app.ts` (`TS1002: Unterminated string literal`), puis `if (error instanceof` laissé inachevé dans `errorMiddleware.ts`.
+- **Middleware de connexion recopié d'oQuiz** : imports vers Prisma (`Role`), `../@types/express.js` et `../lib/tokens.ts` inexistants ; `jwt.verify` non attrapé (→ `500`) ; `checkRoles` renvoyait `401` au lieu de `403`.
+- **Fausse alerte « alice absente »** : requête SQL limitée à 4 lignes ; alice existe (id 6), seul son mot de passe était faux dans `test.user.http`.
+
+### À poursuivre
+
+- **Carte #84** : ouvrir la PR vers `back-F3` (relecteur `loicRoch`), description prête ; prévenir le trinôme et le front du changement du contrat #83.
+- **Carte #85** : voir avec Fabrice pour `isConnectedMiddleware.ts` (éviter un doublon), et le brancher sur `/api/admin`.
+- **Carte #88** : tests d'intégration de l'inscription (`201` sans mot de passe, `400`, `409`, `415`, JSON mal formé).
+- Limite connue : `instanceof SyntaxError` attrape aussi une `SyntaxError` levée par notre propre code (elle donnerait `400` au lieu de `500`).
+
 ## 2026-11-03 (suite) — Carte #84 : email déjà utilisé (409) et hachage argon2
 
 Branche `feat/userRouter`, commits `5b8e798` (suppression du `.gitkeep` de `middlewares/`) et `e65f496` (409), pas encore poussés. Fichier : `src/api/src/controllers/userController.ts`.
