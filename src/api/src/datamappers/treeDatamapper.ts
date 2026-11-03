@@ -40,69 +40,42 @@ export const treeDatamapper = {
   },
 
   // catalogue : tous les arbres sauf "les retirés"
-  async findAllCatalog(): Promise<ICatalogueTree[]> {
+  async findAllCatalog(
+    categoryId?: number,
+    name?: string,
+  ): Promise<ICatalogueTree[]> {
     // Colonnes listées une par une pour pouvoir convertir le prix :
     // PostgreSQL stocke price en NUMERIC, que pg renvoie en texte ("9.90") ;
     // CAST(... AS FLOAT) le transforme en nombre (9.9), comme annoncé dans ICatalogueTree.
     // Colonnes préfixées par "tree." : availability a aussi des colonnes id et name,
     // sans préfixe PostgreSQL ne saurait pas laquelle prendre (erreur "ambiguous").
     const sqlQuery = `
-            SELECT tree.id, tree.name, CAST(tree.price AS FLOAT) AS price,
-                   tree.photo_url AS "photoUrl", tree.planting_location AS "plantingLocation",
-                   category.name AS "categoryName", availability.name AS "availabilityName"
-            FROM tree
-            -- à chaque arbre, on colle sa catégorie et sa disponibilité (pour lire leur nom)
-            JOIN category ON tree.category_id = category.id
-            JOIN availability ON tree.availability_id = availability.id
-            -- <> veut dire « différent de » : on écarte les arbres retirés
-            WHERE availability.name <> 'retiré'
-            -- du plus petit id au plus grand (ordre d'ajout au catalogue)
-            ORDER BY tree.id;
-        `;
-    const result = await pool.query(sqlQuery);
-    return result.rows;
-  },
+      SELECT tree.id, tree.name, CAST(tree.price AS FLOAT) AS price,
+             tree.photo_url AS "photoUrl", tree.planting_location AS "plantingLocation",
+             category.name AS "categoryName", availability.name AS "availabilityName"
+      FROM tree
+      -- à chaque arbre, on colle sa catégorie et sa disponibilité (pour lire leur nom)
+      JOIN category ON tree.category_id = category.id
+      JOIN availability ON tree.availability_id = availability.id
+      -- <> veut dire « différent de » : on écarte les arbres retirés
+      WHERE availability.name <> 'retiré'
+      -- filtre facultatif : si $1 vaut NULL, la condition est toujours vraie
+      -- CAST : sans lui, PostgreSQL ne peut pas deviner le type d'un paramètre NULL
+      AND (CAST($1 AS INT) IS NULL OR tree.category_id = $1)
+      -- même principe pour le nom : ILIKE ignore les majuscules,
+      -- unaccent (des deux côtés) ignore les accents
+      AND (
+        CAST($2 AS TEXT) IS NULL
+        OR unaccent(tree.name) ILIKE unaccent('%' || $2 || '%')
+      )
+      ORDER BY tree.id;
+    `;
 
-  // catalogue filtré : les arbres d'une catégorie, sauf "les retirés"
-  async findByCategory(categoryId: number): Promise<ICatalogueTree[]> {
-    const sqlQuery = `
-            SELECT tree.id, tree.name, CAST(tree.price AS FLOAT) AS price,
-                   tree.photo_url AS "photoUrl", tree.planting_location AS "plantingLocation",
-                   category.name AS "categoryName", availability.name AS "availabilityName"
-            FROM tree
-            JOIN category ON tree.category_id = category.id
-            JOIN availability ON tree.availability_id = availability.id
-            WHERE availability.name <> 'retiré'
-            -- on garde seulement la catégorie demandée
-            AND tree.category_id = $1
-            ORDER BY tree.id;
-        `;
-    const result = await pool.query(sqlQuery, [categoryId]);
-    return result.rows;
-  },
-
-  // Rechercher des arbres par nom, même partiel (combinable avec category)
-  async findBySearch(
-    name: string,
-    categoryId?: number,
-  ): Promise<ICatalogueTree[]> {
-    const sqlQuery = `
-    SELECT tree.id, tree.name, CAST(tree.price AS FLOAT) AS price,
-           tree.photo_url AS "photoUrl", tree.planting_location AS "plantingLocation",
-           category.name AS "categoryName", availability.name AS "availabilityName"
-    FROM tree
-    JOIN category ON tree.category_id = category.id
-    JOIN availability ON tree.availability_id = availability.id
-    WHERE availability.name <> 'retiré'
-      AND unaccent(tree.name) ILIKE unaccent('%' || $1 || '%')
-      AND ($2::int IS NULL OR tree.category_id = $2::int)
-    ORDER BY tree.id;
-  `;
-    const escapedName = name.trim().replace(/[\\%_]/g, "\\$&");
-
-    const result = await pool.query<ICatalogueTree>(sqlQuery, [
-      escapedName,
+    // % _ et \ ont un sens spécial pour ILIKE : on les échappe pour les chercher tels quels
+    const escapedName = name ? name.replace(/[\\%_]/g, "\\$&") : null;
+    const result = await pool.query(sqlQuery, [
       categoryId ?? null,
+      escapedName,
     ]);
     return result.rows;
   },

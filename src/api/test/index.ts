@@ -67,3 +67,13 @@ export async function createTree(tree: ITestTree): Promise<number> {
 
   return treeResult.rows[0].id;
 }
+
+// --------------------------------
+// retourne l'id d'une catégorie déjà créée par createTree
+// --------------------------------
+export async function getCategoryId(name: string): Promise<number> {
+  const result = await pool.query("SELECT id FROM category WHERE name = $1", [
+    name,
+  ]);
+  return result.rows[0].id;
+}
