@@ -32,6 +32,11 @@ export interface IAccount {
   role: "admin" | "customer";
 }
 
+// Compte connecté renvoyé par GET /api/users/me : avec l'adresse (pour récapitulatif de la commande F5, espace client F6)
+export interface IAccountProfile extends IAccount {
+  address: string | null;
+}
+
 // Compte client pour le login : avec le mot de passe haché et compte actif
 export interface IAccountLogin extends IAccount {
   isActive: boolean;

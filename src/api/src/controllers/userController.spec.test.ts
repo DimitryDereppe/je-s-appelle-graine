@@ -127,7 +127,7 @@ describe("userController", () => {
   // GET /users/me (qui est connecté)
   // ==================
   describe("[GET] /api/users/me", () => {
-    it("should respond 200 with the same fields as POST /api/auth", async () => {
+    it("should respond 200 with the account and its address", async () => {
       // Arrange : ALICE existe en BDD et se connecte
       await libTests.createAccount(libTests.ALICE);
       const cookie = await libTests.loginAs(libTests.ALICE);
@@ -137,17 +137,24 @@ describe("userController", () => {
         headers: { Cookie: cookie },
       });
 
-      // Assert : contrat #83, exactement id, firstname, lastname, email et role
+      // Assert : contrat #83, les champs de POST /api/auth plus address, accountType, organizationName
       assert.strictEqual(response.status, 200);
       assert.deepStrictEqual(Object.keys(response.data).sort(), [
+        "accountType",
+        "address",
         "email",
         "firstname",
         "id",
         "lastname",
+        "organizationName",
         "role",
       ]);
       assert.strictEqual(response.data.email, libTests.ALICE.email);
       assert.strictEqual(response.data.role, "customer");
+      // ALICE est créée sans adresse ni structure : valeurs par défaut de la table account
+      assert.strictEqual(response.data.address, null);
+      assert.strictEqual(response.data.accountType, "particulier");
+      assert.strictEqual(response.data.organizationName, null);
     });
 
     it("should respond 401 if not connected", async () => {

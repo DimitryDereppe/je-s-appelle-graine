@@ -108,11 +108,11 @@ Test commun à toute l'API (`src/api/src/app.spec.test.ts`) : un JSON mal formé
 
 Fichier : `src/api/src/controllers/userController.spec.test.ts`. Les 3 cas passent.
 
-| N°        | Cas                       | Type        | Attendu                                                                                              | Obtenu |
-| --------- | ------------------------- | ----------- | ---------------------------------------------------------------------------------------------------- | ------ |
-| F3-INT-21 | Utilisateur connecté      | Intégration | `200`, exactement `id`, `firstname`, `lastname`, `email`, `role` (même réponse que `POST /api/auth`) | ✅     |
-| F3-INT-22 | Sans cookie               | Intégration | `401`, « Vous devez être connecté. »                                                                 | ✅     |
-| F3-INT-23 | Cookie avec un jeton faux | Intégration | `401`, même message que sans cookie                                                                  | ✅     |
+| N°        | Cas                       | Type        | Attendu                                                                                                        | Obtenu |
+| --------- | ------------------------- | ----------- | -------------------------------------------------------------------------------------------------------------- | ------ |
+| F3-INT-21 | Utilisateur connecté      | Intégration | `200`, exactement `id`, `firstname`, `lastname`, `email`, `address`, `accountType`, `organizationName`, `role` | ✅     |
+| F3-INT-22 | Sans cookie               | Intégration | `401`, « Vous devez être connecté. »                                                                           | ✅     |
+| F3-INT-23 | Cookie avec un jeton faux | Intégration | `401`, même message que sans cookie                                                                            | ✅     |
 
 ### Tests d'intégration — droits
 

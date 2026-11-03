@@ -1,5 +1,9 @@
 import { pool } from "../data/db-client.ts";
-import type { IAccount, IAccountLogin } from "../@types/index.d.ts";
+import type {
+  IAccount,
+  IAccountLogin,
+  IAccountProfile,
+} from "../@types/index.d.ts";
 export const accountDatamapper = {
   async findByEmail(email: string): Promise<IAccountLogin | undefined> {
     const sqlQuery = `
@@ -56,9 +60,10 @@ export const accountDatamapper = {
   },
 
   // le compte connecté selon son id, sans mot de passe (GET /api/users/me)
-  async findById(id: number): Promise<IAccount | undefined> {
+  async findById(id: number): Promise<IAccountProfile | undefined> {
     const sqlQuery = `
             SELECT account.id, account.firstname, account.lastname, account.email,
+                   account.address,
                    account.account_type AS "accountType",
                    account.organization_name AS "organizationName",
                    role.name AS "role"

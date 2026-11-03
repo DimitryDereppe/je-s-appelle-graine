@@ -61,7 +61,8 @@ export async function register(req: Request, res: Response) {
 
 // --------------------------------
 // GET /api/users/me : le compte connecté
-// contrat #83 : même réponse que POST /api/auth (sans le mot de passe)
+// contrat #83 : réponse de POST /api/auth, plus l'adresse et le type de compte
+// (pour récapitulatif de la commande F5, espace client F6)
 // --------------------------------
 export async function getMe(req: AuthenticatedRequest, res: Response) {
   const account = await getAuthenticatedUser(req);
@@ -71,6 +72,9 @@ export async function getMe(req: AuthenticatedRequest, res: Response) {
     firstname: account.firstname,
     lastname: account.lastname,
     email: account.email,
+    address: account.address,
+    accountType: account.accountType,
+    organizationName: account.organizationName,
     role: account.role,
   });
 }
