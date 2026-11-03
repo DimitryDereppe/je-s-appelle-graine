@@ -31,7 +31,7 @@ export function globalErrorHandler(
   // à le lire (JSON.parse lève une SyntaxError) → erreur du client, donc 400 et non 500
   if (error instanceof SyntaxError) {
     return res.status(400).json({
-      error: "Le corps de la requête n'est pas un JSON valide.",
+      error: "Les données envoyées sont mal formées.",
       status: 400,
     });
   }
