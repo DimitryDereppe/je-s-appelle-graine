@@ -2,14 +2,16 @@ import Image from "next/image";
 import styles from "./page.module.css";
 import type { IFeaturedTree } from "../@types";
 import Commitments from "@/components/commitments/Commitments";
-import { getAllTrees } from "./utils/apiCall";
+import { api } from "./utils/apiCall";
+
 import TreeCard from "@/components/treeCard/TreeCard";
 
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
-  const treesAll: IFeaturedTree[] = await getAllTrees();
-  const trees = treesAll.slice(0, 3);
+  const trees: IFeaturedTree[] = await api<IFeaturedTree, IFeaturedTree[]>(
+    "trees/featured/",
+  );
 
   return (
     <main className={styles.main}>

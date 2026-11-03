@@ -4,7 +4,7 @@ import styles from "./page.module.css";
 import type { IFeaturedTree } from "../../@types";
 import { TreesFilters } from "./TreesFilters";
 import { AddToCartButton } from "./AddToCartButton";
-import { getAllTrees } from "../utils/apiCall";
+import { api } from "../utils/apiCall";
 
 const categories = [
   { id: 0, name: "Tous nos arbres" },
@@ -25,10 +25,11 @@ export default async function TreesPage({ searchParams }: TreesPageProps) {
 
   let trees: IFeaturedTree[] = [];
   let error: string | null = null;
-  let imagesUrl: string;
-  try {
-    const response = await getAllTrees();
 
+  try {
+    const response: IFeaturedTree[] = await api<IFeaturedTree, IFeaturedTree[]>(
+      "trees/",
+    );
     if (!response) {
       throw new Error("Impossible de charger les arbres pour le moment.");
     }
