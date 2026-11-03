@@ -1,5 +1,6 @@
 import Link from "next/link";
 import styles from "./footer.module.css";
+import Image from "next/image";
 
 const footerLinks = [
   { href: "/qui-sommes-nous", label: "Qui sommes-nous" },
@@ -19,7 +20,13 @@ export default function Footer() {
           href="/"
           aria-label="Je m’appelle Graine, accueil"
         >
-          {/* TODO : ajouter le pictogramme graine-2-germination. */}
+          <Image
+            src="/assets/graine-2-germination.ico"
+            alt=""
+            className={styles.badgeIcon}
+            width={34}
+            height={34}
+          />
           <span className={styles.brandName}>Je s’appelle Graine</span>
         </Link>
 

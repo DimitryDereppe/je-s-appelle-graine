@@ -19,7 +19,7 @@ export default async function Home() {
       <section className={styles.welcome}>
         <div className={styles.welcomeContent}>
           <p className={styles.welcomeTagline}>
-            PLANTER AUJOURD'HUI, PRÉSERVER DEMAIN
+            PLANTER AUJOURD&apos;HUI, PRÉSERVER DEMAIN
           </p>
 
           <h1 className={styles.welcomeTitle}>
