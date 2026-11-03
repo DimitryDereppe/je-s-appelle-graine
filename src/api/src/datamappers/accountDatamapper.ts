@@ -1,5 +1,5 @@
 import { pool } from "../data/db-client.ts";
-import type { IAccountLogin } from "../@types/index.d.ts";
+import type { IAccount, IAccountLogin } from "../@types/index.d.ts";
 export const accountDatamapper = {
   async findByEmail(email: string): Promise<IAccountLogin | undefined> {
     const sqlQuery = `
@@ -17,6 +17,41 @@ export const accountDatamapper = {
         `;
     const result = await pool.query(sqlQuery, [email]);
     // aucune ligne trouvée : rows est vide, rows[0] vaut undefined
+    return result.rows[0];
+  },
+
+  async createAccount(account: {
+    firstname: string;
+    lastname: string;
+    email: string;
+    password: string; // déjà haché par argon2
+    accountType: "particulier" | "association" | "entreprise";
+    organizationName: string | null;
+  }): Promise<IAccount> {
+    const sqlQuery = `
+            INSERT INTO account
+              (firstname, lastname, email, password,
+               account_type, organization_name, role_id)
+            VALUES
+              ($1, $2, $3, $4, $5, $6,
+               -- l'id du rôle 'customer', retrouvé par son nom
+               (SELECT id FROM role WHERE name = 'customer'))
+
+            -- renvoie la ligne créée, sans le mot de passe
+            RETURNING id, firstname, lastname, email,
+                      account_type AS "accountType",
+                      organization_name AS "organizationName",
+                      'customer' AS "role"
+        `;
+    const result = await pool.query(sqlQuery, [
+      account.firstname,
+      account.lastname,
+      account.email,
+      account.password,
+      account.accountType,
+      account.organizationName,
+    ]);
+    // une seule ligne insérée : rows[0]
     return result.rows[0];
   },
 };

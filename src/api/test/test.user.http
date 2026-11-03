@@ -52,9 +52,9 @@ content-type: application/json
 
 {
   "firstname": "",
-  "lastname": "Martin",
-  "email": "camille.vide@test.fr",
-  "password": "Camille12345!"
+  "lastname": "Groot",
+  "email": "groot.vide@test.fr",
+  "password": "JesappelleGroot!"
 }
 
 ### 400 · nom absent
@@ -62,9 +62,10 @@ POST http://localhost:4000/api/users HTTP/1.1
 content-type: application/json
 
 {
-  "firstname": "Camille",
-  "email": "camille.sansnom@test.fr",
-  "password": "Camille12345!"
+  "firstname": "Groot",
+  "lastname": "",
+  "email": "groot.sansnom@test.fr",
+  "password": "JesappelleGroot!"
 }
 
 ### 400 · email invalide
@@ -83,11 +84,11 @@ POST http://localhost:4000/api/users HTTP/1.1
 content-type: application/json
 
 {
-  "firstname": "Camille",
-  "lastname": "Martin",
-  "email": "camille.type@test.fr",
-  "password": "Camille12345!",
-  "accountType": "organization"
+  "firstname": "Howard Phillips",
+  "lastname": "Lovecraft",
+  "email": "hpl.type@test.fr",
+  "password": "Lovecraft12345!",
+  "accountType": "author"
 }
 
 ### 409 · email déjà utilisé (alice existe dans le seed) — étape 3
@@ -124,4 +125,15 @@ content-type: application/json
 {
   "email": "robert@test.fr",
   "password": "Client12345!"
+}
+
+### email neuf
+POST http://localhost:4000/api/users HTTP/1.1
+content-type: application/json
+
+{
+  "firstname": "Anakin",
+  "lastname": "Skywalker",
+  "email": "anakin@test.fr",
+  "password": "IwantToBeAMasterJed1!"
 }

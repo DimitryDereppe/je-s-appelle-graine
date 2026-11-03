@@ -2,7 +2,7 @@ import type { Request, Response } from "express";
 import { z } from "zod";
 import { ConflictError } from "../lib/errors.ts";
 import { accountDatamapper } from "../datamappers/accountDatamapper.ts";
-//import argon2 from "argon2";
+import argon2 from "argon2";
 
 export async function register(req: Request, res: Response) {
   // schéma attendu du body (contrat carte #83)
@@ -32,7 +32,7 @@ export async function register(req: Request, res: Response) {
     firstname,
     lastname,
     email,
-    // password,
+    password,
     accountType,
     organizationName,
   } = await registerBodySchema.parseAsync(req.body);
@@ -44,15 +44,15 @@ export async function register(req: Request, res: Response) {
   }
 
   // mot de passe haché avec argon2 : seul le hash sera enregistré en BDD
-  // const hashedPassword = await argon2.hash(password);
+  const hashedPassword = await argon2.hash(password);
 
-  // provisoire : sera remplacé par la ligne créée en BDD (étapes 4 et 5)
-  // le mot de passe n'est jamais renvoyé
-  res.status(201).json({
+  const newAccount = await accountDatamapper.createAccount({
     firstname,
     lastname,
     email,
+    password: hashedPassword,
     accountType,
     organizationName: organizationName ?? null,
   });
+  res.status(201).json(newAccount);
 }
