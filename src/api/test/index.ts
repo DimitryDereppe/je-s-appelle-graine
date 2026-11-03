@@ -168,3 +168,16 @@ export function getTokenFromResponse(
 
   return token;
 }
+
+// --------------------------------
+// se connecte par POST /api/auth et retourne "accessToken=<jeton>", à mettre dans l'en-tête Cookie
+// ex : requester.get("/users/me", { headers: { Cookie: cookie } })
+// --------------------------------
+export async function loginAs(account: ITestAccount): Promise<string> {
+  const response = await requester.post("/auth", {
+    email: account.email,
+    password: account.password,
+  });
+  // on ne garde que "accessToken=<jeton>", sans les options (Path, HttpOnly…)
+  return findCookieFromResponse(response, "accessToken").split(";")[0];
+}
