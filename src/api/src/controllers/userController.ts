@@ -48,13 +48,17 @@ export async function register(req: Request, res: Response) {
   // mot de passe haché avec argon2 : seul le hash sera enregistré en BDD
   const hashedPassword = await argon2.hash(password);
 
+  // particulier → pas de structure (null), même si le front en envoie une (champ masqué mais encore rempli)
+  const savedOrganizationName =
+    accountType === "particulier" ? null : (organizationName ?? null);
+
   const newAccount = await accountDatamapper.createAccount({
     firstname,
     lastname,
     email,
     password: hashedPassword,
     accountType,
-    organizationName: organizationName ?? null,
+    organizationName: savedOrganizationName,
   });
   res.status(201).json(newAccount);
 }

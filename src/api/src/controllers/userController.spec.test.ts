@@ -121,6 +121,42 @@ describe("userController", () => {
       assert.ok(storedPassword.startsWith("$argon2"), "Hash argon2 attendu");
       assert.ok(await argon2.verify(storedPassword, newUser.password));
     });
+
+    it("should save no organization name for a 'particulier'", async () => {
+      // Arrange : le rôle "customer" doit exister (voir le test 201)
+      await pool.query("INSERT INTO role (name) VALUES ('customer')");
+
+      // Act : un particulier qui envoie quand même un nom de structure
+      const response = await libTests.requester.post("/users", {
+        ...newUser,
+        accountType: "particulier",
+        organizationName: "Ma Société",
+      });
+
+      // Assert : compte créé, structure ignorée (null)
+      assert.strictEqual(response.status, 201);
+      assert.strictEqual(response.data.organizationName, null);
+    });
+
+    it("should keep the organization name for an 'association'", async () => {
+      // Arrange : le rôle "customer" doit exister (voir le test 201)
+      await pool.query("INSERT INTO role (name) VALUES ('customer')");
+
+      // Act
+      const response = await libTests.requester.post("/users", {
+        ...newUser,
+        accountType: "association",
+        organizationName: "Les Amis de la Forêt",
+      });
+
+      // Assert : la structure est bien enregistrée
+      assert.strictEqual(response.status, 201);
+      assert.strictEqual(response.data.accountType, "association");
+      assert.strictEqual(
+        response.data.organizationName,
+        "Les Amis de la Forêt",
+      );
+    });
   });
 
   // ==================
