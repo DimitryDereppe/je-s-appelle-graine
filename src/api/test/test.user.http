@@ -109,21 +109,30 @@ content-type: text/plain
 firstname=Camille
 
 
-### POST /auth · connexion alice
+### 200 · connexion alice (client du seed)
 POST http://localhost:4000/api/auth HTTP/1.1
 content-type: application/json
 
 {
   "email": "alice@test.fr",
-  "password": "Admin123456!"
+  "password": "Client12345!"
 }
 
-### POST /auth · connexion robert
+### 200 · connexion dimitry (admin du seed)
 POST http://localhost:4000/api/auth HTTP/1.1
 content-type: application/json
 
 {
-  "email": "robert@test.fr",
+  "email": "dimitry@graine.fr",
+  "password": "Admin123456!"
+}
+
+### 403 · connexion bob (compte désactivé du seed)
+POST http://localhost:4000/api/auth HTTP/1.1
+content-type: application/json
+
+{
+  "email": "bob@test.fr",
   "password": "Client12345!"
 }
 
