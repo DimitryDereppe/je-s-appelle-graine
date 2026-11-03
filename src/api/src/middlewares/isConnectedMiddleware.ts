@@ -1,18 +1,21 @@
 import type { NextFunction, Response } from "express";
 import jwt from "jsonwebtoken";
-import type { JwtPayload } from "jsonwebtoken";
 import { config } from "../../config.ts";
-import type { AuthenticatedRequest } from "../@types/index.d.ts";
+import type {
+  IAccessToken,
+  IAuthenticatedRequest,
+  Role,
+} from "../@types/index.d.ts";
 import { ForbiddenError, UnauthorizedError } from "../lib/errors.ts";
 import { ACCESS_COOKIE_NAME } from "../lib/token.ts";
 
 // les rôles qui existent dans la table role
-const ROLES = ["customer", "admin"];
+const ROLES: Role[] = ["customer", "admin"];
 
 // --------------------------------
 // middleware : l'utilisateur est-il connecté ? (cookie avec un JWT valide) → sinon 401
 export function isConnected(
-  req: AuthenticatedRequest,
+  req: IAuthenticatedRequest,
   _res: Response,
   next: NextFunction,
 ) {
@@ -25,9 +28,10 @@ export function isConnected(
   // 2. vérifier le JWT : signature et date d'expiration
   // verify lance une erreur si le token est faux ou expiré :
   // on la transforme en 401 (sinon globalErrorHandler renverrait une 500)
-  let payload: JwtPayload;
+  // as IAccessToken : on annonce à TypeScript le contenu prévu ; l'étape 3 le vérifie vraiment
+  let payload: IAccessToken;
   try {
-    payload = jwt.verify(accessToken, config.jwtSecret) as JwtPayload;
+    payload = jwt.verify(accessToken, config.jwtSecret) as IAccessToken;
   } catch {
     throw new UnauthorizedError("Vous devez être connecté.");
   }
@@ -53,14 +57,14 @@ export function isConnected(
 // middleware : l'utilisateur connecté a-t-il le bon rôle ? → sinon 403 (401 s'il n'a aucun rôle)
 // vérifier les rôles des utilisateurs connectés
 // une fonction qui prend en argument la liste des rôles autorisés
-export function checkRoles(allowedRoles: Array<"customer" | "admin">) {
+export function checkRoles(allowedRoles: Role[]) {
   // exemple : allowedRoles contient : ["admin"]
   // req.userRole = "customer"
   // "customer" n'est pas dans le tableau allowedRoles --> rejette la requête
 
   // la fonction checkRoles retourne un middleware qui vérifie si le rôle est autorisé ou pas
-  return (req: AuthenticatedRequest, _res: Response, next: NextFunction) => {
-    // récupère le rôle injecté dans l'AuthenticatedRequest par isConnected
+  return (req: IAuthenticatedRequest, _res: Response, next: NextFunction) => {
+    // récupère le rôle injecté dans l'IAuthenticatedRequest par isConnected
     const role = req.userRole;
     // si pas de rôle (cas où isConnected n'a pas été placé avant) : pas identifié, 401
     if (!role) {

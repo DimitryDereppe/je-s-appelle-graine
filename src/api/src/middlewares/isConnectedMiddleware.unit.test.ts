@@ -1,7 +1,7 @@
 import { describe, it } from "node:test";
 import assert from "node:assert";
 import type { NextFunction, Response } from "express";
-import type { AuthenticatedRequest } from "../@types/index.d.ts";
+import type { IAuthenticatedRequest, Role } from "../@types/index.d.ts";
 import { ForbiddenError, UnauthorizedError } from "../lib/errors.ts";
 import { checkRoles } from "./isConnectedMiddleware.ts";
 
@@ -10,8 +10,8 @@ import { checkRoles } from "./isConnectedMiddleware.ts";
 // checkRoles placé sans isConnected (aucun rôle dans la requête).
 
 // fausse requête : seul userRole sert à checkRoles
-function fakeRequest(userRole?: "customer" | "admin") {
-  return { userRole } as AuthenticatedRequest;
+function fakeRequest(userRole?: Role) {
+  return { userRole } as IAuthenticatedRequest;
 }
 const fakeResponse = {} as Response;
 
