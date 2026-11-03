@@ -2,7 +2,8 @@ import express from "express";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import cookieParser from "cookie-parser";
-import { router as apiRouter } from "./routers/index.router.ts";
+import { router as apiRouter } from "./routers/indexRouter.ts";
+import { validateContentType } from "./middlewares/validateContentTypeMiddleware.ts";
 
 import cors from "cors";
 import {
@@ -21,6 +22,9 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const __public_dirname = `${__dirname}/public`;
 app.use(express.static(__public_dirname));
+
+// Middleware pour valider le Content-Type des requêtes, la réponse doit être en JSON pour les routes de l'API
+app.use(validateContentType);
 
 app.use(cookieParser());
 
