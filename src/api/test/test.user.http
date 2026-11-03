@@ -1,1 +1,127 @@
+### 201 · inscription complète (association)
 POST http://localhost:4000/api/users HTTP/1.1
+content-type: application/json
+
+{
+  "firstname": "Camille",
+  "lastname": "Martin",
+  "email": "camille@test.fr",
+  "password": "Camille12345!",
+  "accountType": "association",
+  "organizationName": "Les Amis des Chênes"
+}
+
+### 201 · sans accountType ni organizationName (doit renvoyer "particulier")
+POST http://localhost:4000/api/users HTTP/1.1
+content-type: application/json
+
+{
+  "firstname": "Hugo",
+  "lastname": "Petit",
+  "email": "hugo@test.fr",
+  "password": "Hugo123456789!"
+}
+
+### 201 · organizationName à null
+POST http://localhost:4000/api/users HTTP/1.1
+content-type: application/json
+
+{
+  "firstname": "Léa",
+  "lastname": "Roux",
+  "email": "lea@test.fr",
+  "password": "Lea1234567890!",
+  "accountType": "particulier",
+  "organizationName": null
+}
+
+### 400 · mot de passe trop court (moins de 12 caractères)
+POST http://localhost:4000/api/users HTTP/1.1
+content-type: application/json
+
+{
+  "firstname": "Camille",
+  "lastname": "Martin",
+  "email": "camille.court@test.fr",
+  "password": "court"
+}
+
+### 400 · prénom vide
+POST http://localhost:4000/api/users HTTP/1.1
+content-type: application/json
+
+{
+  "firstname": "",
+  "lastname": "Martin",
+  "email": "camille.vide@test.fr",
+  "password": "Camille12345!"
+}
+
+### 400 · nom absent
+POST http://localhost:4000/api/users HTTP/1.1
+content-type: application/json
+
+{
+  "firstname": "Camille",
+  "email": "camille.sansnom@test.fr",
+  "password": "Camille12345!"
+}
+
+### 400 · email invalide
+POST http://localhost:4000/api/users HTTP/1.1
+content-type: application/json
+
+{
+  "firstname": "Camille",
+  "lastname": "Martin",
+  "email": "pas-un-email",
+  "password": "Camille12345!"
+}
+
+### 400 · type de compte inconnu
+POST http://localhost:4000/api/users HTTP/1.1
+content-type: application/json
+
+{
+  "firstname": "Camille",
+  "lastname": "Martin",
+  "email": "camille.type@test.fr",
+  "password": "Camille12345!",
+  "accountType": "organization"
+}
+
+### 409 · email déjà utilisé (alice existe dans le seed) — étape 3
+POST http://localhost:4000/api/users HTTP/1.1
+content-type: application/json
+
+{
+  "firstname": "Alice",
+  "lastname": "Martin",
+  "email": "alice@test.fr",
+  "password": "Alice12345678!"
+}
+
+### 415 · body envoyé en texte, pas en JSON — étape 7
+POST http://localhost:4000/api/users HTTP/1.1
+content-type: text/plain
+
+firstname=Camille
+
+
+### POST /auth · connexion alice
+POST http://localhost:4000/api/auth HTTP/1.1
+content-type: application/json
+
+{
+  "email": "alice@test.fr",
+  "password": "Admin123456!"
+}
+
+### POST /auth · connexion robert
+POST http://localhost:4000/api/auth HTTP/1.1
+content-type: application/json
+
+{
+  "email": "robert@test.fr",
+  "password": "Client12345!"
+}
