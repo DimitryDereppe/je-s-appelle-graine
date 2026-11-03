@@ -1,4 +1,6 @@
 import type { Request, Response } from "express";
+import type { AuthenticatedRequest } from "../@types/index.d.ts";
+import { getAuthenticatedUser } from "./utils.ts";
 import { z } from "zod";
 import { ConflictError } from "../lib/errors.ts";
 import { accountDatamapper } from "../datamappers/accountDatamapper.ts";
@@ -55,4 +57,20 @@ export async function register(req: Request, res: Response) {
     organizationName: organizationName ?? null,
   });
   res.status(201).json(newAccount);
+}
+
+// --------------------------------
+// GET /api/users/me : le compte connecté
+// contrat #83 : même réponse que POST /api/auth (sans le mot de passe)
+// --------------------------------
+export async function getMe(req: AuthenticatedRequest, res: Response) {
+  const account = await getAuthenticatedUser(req);
+
+  res.status(200).json({
+    id: account.id,
+    firstname: account.firstname,
+    lastname: account.lastname,
+    email: account.email,
+    role: account.role,
+  });
 }

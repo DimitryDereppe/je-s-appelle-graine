@@ -29,16 +29,16 @@ export function isConnected(
   try {
     payload = jwt.verify(accessToken, config.jwtSecret) as JwtPayload;
   } catch {
-    throw new UnauthorizedError("Session invalide ou expirée.");
+    throw new UnauthorizedError("Vous devez être connecté.");
   }
 
   // 3. le payload doit contenir userId (entier > 0) et userRole (un rôle connu)
   const { userId, userRole } = payload;
   if (!Number.isInteger(userId) || userId <= 0) {
-    throw new UnauthorizedError("Session invalide ou expirée.");
+    throw new UnauthorizedError("Vous devez être connecté.");
   }
   if (!ROLES.includes(userRole)) {
-    throw new UnauthorizedError("Session invalide ou expirée.");
+    throw new UnauthorizedError("Vous devez être connecté.");
   }
 
   // 4. tout est bon : on range l'id et le rôle dans la requête
@@ -61,6 +61,7 @@ export function checkRoles(allowedRoles: Array<"customer" | "admin">) {
       return next();
     }
     // connecté, mais pas le droit : 403 (et non 401)
-    throw new ForbiddenError("Accès réservé.");
+    // message du contrat #83 (seul le rôle admin est vérifié pour l'instant)
+    throw new ForbiddenError("Accès réservé à l'administrateur.");
   };
 }
