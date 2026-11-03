@@ -103,7 +103,10 @@
   outline: 3px solid var(--color-terracotta, #b6532c);
   outline-offset: 3px;
 }
-
+.badgeIcon {
+  position: relative;
+  top: 4px;
+}
 /* Bandeau desktop avec séparateurs verticaux. */
 @media (min-width: 700px) {
   .commitments {
