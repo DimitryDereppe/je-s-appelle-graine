@@ -25,7 +25,7 @@ export default async function TreesPage({ searchParams }: TreesPageProps) {
 
   let trees: IFeaturedTree[] = [];
   let error: string | null = null;
-
+  let imagesUrl: string;
   try {
     const response = await getAllTrees();
 
