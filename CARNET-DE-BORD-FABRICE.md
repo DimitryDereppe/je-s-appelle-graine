@@ -2,6 +2,28 @@
 
 Suivi de mon travail sur Je s’appelle Graine. Les décisions notées ici ont été prises avec l'équipe ; le suivi de l'équipe est dans le [carnet de bord Je s’appelle Graine](CARNET-DE-BORD-JE-S-APPELLE-GRAINE.md), que je tiens à jour.
 
+## 2026-11-03 — Fin du back de F3 : `/users/me`, droits admin et tests
+
+### Travail réalisé
+
+- **Branche `feat/tests-auth`** (#85, #88), PR #136 vers `back-F3` :
+  - fusion de `back-F3` et `front-F3` pour travailler sur le code à jour ;
+  - `GET /api/users/me` (`isConnected`) : les champs de la connexion, plus `address`, `accountType` et `organizationName` (récapitulatif de F5, espace client F6) ;
+  - `getAuthenticatedUser` dans `controllers/utils.ts`, comme dans le cours : retrouve le compte connecté (401 s'il n'existe plus) ; prépare F4 (panier du client), F5 (acheteur copié dans la commande) et F6 (espace client) ;
+  - `/api/admin` protégé par `isConnected` et `checkRoles(["admin"])`, `adminRouter` prêt pour F7, F8, F9 ;
+  - `checkRoles` : pas de rôle → 401, rôle non autorisé → 403 ; messages conformes au contrat ;
+  - un seul traitement du JSON mal formé dans `errorMiddleware` après la fusion ;
+  - tests d'intégration : connexion, déconnexion (401 sans être connecté), inscription (201, 400, 409, 415, mot de passe haché), `/users/me`, droits sur `/api/admin` ; helper `loginAs` dans `test/index.ts` ;
+  - premiers tests unitaires du projet : `checkRoles` ;
+  - plan de tests : section F3 et nouveau type « Unitaire ».
+- **Relecture du code de l'équipe** (front et back) : remarques par fichier, partagées en tenant compte du travail en cours.
+- **Kanban** : #84 terminé (PR #141), #85 et #88 en revue (PR #136).
+
+### À poursuivre
+
+- Faire relire la PR #136 et la fusionner après vérification, puis #85 et #88 dans « Terminé ».
+- F5 front (#107) : récapitulatif (adresse de l'acheteur lue avec `/users/me`), paiement, confirmation.
+
 ## 2026-11-02 — Préparation du sprint 2 et connexion `POST /api/auth`
 
 ### Travail réalisé
