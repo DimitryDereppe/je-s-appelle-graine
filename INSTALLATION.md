@@ -52,12 +52,12 @@ cd apo-jesappellegraine
 npm install
 npm --prefix src/api ci
 npm --prefix src/front ci
-mkdir -p src/front/.next
+mkdir -p src/api/node_modules src/front/node_modules src/front/.next
 ```
 
 - `npm install` à la racine installe **Husky**, lint-staged et Prettier, et active les hooks Git.
 - `npm ci` installe exactement les versions du `package-lock.json` : les mêmes chez tout le monde.
-- `mkdir` crée le dossier du cache du front à ton nom. Sinon Docker le crée au nom de `root`, et Husky refuse tes commits.
+- `mkdir -p` s'assure que les dossiers `node_modules` et le cache du front (`.next`) existent à ton nom. Le compose y monte des volumes Docker : si un dossier manque, Docker le crée au nom de `root`, et ensuite `npm install` ou Husky n'ont plus le droit d'y écrire. `-p` ne fait rien si le dossier existe déjà.
 
 > Pendant l'installation, npm peut afficher des avertissements (`npm warn`). Ils sont **normaux** et ne bloquent rien :
 >
@@ -271,6 +271,16 @@ sudo chown -R $USER:$USER src/front/.next
 ```
 
 Puis relance ton commit. À faire une seule fois : Docker garde ensuite ce dossier tel quel. Sous macOS, ce problème n'arrive pas.
+
+### `npm install` refusé : `EACCES: permission denied, mkdir '…/node_modules/…'`
+
+Même cause : Docker a créé `src/api/node_modules` ou `src/front/node_modules` sur ta machine, vides et au nom de `root`, pour y monter les volumes des conteneurs. Ça arrive quand ces dossiers n'existaient pas au premier `docker compose up` (nouveau clone, ou `node_modules` supprimé). Depuis la racine du dépôt :
+
+```bash
+sudo chown -R $USER:$USER src/api/node_modules src/front/node_modules src/front/.next
+```
+
+Puis relance ton installation (`npm --prefix src/front ci`, `npm --prefix src/api ci`). Les conteneurs ne sont pas touchés : ils utilisent leurs propres volumes.
 
 ### En local, `/api` à travers le front ne répond pas
 

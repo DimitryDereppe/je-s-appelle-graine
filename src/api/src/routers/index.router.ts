@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { router as treeRouter } from "../routers/treeRouter.ts";
-
+import { router as authRouter } from "../routers/authRouter.ts";
 export const router = Router();
 
 router.get("/health", (_req, res) => {
@@ -8,3 +8,4 @@ router.get("/health", (_req, res) => {
 });
 
 router.use(treeRouter);
+router.use(authRouter);

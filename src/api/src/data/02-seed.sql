@@ -1,10 +1,9 @@
 -- =============================================================================
 -- Je s'appelle Graine : données de départ
--- Source : divers/bdd-arbres.json (mêmes tables, mêmes colonnes, même ordre).
 -- Exécuté après 01-schema.sql, sur une base neuve : les id commencent à 1
 -- dans l'ordre des INSERT (les id cités en commentaire en dépendent).
 -- Mots de passe : hachés en Argon2 (argon2id). Les mots de passe en clair des
--- comptes de test ne sont PAS dans le dépôt : voir bdd-arbres.json, partagé en privé.
+-- admins ne sont PAS dans le dépôt : ils sont partagés en privé dans l'équipe.
 -- =============================================================================
 
 BEGIN;
@@ -40,25 +39,25 @@ INSERT INTO availability (name) VALUES
 
 INSERT INTO account (email, password, firstname, lastname, address, account_type, organization_name, is_active, role_id) VALUES
   -- id 1 : admin
-  ('dimitry@greenroots.test', '$argon2id$v=19$m=65536,p=4,t=3$2egZl23X5qrwHyfzxmvzqw$s27sxQ5IbPkjHxiSVbWc5bZhajDCatLsRfwPhXpo+LQ', 'Dimitry', 'Dereppe', NULL, 'particulier', NULL, TRUE, 2),
+  ('dimitry@graine.fr', '$argon2id$v=19$m=65536,p=4,t=3$lWcxnnGk6G4e8gL0JO+Suw$c95TfPZxRAGncKxWECC+VgSvQotUIlS8D5+2TkZIapg', 'Dimitry', 'Dereppe', NULL, 'particulier', NULL, TRUE, 2),
   -- id 2 : admin
-  ('loic@greenroots.test', '$argon2id$v=19$m=65536,p=4,t=3$MxdAs2az9c963P567OBi+g$4tsrP4SEQRaHbN0ZvXOSf517g4GnSA7Mcx25sdVy20c', 'Loïc', 'Roch', NULL, 'particulier', NULL, TRUE, 2),
+  ('loic@graine.fr', '$argon2id$v=19$m=65536,p=4,t=3$KtFpnBhpB+wZXlFm9HF4MA$x8A/8GB3dDRGudzlvDJma2JyCZk9WphVEP3iLUTM/VQ', 'Loïc', 'Roch', NULL, 'particulier', NULL, TRUE, 2),
   -- id 3 : admin
-  ('shanna@greenroots.test', '$argon2id$v=19$m=65536,p=4,t=3$Yg82oNcpE+gAib/kj9ZgNA$T7yDG+65SdA2xw+KURLsv/0X4WHZXtcJ64iy+tWi310', 'Shanna', 'Etna', NULL, 'particulier', NULL, TRUE, 2),
+  ('shanna@graine.fr', '$argon2id$v=19$m=65536,p=4,t=3$YYzxFWlq1gb68cTvrBo/xA$co5vFDM/6nkK++NDoP6NoF/FbUIJ8NTD9B0JgOCzLGw', 'Shanna', 'Etna', NULL, 'particulier', NULL, TRUE, 2),
   -- id 4 : admin
-  ('mahamadou@greenroots.test', '$argon2id$v=19$m=65536,p=4,t=3$LDC4lZobMGe7E6i/yw9cwg$+tN7tmhqzNcu13644KnxNZnT80ANcYtGZEoga19mUWA', 'Mahamadou', 'Doucantji', NULL, 'particulier', NULL, TRUE, 2),
+  ('mahamadou@graine.fr', '$argon2id$v=19$m=65536,p=4,t=3$qTTMVmo8srvq/vGntxG4tg$fD8DoJ18fhMv0+MIh1vtUy/AxUSNCvPaAALQOUic6Qg', 'Mahamadou', 'Doucantji', NULL, 'particulier', NULL, TRUE, 2),
   -- id 5 : admin
-  ('fabrice@greenroots.test', '$argon2id$v=19$m=65536,p=4,t=3$kBi19bhX1AQXF47euAXj4A$uoBsLQHb7IVTPNjIH96CIHqTVJQH6ljb2D3Ue3HhEEs', 'Fabrice', 'Seny Couty', NULL, 'particulier', NULL, TRUE, 2),
+  ('fabrice@graine.fr', '$argon2id$v=19$m=65536,p=4,t=3$EyLKl5CbSJuNiO7GkuzF8A$2i/oLtc06lzJuxGl7j6RlStreTGpcGOljXclgP9uNpU', 'Fabrice', 'Seny Couty', NULL, 'particulier', NULL, TRUE, 2),
   -- id 6 : client, particulier
-  ('camille.martin@example.test', '$argon2id$v=19$m=65536,p=4,t=3$BJ8oWp8msZNoNUNKXZxxKw$W5TMtIw+jbns8tUgpPTPVtsMXJE10vs341NhZ3tatlQ', 'Camille', 'Martin', '12 rue des Tilleuls, 35000 Rennes', 'particulier', NULL, TRUE, 1),
+  ('alice@test.fr', '$argon2id$v=19$m=65536,p=4,t=3$jgNVnAOfqCd8NO1JTBZqJw$Ed7EnBeQMWKEj51rhyUgOPs1b7PtAI6HGhpm52CyzQg', 'Alice', 'Martin', '12 rue des Tilleuls, 35000 Rennes', 'particulier', NULL, TRUE, 1),
   -- id 7 : client, particulier, DÉSACTIVÉ
-  ('julien.bernard@example.test', '$argon2id$v=19$m=65536,p=4,t=3$Pbgf4fHQza0TC5Drfc190g$iHSf9odsETAIPhJUBXmHXSXL6z5//ETO3csq180Rzuc', 'Julien', 'Bernard', NULL, 'particulier', NULL, FALSE, 1),
+  ('bob@test.fr', '$argon2id$v=19$m=65536,p=4,t=3$oT7d1U5umMST4MU1icemjA$EmGVAmiQ4nF2i87vZFeqF/eAs0ULt9A29FViyHJEh8c', 'Bob', 'Bernard', NULL, 'particulier', NULL, FALSE, 1),
   -- id 8 : client, association
-  ('sophie.lefevre@example.test', '$argon2id$v=19$m=65536,p=4,t=3$Wv11JM8Di3DNtusXhj4QyQ$qoQEepcdiQAr/jHTdEKzX5yZOedLETl+XHCWz8yPmJM', 'Sophie', 'Lefèvre', '5 place de la Mairie, 33720 Landiras', 'association', 'Les Amis de la Forêt des Landes', TRUE, 1),
+  ('charlie@test.fr', '$argon2id$v=19$m=65536,p=4,t=3$SaU6UAw+S6L1CmdyCY2/YA$VWjA0GR9fHmBQA/q6IwYRtzOXrsJ3FgDbUP5US1Wyuk', 'Charlie', 'Lefèvre', '5 place de la Mairie, 33720 Landiras', 'association', 'Les Amis de la Forêt des Landes', TRUE, 1),
   -- id 9 : client, entreprise, DÉSACTIVÉ
-  ('thomas.dubois@example.test', '$argon2id$v=19$m=65536,p=4,t=3$qtfMKd0pUbajAmOdFlqHvg$aCRKH58Vx59gHFrBaFNuAx5m2NdMGXCXN+hZHWwJXAM', 'Thomas', 'Dubois', '48 avenue Jean Jaurès, 11000 Carcassonne', 'entreprise', 'Dubois Menuiserie SARL', FALSE, 1),
+  ('david@test.fr', '$argon2id$v=19$m=65536,p=4,t=3$9rhyWfsoMqtV9b3r95uusw$+cwEcM1DiE4jhIhS8UalX7nvB+Tv4dfa+MbnTKZ6MT4', 'David', 'Dubois', '48 avenue Jean Jaurès, 11000 Carcassonne', 'entreprise', 'Dubois Menuiserie SARL', FALSE, 1),
   -- id 10 : client, entreprise
-  ('nadia.benali@example.test', '$argon2id$v=19$m=65536,p=4,t=3$9jkpHNMNwFlQ8sEgMFenkw$NvebuNb0G0xLVZIU+NNABGxFnO6jfbBkMKMy5CzXwaw', 'Nadia', 'Benali', NULL, 'entreprise', 'Verdure & Co', TRUE, 1);
+  ('eve@test.fr', '$argon2id$v=19$m=65536,p=4,t=3$ZWmv5owU/GH5oNfYeurCMA$eycuUb6MFyC68CU3VAqQCCae0n72+ueIJBytoiurhFg', 'Eve', 'Benali', NULL, 'entreprise', 'Verdure & Co', TRUE, 1);
 
 -- -----------------------------------------------------------------------------
 -- Arbres : 13 disponibles, 5 en rupture de stock (id 7, 10, 11, 18, 21), 3 retirés (id 4, 6, 17)

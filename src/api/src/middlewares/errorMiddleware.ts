@@ -1,5 +1,6 @@
 import type { NextFunction, Request, Response } from "express";
 import { HttpClientError, NotFoundError } from "../lib/errors.ts";
+import { ZodError } from "zod";
 
 // aucune route trouvée, on lance une erreur
 export function notFoundMiddleware() {
@@ -17,6 +18,14 @@ export function globalErrorHandler(
   next: NextFunction,
 ) {
   // 4 arguments, c'est spécifique à Express et c'est obligatoire
+
+  // Erreurs de validation Zod : données envoyées invalides → 400
+  // on renvoie le premier message, écrit en français dans le schéma
+  if (error instanceof ZodError) {
+    return res
+      .status(400)
+      .json({ error: error.issues[0].message, status: 400 });
+  }
 
   //  Erreurs HttpClientError (../lib/errors.ts)
   // Gère tous les HttpClientError --> attrape toutes les classes filles de HttClientError
