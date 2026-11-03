@@ -1,7 +1,9 @@
 import express from "express";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import cookieParser from "cookie-parser";
 import { router as apiRouter } from "./routers/index.router.ts";
+
 import cors from "cors";
 import {
   globalErrorHandler,
@@ -19,6 +21,8 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const __public_dirname = `${__dirname}/public`;
 app.use(express.static(__public_dirname));
+
+app.use(cookieParser());
 
 // je branche le middleware apiRouter sur la router "/api"
 /// https://expressjs.com/fr/5x/guide/using-middleware/

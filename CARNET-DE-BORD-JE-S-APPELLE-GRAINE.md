@@ -1,5 +1,31 @@
 # Carnet de bord — Je s’appelle Graine
 
+## 2026-11-02 — Début du sprint 2 : connexion, catalogue et production
+
+### Travail réalisé
+
+- **Sprint 2 préparé** : cartes classées par priorité, contrats d'API dans les cartes de chaque feature, feuilles de route et vues du Kanban.
+- **Connexion `POST /api/auth`** (#85) par Shanna et Fabrice (PR #132 vers `Back`) : validation Zod, mot de passe vérifié avec argon2, jeton JWT de 24 h dans le cookie `accessToken` ; `JWT_SECRET` obligatoire en production.
+- **Seed** : nouveaux comptes de test, mots de passe de 12 caractères ; `bdd-arbres.json` supprimé.
+- **Page de connexion et en-tête connecté** (#86) par Dimitry (PR #130 vers `Front`) : formulaire, messages 401 et 403, déconnexion, retour à la page d'origine après la connexion (US06).
+- **Valeurs métier en français** (disponibilité, statut, type de compte, paiement) par Dimitry (PR #124), tests mis à jour.
+- **Build de production de l'API corrigé** par Dimitry (PR #127) : les fichiers de test n'entrent plus dans le build ; dépendances npm dédoublonnées (PR #126) ; guide de mise à jour de la BDD de la VM (PR #129).
+- **Catalogue** par Loïc et Mahamadou : page `/arbres` (dossier renommé), vignettes `TreeCard`, photos servies par l'API (PR #128), filtre par catégorie côté API (`feat/tree`).
+
+### Décisions
+
+- Organisation du sprint 2 par feature : trinôme (Fabrice, Dimitry, Shanna) sur F3 et F5, binôme (Loïc, Mahamadou) sur F2 et F4 ;
+- JWT : un jeton de 24 h.
+- Après la connexion, retour vers la page d'origine (US06), validé par le trinôme.
+- Mots de passe des comptes clients de test dans le dépôt ; ceux des admins partagés en privé.
+
+### À poursuivre
+
+- Après la fusion de la connexion, chacun recrée le volume `node_modules` de l'API et relance `npm run db:seed`.
+- Routes `DELETE /api/auth` et `GET /api/users/me`, utilisées par le front (#86) ; puis inscription (#84, #121).
+- Production : `JWT_SECRET` dans le `.env` du VPS, mots de passe admin à changer.
+- Déploiements individuels de Mahamadou et Shanna (#34, #36).
+
 ## 2026-10-30 — Accueil branché sur l'API, tests et présentation du sprint 1
 
 ### Travail réalisé

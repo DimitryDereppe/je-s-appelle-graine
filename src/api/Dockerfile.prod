@@ -7,7 +7,7 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci
 # index.ts et config.ts sont à la racine de api/, le reste dans src/
-COPY tsconfig.json index.ts config.ts ./
+COPY tsconfig.json tsconfig.build.json index.ts config.ts ./
 COPY src ./src
 RUN npm run build
 

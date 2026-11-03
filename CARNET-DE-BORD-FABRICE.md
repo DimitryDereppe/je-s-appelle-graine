@@ -2,6 +2,39 @@
 
 Suivi de mon travail sur Je s’appelle Graine. Les décisions notées ici ont été prises avec l'équipe ; le suivi de l'équipe est dans le [carnet de bord Je s’appelle Graine](CARNET-DE-BORD-JE-S-APPELLE-GRAINE.md), que je tiens à jour.
 
+## 2026-11-02 — Préparation du sprint 2 et connexion `POST /api/auth`
+
+### Travail réalisé
+
+- **Préparation du sprint 2** :
+  - cartes du sprint 2 (#81 à #114, puis #121 à #123), classées par priorité ; format « Groupe / Responsable » ;
+  - organisation par feature : trinôme (Fabrice, Dimitry, Shanna) sur F3 et F5, binôme (Loïc, Mahamadou) sur F2 et F4 ;
+  - contrats d'API dans les cartes #83 (F3), #89 (F2), #99 (F4), #103 (F5) ;
+  - feuilles de route des 5 membres et vues du Kanban (« Sprint en cours », « Backlog », « Par personne ») mises à jour.
+- **Connexion `POST /api/auth`** (#85) avec Shanna (PR #132 vers `Back`) :
+  - Shanna : `authRouter` et `accountDatamapper.findByEmail` (jointure sur `role`) ;
+  - Fabrice : `login` (Zod, argon2, compte actif), jeton JWT de 24 h dans le cookie `accessToken` (`lib/token.ts`), erreurs Zod → 400 dans `errorMiddleware` ;
+  - `JWT_SECRET` dans `config.ts` : obligatoire en production, clé de secours en dev et en test ; ligne ajoutée dans DEPLOIEMENT.md ;
+  - réponses testées avec Rest Client : 400, 401 (même message que l'email existe ou non), 403, 200 avec le cookie.
+- **Seed** : nouveaux comptes (`prenom@graine.fr`, `alice` à `eve@test.fr`), mots de passe de 12 caractères hachés en Argon2 ; `bdd-arbres.json` supprimé (inutilisé, mots de passe en clair).
+
+### Ce que j'ai appris
+
+- `||` et non `??` pour `JWT_SECRET` : une ligne vide `JWT_SECRET=` donne `""`, pas `undefined`.
+- `res.cookie` et `res.clearCookie` sont dans Express ; `cookie-parser` ne sert qu'à lire `req.cookies`.
+- Le volume nommé `node_modules` de Docker n'est pas mis à jour par `--build` : après une nouvelle dépendance, il faut le supprimer (`docker volume rm src_api-node-modules`).
+
+### Décisions (prises avec l'équipe)
+
+- JWT : un jeton de 24 h (cahier des charges).
+
+### À poursuivre
+
+- `DELETE /api/auth`, `GET /api/users/me`, middlewares `isConnected` et `isAdmin` : Dimitry les utilise déjà dans le front (#86).
+- Tests de la connexion (#88).
+- Avec Dimitry : `JWT_SECRET` dans le `.env` du VPS, et mots de passe admin de la base de production.
+- Fusionner `Back` dans `main`.
+
 ## 2026-10-30 — Photos des arbres, revue du front et présentation du sprint 1
 
 ### Travail réalisé

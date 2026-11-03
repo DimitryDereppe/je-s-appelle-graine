@@ -1,0 +1,14 @@
+// Configuration du build de production (npm run build, Dockerfile.prod).
+// Reprend tsconfig.json mais ne compile pas les tests : ils importent test/,
+// qui n'est pas copié dans l'image, et n'ont rien à faire en production.
+// npm run typecheck garde tsconfig.json : les tests restent vérifiés.
+{
+  "extends": "./tsconfig.json",
+  "exclude": [
+    "node_modules",
+    "dist",
+    "test",
+    "**/*.spec.test.ts",
+    "**/*.unit.test.ts"
+  ]
+}
