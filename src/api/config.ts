@@ -11,7 +11,7 @@ if (isProduction && !process.env.JWT_SECRET) {
 }
 
 export const config = {
-  port: parseInt(process.env.PORT ?? "3000", 10), // https://developer.mozilla.org/fr/docs/Web/JavaScript/Reference/Operators/Nullish_coalescing
+  port: parseInt(process.env.PORT || "4050", 10),
   isProduction, // sert aussi pour le cookie : secure (HTTPS seulement) en production
   // Clé qui signe les jetons JWT : celle du .env en production, une clé de secours en dev et en test.
   // || et non ?? : une ligne vide « JWT_SECRET= » dans un .env donne "" (pas undefined),
