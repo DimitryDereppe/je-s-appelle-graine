@@ -18,4 +18,7 @@ export const config = {
   // et "" doit aussi prendre la clé de secours (jwt.sign refuse une clé vide).
   jwtSecret:
     process.env.JWT_SECRET || "cle-de-dev-a-ne-jamais-utiliser-en-production",
+  // Site autorisé à appeler l'API depuis un navigateur (CORS) : le front.
+  // || pour la même raison que jwtSecret (ligne vide dans le .env)
+  allowedOrigins: process.env.ALLOWED_ORIGINS || "http://localhost:3000",
 };
