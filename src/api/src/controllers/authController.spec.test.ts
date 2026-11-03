@@ -248,10 +248,22 @@ describe("authController", () => {
   // ==================
   describe("[DELETE] /api/auth", () => {
     it("should respond 204 and empty cookie", async () => {
-      // Arrange : pas besoin ici
+      // Arrange : ALICE existe en BDD et se connecte
+      // (la déconnexion est réservée à un utilisateur connecté : isConnected sur la route)
+      await libTests.createAccount(libTests.ALICE);
+      const loginResponse = await libTests.requester.post("/auth", {
+        email: libTests.ALICE.email,
+        password: libTests.ALICE.password,
+      });
+      // on ne garde que "accessToken=<jeton>", sans les options (Path, HttpOnly…)
+      const cookie = libTests
+        .findCookieFromResponse(loginResponse, ACCESS_COOKIE_NAME)
+        .split(";")[0];
 
-      // Act : envoie une requête DELETE /auth avec axios
-      const response = await libTests.requester.delete("/auth");
+      // Act : envoie une requête DELETE /auth avec le cookie de connexion
+      const response = await libTests.requester.delete("/auth", {
+        headers: { Cookie: cookie },
+      });
 
       // Assert :
       // test code réponse 204 No Content
@@ -263,6 +275,16 @@ describe("authController", () => {
         ACCESS_COOKIE_NAME,
       );
       assert.ok(!newAccessToken, "Nouveau access token existe");
+    });
+
+    // À activer quand isConnected sera sur la route DELETE /auth (carte de Dimitry) :
+    // retirer .skip, le test doit alors passer
+    it.skip("should respond 401 if not connected", async () => {
+      // Act : envoie une requête DELETE /auth sans cookie
+      const response = await libTests.requester.delete("/auth");
+
+      // Assert : isConnected refuse la requête
+      assert.strictEqual(response.status, 401);
     });
   });
 });
