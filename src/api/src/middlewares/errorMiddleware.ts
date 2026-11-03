@@ -36,6 +36,15 @@ export function globalErrorHandler(
       .json({ error: error.issues[0].message, status: 400 });
   }
 
+  // JSON mal formé dans le body (ex. virgule en trop) : express.json() n'arrive pas
+  // à le lire (JSON.parse lève une SyntaxError) → erreur du client, donc 400 et non 500
+  if (error instanceof SyntaxError) {
+    return res.status(400).json({
+      error: "Les données envoyées sont mal formées.",
+      status: 400,
+    });
+  }
+
   //  Erreurs HttpClientError (../lib/errors.ts)
   // Gère tous les HttpClientError --> attrape toutes les classes filles de HttClientError
   // - ex : throw new NotFoundError()
