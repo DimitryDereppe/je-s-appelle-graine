@@ -3,11 +3,12 @@
 Ce document liste, feature par feature, les cas à vérifier, leur type et le résultat obtenu.
 
 - **Types de test** :
+  - **Unitaire** : test automatisé d'une seule fonction (un middleware, un utilitaire…), appelée directement, sans serveur ni base de données. Lancé par `npm run test:unit` dans `src/api/`. Fichiers `*.unit.test.ts` rangés à côté du fichier testé.
   - **Intégration** : test automatisé de l'API (requête HTTP + base de test), lancé par `npm run test:spec` dans `src/api/`. Fichiers `*.spec.test.ts` rangés à côté du fichier testé.
   - **Manuel** : vérification à la main dans le navigateur, sur le site en ligne.
   - **Audit** : rapport Lighthouse (accessibilité, SEO, bonnes pratiques, performance).
 - **Statuts** : ✅ conforme · ❌ non conforme (un problème à corriger, avec sa carte) · ⏳ pas encore testable.
-- Pour ajouter une feature : copier un tableau, garder les mêmes colonnes, numéroter les cas `F<n>-<type>-<numéro>`.
+- Pour ajouter une feature : copier un tableau, garder les mêmes colonnes, numéroter les cas `F<n>-<type>-<numéro>` (`UNI`, `INT`, `MAN`, `AUD`).
 
 ## F1 · Accueil (US01)
 
@@ -122,6 +123,16 @@ Fichier : `src/api/src/controllers/userController.spec.test.ts`. Les 3 cas passe
 | F3-INT-20 | Route `/api/admin/...` avec un administrateur | Intégration | passe `isConnected` et `checkRoles` (aucune route admin encore : `404`) | ✅     |
 
 Fichier : `src/api/src/controllers/userController.spec.test.ts`. Le routeur `adminRouter.ts` est vide en attendant F7, F8 et F9 : le test « administrateur » vérifie seulement que les deux middlewares le laissent passer.
+
+### Tests unitaires — middleware `checkRoles`
+
+Fichier : `src/api/src/middlewares/isConnectedMiddleware.unit.test.ts`. Les 3 cas passent. Ils couvrent le cas que les tests d'intégration ne peuvent pas déclencher : `checkRoles` placé sans `isConnected` devant lui.
+
+| N°       | Cas                                                | Type     | Attendu                             | Obtenu |
+| -------- | -------------------------------------------------- | -------- | ----------------------------------- | ------ |
+| F3-UNI-1 | Rôle autorisé (`admin` sur une route admin)        | Unitaire | `next()` est appelé                 | ✅     |
+| F3-UNI-2 | Rôle non autorisé (`customer` sur une route admin) | Unitaire | lance une `ForbiddenError` (403)    | ✅     |
+| F3-UNI-3 | Aucun rôle dans la requête (`isConnected` oublié)  | Unitaire | lance une `UnauthorizedError` (401) | ✅     |
 
 ### Tests manuels — pages `/connexion`, `/inscription` et en-tête
 
