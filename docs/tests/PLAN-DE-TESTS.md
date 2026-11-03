@@ -72,16 +72,16 @@ Critères d'acceptation : voir l'issue #3 ; contrat d'API : carte #83. Tests de 
 
 ### Tests d'intégration — inscription `POST /api/users`
 
-Fichier : `src/api/src/controllers/userController.spec.test.ts`. Les 4 cas écrits passent.
+Fichier : `src/api/src/controllers/userController.spec.test.ts`. Les 7 cas passent.
 
-| N°       | Cas                                                  | Type        | Attendu                                                                      | Obtenu      |
-| -------- | ---------------------------------------------------- | ----------- | ---------------------------------------------------------------------------- | ----------- |
-| F3-INT-1 | Inscription valide, sans type de compte ni structure | Intégration | `201`, `accountType: "particulier"`, `role: "customer"`, pas de mot de passe | ✅          |
-| F3-INT-2 | Mot de passe de 11 caractères                        | Intégration | `400`, « Le mot de passe doit contenir au moins 12 caractères. »             | ✅          |
-| F3-INT-3 | Email déjà utilisé                                   | Intégration | `409`, « Cet email est déjà utilisé. »                                       | ✅          |
-| F3-INT-4 | Body envoyé comme un formulaire HTML (pas du JSON)   | Intégration | `415` (`validateContentType`, protection CSRF)                               | ✅          |
-| F3-INT-5 | Prénom, nom ou email manquant ou invalide            | Intégration | `400` avec le message du schéma Zod                                          | ⏳ à écrire |
-| F3-INT-6 | Mot de passe enregistré                              | Intégration | haché en Argon2 en base (jamais en clair)                                    | ⏳ à écrire |
+| N°       | Cas                                                  | Type        | Attendu                                                                      | Obtenu |
+| -------- | ---------------------------------------------------- | ----------- | ---------------------------------------------------------------------------- | ------ |
+| F3-INT-1 | Inscription valide, sans type de compte ni structure | Intégration | `201`, `accountType: "particulier"`, `role: "customer"`, pas de mot de passe | ✅     |
+| F3-INT-2 | Mot de passe de 11 caractères                        | Intégration | `400`, « Le mot de passe doit contenir au moins 12 caractères. »             | ✅     |
+| F3-INT-3 | Email déjà utilisé                                   | Intégration | `409`, « Cet email est déjà utilisé. »                                       | ✅     |
+| F3-INT-4 | Body envoyé comme un formulaire HTML (pas du JSON)   | Intégration | `415` (`validateContentType`, protection CSRF)                               | ✅     |
+| F3-INT-5 | Prénom vide, email invalide                          | Intégration | `400`, « Prénom obligatoire. » / « Email invalide. »                         | ✅     |
+| F3-INT-6 | Mot de passe enregistré                              | Intégration | haché en Argon2 en base (commence par `$argon2`, jamais en clair)            | ✅     |
 
 ### Tests d'intégration — connexion et déconnexion `POST /api/auth`, `DELETE /api/auth`
 
@@ -103,13 +103,25 @@ Fichier : `src/api/src/controllers/authController.spec.test.ts`. Les 11 cas pass
 
 Test commun à toute l'API (`src/api/src/app.spec.test.ts`) : un JSON mal formé dans le body répond `400` avec « Les données envoyées sont mal formées. » (et non `500`). Le cas passe.
 
+### Tests d'intégration — utilisateur connecté `GET /api/users/me`
+
+Fichier : `src/api/src/controllers/userController.spec.test.ts`. Les 3 cas passent.
+
+| N°        | Cas                       | Type        | Attendu                                                                                              | Obtenu |
+| --------- | ------------------------- | ----------- | ---------------------------------------------------------------------------------------------------- | ------ |
+| F3-INT-21 | Utilisateur connecté      | Intégration | `200`, exactement `id`, `firstname`, `lastname`, `email`, `role` (même réponse que `POST /api/auth`) | ✅     |
+| F3-INT-22 | Sans cookie               | Intégration | `401`, « Vous devez être connecté. »                                                                 | ✅     |
+| F3-INT-23 | Cookie avec un jeton faux | Intégration | `401`, même message que sans cookie                                                                  | ✅     |
+
 ### Tests d'intégration — droits
 
-| N°        | Cas                                           | Type        | Attendu        | Obtenu                                                           |
-| --------- | --------------------------------------------- | ----------- | -------------- | ---------------------------------------------------------------- |
-| F3-INT-18 | Route `/api/admin/...` sans être connecté     | Intégration | `401`          | ⏳ pas encore de routeur `/api/admin` (isConnected + checkRoles) |
-| F3-INT-19 | Route `/api/admin/...` avec un client         | Intégration | `403`          | ⏳ idem                                                          |
-| F3-INT-20 | Route `/api/admin/...` avec un administrateur | Intégration | accès autorisé | ⏳ idem                                                          |
+| N°        | Cas                                           | Type        | Attendu                                                                 | Obtenu |
+| --------- | --------------------------------------------- | ----------- | ----------------------------------------------------------------------- | ------ |
+| F3-INT-18 | Route `/api/admin/...` sans être connecté     | Intégration | `401`, « Vous devez être connecté. »                                    | ✅     |
+| F3-INT-19 | Route `/api/admin/...` avec un client         | Intégration | `403`, « Accès réservé à l'administrateur. »                            | ✅     |
+| F3-INT-20 | Route `/api/admin/...` avec un administrateur | Intégration | passe `isConnected` et `checkRoles` (aucune route admin encore : `404`) | ✅     |
+
+Fichier : `src/api/src/controllers/userController.spec.test.ts`. Le routeur `adminRouter.ts` est vide en attendant F7, F8 et F9 : le test « administrateur » vérifie seulement que les deux middlewares le laissent passer.
 
 ### Tests manuels — pages `/connexion`, `/inscription` et en-tête
 
@@ -118,7 +130,7 @@ Test commun à toute l'API (`src/api/src/app.spec.test.ts`) : un JSON mal formé
 | F3-MAN-1 | Visiteur qui clique sur « Ajouter au panier » (US05)        | Manuel | redirigé vers `/connexion`, avec un lien vers l'inscription             | ⏳ à tester                                  |
 | F3-MAN-2 | Connexion réussie après une redirection (US05b)             | Manuel | retour sur la page d'origine                                            | ⏳ à tester                                  |
 | F3-MAN-3 | Mauvais identifiants, compte désactivé                      | Manuel | message d'erreur lisible, annoncé aux lecteurs d'écran (`role="alert"`) | ⏳ à tester                                  |
-| F3-MAN-4 | En-tête après connexion, puis après rechargement de la page | Manuel | « Bonjour <prénom> » et « Déconnexion »                                 | ⏳ `GET /api/users/me` pas encore sur GitHub |
+| F3-MAN-4 | En-tête après connexion, puis après rechargement de la page | Manuel | « Bonjour <prénom> » et « Déconnexion »                                 | ⏳ à tester (`GET /api/users/me` disponible) |
 | F3-MAN-5 | Déconnexion depuis l'en-tête                                | Manuel | retour à l'état visiteur                                                | ⏳ à tester                                  |
 | F3-MAN-6 | Inscription depuis la page `/inscription`                   | Manuel | compte créé, messages 400 et 409 affichés                               | ⏳ page en cours (carte #121)                |
 | F3-MAN-7 | Formulaires au clavier et en mobile (375 px)                | Manuel | labels, focus visible, champs obligatoires indiqués en texte            | ⏳ à tester (carte #87)                      |
