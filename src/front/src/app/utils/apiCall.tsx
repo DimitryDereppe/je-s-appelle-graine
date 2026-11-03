@@ -1,15 +1,27 @@
 import type { IFeaturedTree } from "../../@types";
 export const dynamic = "force-dynamic";
 
-export async function getAllTrees(): Promise<IFeaturedTree[]> {
-  const res = await fetch(`${process.env.API_URL}/api/trees`, {
-    next: { revalidate: 60 },
+
+export async function api<
+  TBody extends IFeaturedTree = IFeaturedTree,
+  TResponse = unknown,
+>(
+  endpoint: string,
+  method: "GET" | "POST" | "PATCH" | "PUT" | "DELETE" = "GET",
+  body?: TBody,
+): Promise<TResponse> {
+  const response = await fetch(`${process.env.API_URL}/api/${endpoint}`, {
+    method,
+    headers: {
+      "Content-Type": "application/json",
+      // Authorization: `Bearer ${localStorage.getItem("token")}`,
+    },
+    ...(body !== undefined && { body: JSON.stringify(body) }),
   });
 
-  if (!res.ok) {
-    throw new Error(`Erreur HTTP ${res.status}`);
+  if (!response.ok) {
+    throw new Error(`Failed to fetch ${endpoint}: ${response.statusText}`);
   }
 
-  return res.json();
+  return (await response.json()) as TResponse;
 }
-
