@@ -1,5 +1,35 @@
 # Carnet de bord — Je s’appelle Graine
 
+## 2026-11-03 — F3 : inscription, déconnexion, droits et tests ; catalogue côté front
+
+### Travail réalisé
+
+- **Inscription `POST /api/users`** (#84) par Dimitry (PR #141 vers `back-F3`, carte terminée) : validation Zod, 409 si l'email existe déjà, mot de passe haché ; middleware `validateContentType` (415 si le body n'est pas du JSON), JSON mal formé → 400.
+- **Déconnexion `DELETE /api/auth`** par Shanna (PR #134 vers `back-F3`), protégée ensuite par `isConnected`.
+- **`/users/me` (appelée par l'en-tête de Dimitry), droits admin et tests de F3** (#85, #88) par Fabrice (PR #136 vers `back-F3`, en revue) : `checkRoles`, `/api/admin` protégé, tests d'intégration de l'inscription, de la connexion, de la déconnexion et des droits, premiers tests unitaires, section F3 du plan de tests ; `/users/me` renvoie aussi l'adresse et le type de compte, et `getAuthenticatedUser` (`controllers/utils.ts`, comme dans le cours) retrouve le compte connecté : ils préparent F4 (panier), F5 (commande) et F6 (espace client).
+- **Page de connexion et en-tête connecté** (#86) par Dimitry sur `front-F3`, relus ensemble.
+- **Catalogue côté front** par Loïc (PR #135, #137, #138 et #142 vers `front-F2`) : photos venues de l'API, fonction commune d'appel à l'API, carte arbre du catalogue.
+- **Filtre et recherche du catalogue côté API** par Mahamadou sur `feat/tree` : filtre par catégorie, recherche par nom combinable, tests compatibles Windows.
+
+### Branches en cours sur GitHub
+
+| Branche           | Qui        | Contenu                                                       | État                                        |
+| ----------------- | ---------- | ------------------------------------------------------------- | ------------------------------------------- |
+| `back-F3`         | trinôme F3 | inscription, connexion, déconnexion                           | reçoit les PR de F3, pas encore dans `main` |
+| `front-F3`        | Dimitry    | connexion et en-tête connecté (#86), avec `back-F3` fusionnée | pas encore dans `main`                      |
+| `feat/tests-auth` | Fabrice    | `/users/me`, droits admin, tests de F3                        | PR #136 vers `back-F3`, en revue            |
+| `front-F2`        | Loïc       | catalogue côté front, appel à l'API commun                    | pas encore dans `main`                      |
+| `feat/tree`       | Mahamadou  | filtre par catégorie et recherche par nom                     | pas de PR                                   |
+
+La page d'inscription (#121, Shanna) est en cours, sans branche sur GitHub pour l'instant.
+
+### À poursuivre
+
+- F3 : relire la PR #136, terminer `back-F3` et `front-F3`, puis les fusionner dans `main` après vérification.
+- F2 : terminer `feat/tree` (filtre et recherche du catalogue) et `front-F2`, puis les fusionner après vérification.
+- Page d'inscription (#121) et messages d'erreur des formulaires (#87).
+- F5 (commande) : contrat #103, puis back et front.
+
 ## 2026-11-02 — Début du sprint 2 : connexion, catalogue et production
 
 ### Travail réalisé
