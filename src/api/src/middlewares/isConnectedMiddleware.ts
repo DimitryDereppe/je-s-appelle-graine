@@ -50,10 +50,11 @@ export function isConnected(
 }
 
 // --------------------------------
-// vérifier les rôles des utilisateurs connectés (comme oQuiz)
+// middleware : l'utilisateur connecté a-t-il le bon rôle ? → sinon 403 (401 s'il n'a aucun rôle)
+// vérifier les rôles des utilisateurs connectés
 // une fonction qui prend en argument la liste des rôles autorisés
 export function checkRoles(allowedRoles: Array<"customer" | "admin">) {
-  // exemple : allowedRoles contient : [ "admin" ]
+  // exemple : allowedRoles contient : ["admin"]
   // req.userRole = "customer"
   // "customer" n'est pas dans le tableau allowedRoles --> rejette la requête
 
@@ -61,7 +62,7 @@ export function checkRoles(allowedRoles: Array<"customer" | "admin">) {
   return (req: AuthenticatedRequest, _res: Response, next: NextFunction) => {
     // récupère le rôle injecté dans l'AuthenticatedRequest par isConnected
     const role = req.userRole;
-    // si pas de rôle --> isConnected n'a pas été placé avant : pas identifié, 401
+    // si pas de rôle (cas où isConnected n'a pas été placé avant) : pas identifié, 401
     if (!role) {
       throw new UnauthorizedError("Vous devez être connecté.");
     }
@@ -69,7 +70,7 @@ export function checkRoles(allowedRoles: Array<"customer" | "admin">) {
     // vérifie si le rôle est inclus dans la liste des rôles autorisés (allowedRoles)
     if (!allowedRoles.includes(role)) {
       // le rôle de l'utilisateur n'est pas dans la liste des rôles autorisés
-      // connecté, mais pas le droit : 403 (oQuiz renvoie 401 ; notre contrat #83 prévoit 403)
+      // connecté, mais pas le droit : 403
       throw new ForbiddenError("Accès réservé à l'administrateur.");
     }
 

@@ -5,7 +5,7 @@ import type { AuthenticatedRequest } from "../@types/index.d.ts";
 import { ForbiddenError, UnauthorizedError } from "../lib/errors.ts";
 import { checkRoles } from "./isConnectedMiddleware.ts";
 
-// Test unitaire : on appelle le middleware directement, sans serveur ni BDD.
+// Test unitaire : on appelle le middleware directement (pas besoin de BDD).
 // Il couvre le cas que les tests d'intégration ne peuvent pas déclencher :
 // checkRoles placé sans isConnected (aucun rôle dans la requête).
 
@@ -31,19 +31,34 @@ describe("checkRoles", () => {
   });
 
   it("should throw ForbiddenError (403) if the role is not allowed", () => {
-    // Act + Assert : un client sur une route admin
-    assert.throws(
-      () =>
-        checkRoles(["admin"])(fakeRequest("customer"), fakeResponse, () => {}),
-      ForbiddenError,
-    );
+    // Arrange : pas besoin ici
+
+    // Act : un client sur une route admin ; on attrape l'erreur lancée par le middleware
+    let error;
+    try {
+      checkRoles(["admin"])(fakeRequest("customer"), fakeResponse, () => {});
+    } catch (caughtError) {
+      error = caughtError;
+    }
+
+    // Assert : une ForbiddenError (403)
+    assert.ok(error instanceof ForbiddenError, "ForbiddenError attendue");
+    assert.strictEqual(error.status, 403);
   });
 
   it("should throw UnauthorizedError (401) if there is no role", () => {
-    // Act + Assert : isConnected oublié, la requête n'a pas de rôle
-    assert.throws(
-      () => checkRoles(["admin"])(fakeRequest(), fakeResponse, () => {}),
-      UnauthorizedError,
-    );
+    // Arrange : pas besoin ici
+
+    // Act : isConnected oublié, la requête n'a pas de rôle ; on attrape l'erreur
+    let error;
+    try {
+      checkRoles(["admin"])(fakeRequest(), fakeResponse, () => {});
+    } catch (caughtError) {
+      error = caughtError;
+    }
+
+    // Assert : une UnauthorizedError (401)
+    assert.ok(error instanceof UnauthorizedError, "UnauthorizedError attendue");
+    assert.strictEqual(error.status, 401);
   });
 });
