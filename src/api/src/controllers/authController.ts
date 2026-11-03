@@ -54,3 +54,18 @@ export async function login(req: Request, res: Response) {
     role: searchedUser.role,
   });
 }
+
+//LOGOUT
+
+// supprime un cookie dans une Response express
+// --------------------------------
+export function logout(_req: Request, res: Response) {
+  res.clearCookie(ACCESS_COOKIE_NAME, {
+    path: accessCookieOptions.path,
+    httpOnly: accessCookieOptions.httpOnly,
+    secure: accessCookieOptions.secure,
+    sameSite: accessCookieOptions.sameSite,
+  });
+
+  res.status(204).end();
+}
