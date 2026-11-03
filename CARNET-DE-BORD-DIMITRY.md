@@ -2,6 +2,38 @@
 
 Suivi de mon travail sur Je s’appelle Graine. Les décisions notées ici ont été prises avec l'équipe sur Discord ; le suivi de l'équipe est dans le [[Apothéose/apo-jesappellegraine/CARNET-DE-BORD-JE-S-APPELLE-GRAINE|carnet de bord Je s’appelle Graine]].
 
+## 2026-11-03 (suite) — Carte #84 : email déjà utilisé (409) et hachage argon2
+
+Branche `feat/userRouter`, commits `5b8e798` (suppression du `.gitkeep` de `middlewares/`) et `e65f496` (409), pas encore poussés. Fichier : `src/api/src/controllers/userController.ts`.
+
+**Résultat** : un email déjà en base renvoie `409` « Cet email est déjà utilisé. » ; un nouvel email passe en `201`. Le hachage du mot de passe est écrit mais pas encore commité (il ne sert qu'avec l'`INSERT` de l'étape 5).
+
+### Travail réalisé
+
+- **Email unique** (commit `e65f496`) : `accountDatamapper.findByEmail(email)` réutilisé ; `if (existingAccount) throw new ConflictError(...)`. `findByEmail` renvoie un compte ou `undefined`, et `undefined` est *falsy* : le `if` suffit.
+- **Hachage** (non commité) : `const hashedPassword = await argon2.hash(password);`, placé **après** la vérification de l'email. `password` remis dans la déstructuration du résultat de Zod.
+- **`.gitkeep`** : supprimés de `controllers/` et `middlewares/`, qui contiennent maintenant des fichiers ; gardé dans `services/`, encore vide.
+
+### Décisions
+
+- **`409 Conflict` et non `401`** : le visiteur n'a rien à prouver, sa demande entre en conflit avec un compte existant.
+- **Pas de contrôle `isActive` à l'inscription** : il a du sens à la connexion, pas pour un compte qui n'existe pas encore.
+- **Hacher après le contrôle de l'email** : argon2 est volontairement lent ; inutile de payer ce coût pour une demande refusée.
+- **Commit du 409 seul, hachage gardé en local** : avec `--max-warnings=0`, une variable `hashedPassword` (ou un import `argon2`) inutilisée bloque le commit. Le hachage sera commité avec l'`INSERT`.
+
+### Difficultés
+
+- **`500` pour un nouvel email** : bloc `isActive` recopié de `login` ; `findByEmail` renvoyait `undefined`, et lire `undefined.isActive` faisait planter. En plus, le `if` n'était pas fermé : la réponse `201` était dedans (`}}` en fin de fonction).
+- **Ligne insérée au milieu d'une instruction** : `const hashedPassword = ...` placé entre `const { ... } =` et `await registerBodySchema.parseAsync(...)`.
+- **Commit bloqué par lint-staged** : `'argon2' is defined but never used` une fois la ligne du hachage commentée.
+
+### À poursuivre (carte #84)
+
+- **Étape 5** : `accountDatamapper.create` — `INSERT INTO account (...) VALUES ($1, ...)` paramétré, `role_id` via une sous-requête sur `role` (`name = 'customer'`) sans `1` en dur, `RETURNING` des 6 champs du contrat avec alias camelCase et **sans** `password`. Dans `register` : appeler `create` avec `hashedPassword`, répondre `201` avec la ligne renvoyée (`id` compris). Commiter alors hachage + `INSERT` ensemble.
+- **Étape 7** : middleware `415` (POST, PUT, PATCH seulement) + classe d'erreur 415 dans `errors.ts`.
+- **Étape 8** : tests d'intégration (`201` sans mot de passe, `400`, `409`, `415`).
+- PR vers `back-F3` (`Closes #84` si tous les critères sont remplis), relecteur `loicRoch`.
+
 ## 2026-11-03 (matin) — Carte #84 : inscription `POST /api/users`, route et validation Zod
 
 Branche `feat/userRouter` (partie de `back-F3`), commits `d0a63cd` et `3c68601` (pas encore poussés). Fichiers : `src/api/src/routers/userRouter.ts` (nouveau), `src/api/src/routers/index.router.ts`, `src/api/src/controllers/userController.ts` (nouveau), `src/api/test/test.user.http` (nouveau).
