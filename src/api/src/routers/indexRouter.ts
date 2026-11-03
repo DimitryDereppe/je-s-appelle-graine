@@ -1,7 +1,7 @@
 import { Router } from "express";
-import { router as treeRouter } from "../routers/treeRouter.ts";
-import { router as authRouter } from "../routers/authRouter.ts";
-import { router as userRouter } from "../routers/userRouter.ts";
+import { router as treeRouter } from "./treeRouter.ts";
+import { router as authRouter } from "./authRouter.ts";
+import { router as userRouter } from "./userRouter.ts";
 export const router = Router();
 
 router.get("/health", (_req, res) => {

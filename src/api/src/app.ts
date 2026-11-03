@@ -2,7 +2,7 @@ import express from "express";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import cookieParser from "cookie-parser";
-import { router as apiRouter } from "./routers/index.router.ts";
+import { router as apiRouter } from "./routers/indexRouter.ts";
 import { validateContentType } from "./middlewares/validateContentTypeMiddleware.ts";
 
 import cors from "cors";
