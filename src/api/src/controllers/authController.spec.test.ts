@@ -277,9 +277,8 @@ describe("authController", () => {
       assert.ok(!newAccessToken, "Nouveau access token existe");
     });
 
-    // À activer quand isConnected sera sur la route DELETE /auth (carte de Dimitry) :
-    // retirer .skip, le test doit alors passer
-    it.skip("should respond 401 if not connected", async () => {
+    // isConnected est sur la route DELETE /auth : sans cookie → 401
+    it("should respond 401 if not connected", async () => {
       // Act : envoie une requête DELETE /auth sans cookie
       const response = await libTests.requester.delete("/auth");
 
