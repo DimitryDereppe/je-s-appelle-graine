@@ -3,8 +3,14 @@ import {
   getAllCatalog,
   getFeaturedTrees,
   getOneTree,
+  getTreesByCategory,
+  getTreesBySearch,
 } from "../controllers/treeController.ts";
-import { validateId } from "../middlewares/commonMiddleware.ts";
+import {
+  validateId,
+  validateCategoryQuery,
+  validateSearchQuery,
+} from "../middlewares/commonMiddleware.ts";
 
 export const router = Router();
 
@@ -14,6 +20,17 @@ export const router = Router();
 // ROUTES PUBLIC
 // GET /api/trees/featured → les arbres mis en avant sur l'accueil
 router.get("/trees/featured", getFeaturedTrees);
+
+// GET /api/trees?search=:search → recherche par nom (combinable avec category)
+router.get(
+  "/trees",
+  validateCategoryQuery,
+  validateSearchQuery,
+  getTreesBySearch,
+);
+
+// GET /api/trees?category=:id
+router.get("/trees", validateCategoryQuery, getTreesByCategory);
 
 // GET /api/trees → la liste de tous les arbres pour le catalogue
 router.get("/trees", getAllCatalog);
