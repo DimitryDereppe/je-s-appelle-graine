@@ -12,3 +12,4 @@ export async function getAllTrees(): Promise<IFeaturedTree[]> {
 
   return res.json();
 }
+
