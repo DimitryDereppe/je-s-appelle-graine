@@ -4,25 +4,25 @@ Suivi de mon travail sur Je s’appelle Graine. Les décisions notées ici ont �
 
 ## 2026-11-03 (après-midi) — Carte #84 : création du compte, 415, JSON mal formé, PR prête
 
-Branche `feat/userRouter`, poussée, à jour avec GitHub, sans conflit avec `back-F3`. Commits `50ceaee` (INSERT + hachage), `53b2e79` et `8c00331` (415), `57467ab` et `0e095fb` (JSON mal formé), `eb89adc` (middleware de connexion, hors carte), `43a1f60` (renommage `indexRouter.ts`). Fichiers : `accountDatamapper.ts`, `userController.ts`, `validateContentTypeMiddleware.ts` (nouveau), `isConnectedMiddleware.ts` (nouveau), `errors.ts`, `errorMiddleware.ts`, `app.ts`, `@types/index.d.ts`, `test.user.http`.
+Branche `feat/userRouter`, poussée, à jour avec GitHub, sans conflit avec `back-F3`. Commits `fba0c82` (INSERT + hachage), `d5a9a5c` et `9958a84` (415), `c23d0e0` et `91f05ef` (JSON mal formé), `4c84622` (middleware de connexion, hors carte), `0959b02` (renommage `indexRouter.ts`). Fichiers : `accountDatamapper.ts`, `userController.ts`, `validateContentTypeMiddleware.ts` (nouveau), `isConnectedMiddleware.ts` (nouveau), `errors.ts`, `errorMiddleware.ts`, `app.ts`, `@types/index.d.ts`, `test.user.http`.
 
 **Résultat** : `POST /api/users` crée vraiment le compte : `201` avec l'`id`, sans le mot de passe, hash `$argon2id` en base, rôle `customer`. Un body non JSON renvoie `415`, un JSON mal formé `400` au lieu de `500`. Tous les cas de `test.user.http` donnent le code attendu. Le code de la carte #84 est fini ; la description de la PR est prête, la PR pas encore ouverte.
 
 ### Travail réalisé
 
-- **Création du compte** (commit `50ceaee`) : `accountDatamapper.createAccount` :
+- **Création du compte** (commit `fba0c82`) : `accountDatamapper.createAccount` :
   - `INSERT INTO account (...) VALUES ($1, ..., $6, ...)` paramétré (protège de l'injection SQL) ;
   - `role_id` par sous-requête `(SELECT id FROM role WHERE name = 'customer')`, sans id en dur ;
   - `RETURNING` des champs du contrat avec alias camelCase, **sans** `password`, plus `'customer' AS "role"` (valeur fixe, évite une jointure) ;
   - dans `register` : `password: hashedPassword`, `organizationName ?? null`, puis `res.status(201).json(newAccount)`.
-- **415** (commits `53b2e79`, `8c00331`) : classe `ContentTypeError` (415) dans `errors.ts` ; middleware `validateContentType` sur le modèle de `validateId` :
+- **415** (commits `d5a9a5c`, `9958a84`) : classe `ContentTypeError` (415) dans `errors.ts` ; middleware `validateContentType` sur le modèle de `validateId` :
   - ne contrôle que POST, PUT et PATCH (`["POST", "PUT", "PATCH"].includes(req.method)`) ;
   - lit l'en-tête avec `req.get("Content-Type")` et accepte `application/json; charset=utf-8` grâce à `startsWith` ;
   - branché dans `app.ts` avant `cookieParser` et `apiRouter`.
-- **JSON mal formé → 400** (commits `57467ab`, `0e095fb`) : `if (error instanceof SyntaxError)` dans `globalErrorHandler`, placé avant le `500`, message du contrat « Les données envoyées sont mal formées. ».
+- **JSON mal formé → 400** (commits `c23d0e0`, `91f05ef`) : `if (error instanceof SyntaxError)` dans `globalErrorHandler`, placé avant le `500`, message du contrat « Les données envoyées sont mal formées. ».
 - **Contrat #83 modifié** : `"role": "customer"` ajouté à la réponse `201` de `POST /api/users` (même forme que `POST /api/auth`).
 - **`test.user.http`** : mots de passe des comptes du seed corrigés (alice avait celui des admins), connexion de `robert` (absent du seed) remplacée par `dimitry`, ajout de `bob` (compte désactivé → `403`).
-- **Hors carte** (commit `eb89adc`) : `isConnected` (pas de cookie ou JWT invalide/expiré → `401`, `jwt.verify` dans un `try/catch`) et `checkRoles([...])` (rôle non autorisé → `403`), type `AuthenticatedRequest` dans `@types/index.d.ts`. Branchés sur aucune route. Relève de la carte #85 (Fabrice).
+- **Hors carte** (commit `4c84622`) : `isConnected` (pas de cookie ou JWT invalide/expiré → `401`, `jwt.verify` dans un `try/catch`) et `checkRoles([...])` (rôle non autorisé → `403`), type `AuthenticatedRequest` dans `@types/index.d.ts`. Branchés sur aucune route. Relève de la carte #85 (Fabrice).
 
 ### Décisions
 
@@ -49,13 +49,13 @@ Branche `feat/userRouter`, poussée, à jour avec GitHub, sans conflit avec `bac
 
 ## 2026-11-03 (suite) — Carte #84 : email déjà utilisé (409) et hachage argon2
 
-Branche `feat/userRouter`, commits `5b8e798` (suppression du `.gitkeep` de `middlewares/`) et `e65f496` (409), pas encore poussés. Fichier : `src/api/src/controllers/userController.ts`.
+Branche `feat/userRouter`, commits `204fb66` (suppression du `.gitkeep` de `middlewares/`) et `d54a024` (409), pas encore poussés. Fichier : `src/api/src/controllers/userController.ts`.
 
 **Résultat** : un email déjà en base renvoie `409` « Cet email est déjà utilisé. » ; un nouvel email passe en `201`. Le hachage du mot de passe est écrit mais pas encore commité (il ne sert qu'avec l'`INSERT` de l'étape 5).
 
 ### Travail réalisé
 
-- **Email unique** (commit `e65f496`) : `accountDatamapper.findByEmail(email)` réutilisé ; `if (existingAccount) throw new ConflictError(...)`. `findByEmail` renvoie un compte ou `undefined`, et `undefined` est *falsy* : le `if` suffit.
+- **Email unique** (commit `d54a024`) : `accountDatamapper.findByEmail(email)` réutilisé ; `if (existingAccount) throw new ConflictError(...)`. `findByEmail` renvoie un compte ou `undefined`, et `undefined` est *falsy* : le `if` suffit.
 - **Hachage** (non commité) : `const hashedPassword = await argon2.hash(password);`, placé **après** la vérification de l'email. `password` remis dans la déstructuration du résultat de Zod.
 - **`.gitkeep`** : supprimés de `controllers/` et `middlewares/`, qui contiennent maintenant des fichiers ; gardé dans `services/`, encore vide.
 
