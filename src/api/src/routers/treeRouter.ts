@@ -3,8 +3,6 @@ import {
   getAllCatalog,
   getFeaturedTrees,
   getOneTree,
-  getTreesByCategory,
-  getTreesBySearch,
 } from "../controllers/treeController.ts";
 import {
   validateId,
@@ -21,19 +19,10 @@ export const router = Router();
 // GET /api/trees/featured → les arbres mis en avant sur l'accueil
 router.get("/trees/featured", getFeaturedTrees);
 
-// GET /api/trees?search=:search → recherche par nom (combinable avec category)
-router.get(
-  "/trees",
-  validateCategoryQuery,
-  validateSearchQuery,
-  getTreesBySearch,
-);
-
-// GET /api/trees?category=:id
-router.get("/trees", validateCategoryQuery, getTreesByCategory);
-
 // GET /api/trees → la liste de tous les arbres pour le catalogue
-router.get("/trees", getAllCatalog);
+// GET /api/trees?category=:id → filtrée par catégorie
+// GET /api/trees?search=:search → recherche par nom (combinable avec category)
+router.get("/trees", validateCategoryQuery, validateSearchQuery, getAllCatalog);
 
 // GET /api/trees/:id → un arbre pour la fiche arbre
 router.get("/trees/:id", validateId, getOneTree);
