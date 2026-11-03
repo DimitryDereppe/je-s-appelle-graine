@@ -1,5 +1,8 @@
 import type { Request, Response } from "express";
 import { z } from "zod";
+import { ConflictError } from "../lib/errors.ts";
+import { accountDatamapper } from "../datamappers/accountDatamapper.ts";
+//import argon2 from "argon2";
 
 export async function register(req: Request, res: Response) {
   // schéma attendu du body (contrat carte #83)
@@ -25,8 +28,23 @@ export async function register(req: Request, res: Response) {
   });
 
   // validation du body par Zod : si invalide, erreur → 400 (errorMiddleware)
-  const { firstname, lastname, email, accountType, organizationName } =
-    await registerBodySchema.parseAsync(req.body);
+  const {
+    firstname,
+    lastname,
+    email,
+    // password,
+    accountType,
+    organizationName,
+  } = await registerBodySchema.parseAsync(req.body);
+
+  // email unique : un compte existe déjà avec cet email → 409
+  const existingAccount = await accountDatamapper.findByEmail(email);
+  if (existingAccount) {
+    throw new ConflictError("Cet email est déjà utilisé.");
+  }
+
+  // mot de passe haché avec argon2 : seul le hash sera enregistré en BDD
+  // const hashedPassword = await argon2.hash(password);
 
   // provisoire : sera remplacé par la ligne créée en BDD (étapes 4 et 5)
   // le mot de passe n'est jamais renvoyé
