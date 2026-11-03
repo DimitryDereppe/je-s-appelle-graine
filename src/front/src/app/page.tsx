@@ -1,21 +1,20 @@
 import Image from "next/image";
 import styles from "./page.module.css";
-import type { IFeaturedTree } from "../@types";
+import type { ICatalogueTree } from "../@types";
 import Commitments from "@/components/commitments/Commitments";
 import { api } from "./utils/apiCall";
-
+import Link from "next/link";
 import TreeCard from "@/components/treeCard/TreeCard";
 
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
-  const trees: IFeaturedTree[] = await api<IFeaturedTree, IFeaturedTree[]>(
+  const trees: ICatalogueTree[] = await api<ICatalogueTree, ICatalogueTree[]>(
     "trees/featured/",
   );
 
   return (
     <main className={styles.main}>
-      {/* Section de présentation */}
       <section className={styles.welcome}>
         <div className={styles.welcomeContent}>
           <p className={styles.welcomeTagline}>
@@ -31,12 +30,12 @@ export default async function Home() {
           <p className={styles.welcomeSubtitle}>
             Choisissez les arbres qui contribuent aux projets de reforestation.
           </p>
-
-          <button className={styles.ctaButton} type="button">
-            Voir nos arbres <span className={styles.arrow}>→</span>
-          </button>
+          <Link href="/arbres" passHref>
+            <button className={styles.ctaButton} type="button">
+              Voir nos arbres <span className={styles.arrow}>→</span>
+            </button>
+          </Link>
         </div>
-
         <div className={styles.heroImage}>
           <Image
             src="/assets/acceuil.png"
@@ -60,7 +59,6 @@ export default async function Home() {
           ))}
         </div>
       </section>
-      {/* Bandeau affiché juste avant le footer sur écran mobile */}
       <div className={styles.commitmentsMobile}>
         <Commitments />
       </div>

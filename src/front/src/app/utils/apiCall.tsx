@@ -11,7 +11,7 @@ export async function api<
   body?: TBody,
 ): Promise<TResponse> {
   const response = await fetch(`${process.env.API_URL}/api/${endpoint}`, {
-    method:method,
+    method,
     headers: {
       "Content-Type": "application/json",
       // Authorization: `Bearer ${localStorage.getItem("token")}`,
