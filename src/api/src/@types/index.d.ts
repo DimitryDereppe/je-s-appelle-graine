@@ -44,3 +44,12 @@ export interface AuthenticatedRequest extends Request {
   userId?: number;
   userRole?: "customer" | "admin";
 }
+//Formulaire inscription client
+export interface IRegister {
+  firstname: string;
+  lastname: string;
+  accountType: IAccount["accountType"];
+  organizationName: string | null;
+  email: string;
+  password: string;
+}
