@@ -182,6 +182,127 @@ describe("treeController", () => {
     });
   });
 
+  // Test de la recherche par nom
+  describe("[GET] /api/trees?search=:search", () => {
+    // Doit trouver un nom partiel, sans tenir compte des accents ni des majuscules
+    it("should find a partial name, ignoring accents and case", async () => {
+      // Arrange : 1 arbre qui correspond, 1 qui ne correspond pas
+      await libTests.createTree({ name: "Chêne pédonculé" });
+      await libTests.createTree({ name: "Tilleul" });
+
+      // Act : Appelle la route comme le ferait le front
+      const httpResponse = await libTests.requester.get("/trees?search=CHENE");
+      const body = httpResponse.data; // le JSON renvoyé (tableau d'arbres)
+
+      // Assert : seul le chêne est renvoyé
+      assert.strictEqual(httpResponse.status, 200);
+      assert.strictEqual(body.length, 1);
+      assert.strictEqual(body[0].name, "Chêne pédonculé");
+    });
+
+    // Doit combiner la recherche et le filtre par catégorie
+    it("should combine search and category", async () => {
+      // Arrange : 2 « pin » résineux, 1 « pin » dans une autre catégorie (Feuillage caduc par défaut)
+      await libTests.createTree({ name: "Pin maritime", category: "Résineux" });
+      await libTests.createTree({ name: "Sapin", category: "Résineux" });
+      await libTests.createTree({ name: "Pin à feuilles" });
+      const categoryId = await libTests.getCategoryId("Résineux");
+
+      // Act : Appelle la route comme le ferait le front
+      const httpResponse = await libTests.requester.get(
+        `/trees?search=pin&category=${categoryId}`,
+      );
+      const body = httpResponse.data; // le JSON renvoyé (tableau d'arbres)
+
+      // Assert : seuls les 2 résineux sont renvoyés, triés par id
+      assert.strictEqual(httpResponse.status, 200);
+      assert.strictEqual(body.length, 2);
+      assert.strictEqual(body[0].name, "Pin maritime");
+      assert.strictEqual(body[1].name, "Sapin");
+    });
+
+    // Doit écarter les arbres retirés, mais garder ceux en rupture de stock
+    it("should exclude withdrawn trees", async () => {
+      // Arrange : 1 érable retiré, 1 érable en rupture de stock
+      await libTests.createTree({
+        name: "Érable plane",
+        availability: "retiré",
+      });
+      await libTests.createTree({
+        name: "Érable champêtre",
+        availability: "en rupture de stock",
+      });
+
+      // Act : Appelle la route comme le ferait le front
+      const httpResponse = await libTests.requester.get("/trees?search=erable");
+      const body = httpResponse.data; // le JSON renvoyé (tableau d'arbres)
+
+      // Assert : seul l'érable en rupture de stock est renvoyé
+      assert.strictEqual(httpResponse.status, 200);
+      assert.strictEqual(body.length, 1);
+      assert.strictEqual(body[0].name, "Érable champêtre");
+    });
+
+    // Doit répondre 200 avec un tableau vide quand aucun nom ne correspond
+    it("should return 200 with empty array when no match", async () => {
+      // Arrange : 1 arbre qui ne correspond pas à la recherche
+      await libTests.createTree({ name: "Tilleul" });
+
+      // Act : Appelle la route comme le ferait le front
+      const httpResponse = await libTests.requester.get("/trees?search=baobab");
+      const body = httpResponse.data; // le JSON renvoyé (tableau d'arbres)
+
+      // Assert : La route répond et renvoie un tableau vide
+      assert.strictEqual(httpResponse.status, 200);
+      assert.deepStrictEqual(body, []);
+    });
+
+    // Doit chercher % comme un simple caractère, pas comme un joker
+    it("should treat % as plain text", async () => {
+      // Arrange : 1 arbre sans % dans son nom
+      await libTests.createTree({ name: "Tilleul" });
+
+      // Act : %25 est le caractère % encodé dans l'URL
+      const httpResponse = await libTests.requester.get("/trees?search=%25");
+      const body = httpResponse.data; // le JSON renvoyé (tableau d'arbres)
+
+      // Assert : sans échappement, % trouverait tous les arbres
+      assert.strictEqual(httpResponse.status, 200);
+      assert.deepStrictEqual(body, []);
+    });
+
+    // Doit renvoyer tout le catalogue quand la recherche est vide
+    it("should return all trees when search is empty", async () => {
+      // Arrange : 2 arbres disponibles
+      await libTests.createTree({ name: "Érable" });
+      await libTests.createTree({ name: "Hêtre" });
+
+      // Act : Appelle la route avec une recherche vide
+      const httpResponse = await libTests.requester.get("/trees?search=");
+      const body = httpResponse.data; // le JSON renvoyé (tableau d'arbres)
+
+      // Assert : une recherche vide ne filtre pas
+      assert.strictEqual(httpResponse.status, 200);
+      assert.strictEqual(body.length, 2);
+    });
+
+    // Doit répondre 400 si search est présent plusieurs fois dans l'URL
+    it("should return 400 and error: repeated search", async () => {
+      // Act : ?search=a&search=b donne un tableau, pas un texte
+      const httpResponse = await libTests.requester.get(
+        "/trees?search=a&search=b",
+      );
+      const body = httpResponse.data; // le JSON renvoyé (l'erreur)
+
+      // Assert : La route répond 400 et renvoie le message de validateSearchQuery (commonMiddleware.ts)
+      assert.strictEqual(httpResponse.status, 400);
+      assert.strictEqual(
+        body.error,
+        "Recherche invalide : un seul texte de 100 caractères maximum",
+      );
+    });
+  });
+
   // Test de la route de la fiche arbre
   describe("[GET] /api/trees/:id", () => {
     // Doit répondre 200 et renvoyer l'arbre (avec sa description) s'il est disponible
