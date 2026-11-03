@@ -2,6 +2,49 @@
 
 Suivi de mon travail sur Je s’appelle Graine. Les décisions notées ici ont été prises avec l'équipe sur Discord ; le suivi de l'équipe est dans le [[Apothéose/apo-jesappellegraine/CARNET-DE-BORD-JE-S-APPELLE-GRAINE|carnet de bord Je s’appelle Graine]].
 
+## 2026-11-03 (matin) — Carte #84 : inscription `POST /api/users`, route et validation Zod
+
+Branche `feat/userRouter` (partie de `back-F3`), commits `d0a63cd` et `3c68601` (pas encore poussés). Fichiers : `src/api/src/routers/userRouter.ts` (nouveau), `src/api/src/routers/index.router.ts`, `src/api/src/controllers/userController.ts` (nouveau), `src/api/test/test.user.http` (nouveau).
+
+**Résultat** : `POST /api/users` répond et valide le body selon le contrat de la carte #83 : `201` avec les données validées (sans le mot de passe) ou `400` avec un message en français. Rien n'est encore enregistré en base.
+
+### Travail réalisé
+
+- **Routeur `userRouter`** : `router.post("/users", register)`, branché dans `index.router.ts` comme `treeRouter` et `authRouter`. Le chemin est `/users`, sans `/api`, que `app.ts` ajoute déjà (`app.use("/api", apiRouter)`). Les routes des cartes suivantes (`/users/me`…) sont gardées en commentaire comme mémo.
+- **Schéma Zod `registerBodySchema`** (commit `3c68601`) :
+  - `firstname`, `lastname` : `z.string({ error })` pour un champ absent, `.min(1, { error })` pour un champ vide ;
+  - `email` : `z.email()` ;
+  - `password` : `.min(12)` avec son propre message (« Le mot de passe doit contenir au moins 12 caractères. ») ;
+  - `accountType` : `z.enum(["particulier", "association", "entreprise"]).default("particulier")`, mêmes valeurs que le `CHECK` de la table `account` ;
+  - `organizationName` : `.optional().nullable()` (absent ou `null`).
+- **Réponse provisoire** : `201` avec les champs validés, `organizationName ?? null` pour que la clé apparaisse toujours (une valeur `undefined` disparaît du JSON).
+- **`test.user.http`** : 10 requêtes nommées (`### code attendu · cas`) : 3 cas `201`, 5 cas `400`, `409` (email d'alice) et `415` (body en `text/plain`) pour les étapes suivantes.
+- **Vérifications** : les 7 cas `201`/`400` donnent le code et le message attendus ; ESLint passe.
+
+### Décisions
+
+- **Un routeur `userRouter` à part plutôt que dans `authRouter`** : `/users` est une ressource (les comptes), `/auth` la session. Un fichier par responsabilité (SoC).
+- **Deux messages par champ texte obligatoire** : avec Zod 4, le message de `z.string({ error })` s'applique à toutes les erreurs du champ si la règle n'a pas le sien. Sans message sur `.min(12)`, un mot de passe trop court affichait « Mot de passe obligatoire. ».
+- **Zod refuse les mêmes valeurs que la base** : une valeur hors du `CHECK` donne un `400` clair, au lieu d'une erreur PostgreSQL en `500`.
+- **Le mot de passe n'est jamais renvoyé**, même dans la réponse provisoire (contrat #83, entête § 12).
+
+### Difficultés
+
+- **API plantée au démarrage** : `TypeError: argument handler is required` (`userRouter.ts:5`). Les lignes `router.get("/users/me")` n'avaient pas de fonction ; Express refuse une route sans *handler*. Solution : ne garder que la route qui a un controller, les autres en commentaire.
+- **`tsx` n'a pas relancé le serveur** après la correction : le processus avait planté au démarrage. Solution : `docker restart src-api-1`, puis lire `docker logs --tail 10 src-api-1`.
+- **Branche créée depuis `front-F3`** (12 commits du front en trop) : rattrapé avant le premier commit avec `git stash -u`, `git switch back-F3`, `git branch -D`, `git switch -c`, `git stash pop`. Vérification : `git log --oneline back-F3..HEAD` vide.
+- **Schéma défini mais jamais appliqué** : tout passait en `200`, même un mot de passe de 5 caractères. Il manquait `parseAsync(req.body)`.
+- **Confusion règle / valeur** dans la première version du schéma (`firstname: "John"`) : le schéma décrit des règles, les valeurs d'exemple vont dans le body de `test.user.http`.
+
+### À poursuivre (carte #84)
+
+- **Étape 3** : email déjà utilisé → `409` (`accountDatamapper.findByEmail` + `ConflictError`).
+- **Étape 4** : hacher le mot de passe (`argon2.hash`) ; remettre `password` dans la déstructuration.
+- **Étape 5** : `accountDatamapper.create` (`INSERT` paramétré, `role_id` du rôle `customer` sans le coder en dur, `RETURNING` sans le mot de passe) ; réponse `201` avec l'`id`.
+- **Étape 7** : middleware `415` pour les requêtes non JSON, limité à POST, PUT et PATCH (le `DELETE /api/auth` de la déconnexion n'a pas de body).
+- **Étape 8** : tests d'intégration (`201` sans mot de passe, `400`, `409`, `415`).
+- Écart avec le contrat dans `login` : « Ce compte est désactivé, veuillez contacter l'administrateur. » au lieu de « Ce compte est désactivé. ».
+
 ## 2026-11-02 (fin de journée) — Carte #86 : en-tête connecté, déconnexion, page de connexion à la maquette
 
 Branche `feat/formulaires-connexion-inscription`, commits `aa62b94`, `aba6336` et `7d2bb4d` (pas encore poussés). Fichiers : `src/front/src/components/header/Header.tsx` et `header.module.css`, `src/front/src/app/connexion/page.tsx`, `LoginForm.tsx` et `page.module.css` (nouveau).
