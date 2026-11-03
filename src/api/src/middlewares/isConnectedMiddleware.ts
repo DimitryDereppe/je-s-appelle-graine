@@ -50,18 +50,30 @@ export function isConnected(
 }
 
 // --------------------------------
-// middleware : l'utilisateur connecté a-t-il le bon rôle ? → sinon 403
-// à placer APRÈS isConnected, qui a rempli req.userRole
-// ex. : router.get("/admin/trees", isConnected, checkRoles(["admin"]), ...)
+// vérifier les rôles des utilisateurs connectés (comme oQuiz)
+// une fonction qui prend en argument la liste des rôles autorisés
 export function checkRoles(allowedRoles: Array<"customer" | "admin">) {
-  // checkRoles n'est pas le middleware : elle FABRIQUE un middleware
-  // qui se souvient de allowedRoles
+  // exemple : allowedRoles contient : [ "admin" ]
+  // req.userRole = "customer"
+  // "customer" n'est pas dans le tableau allowedRoles --> rejette la requête
+
+  // la fonction checkRoles retourne un middleware qui vérifie si le rôle est autorisé ou pas
   return (req: AuthenticatedRequest, _res: Response, next: NextFunction) => {
-    if (req.userRole && allowedRoles.includes(req.userRole)) {
-      return next();
+    // récupère le rôle injecté dans l'AuthenticatedRequest par isConnected
+    const role = req.userRole;
+    // si pas de rôle --> isConnected n'a pas été placé avant : pas identifié, 401
+    if (!role) {
+      throw new UnauthorizedError("Vous devez être connecté.");
     }
-    // connecté, mais pas le droit : 403 (et non 401)
-    // message du contrat #83 (seul le rôle admin est vérifié pour l'instant)
-    throw new ForbiddenError("Accès réservé à l'administrateur.");
+
+    // vérifie si le rôle est inclus dans la liste des rôles autorisés (allowedRoles)
+    if (!allowedRoles.includes(role)) {
+      // le rôle de l'utilisateur n'est pas dans la liste des rôles autorisés
+      // connecté, mais pas le droit : 403 (oQuiz renvoie 401 ; notre contrat #83 prévoit 403)
+      throw new ForbiddenError("Accès réservé à l'administrateur.");
+    }
+
+    // tout va bien, appelle le middleware suivant
+    next();
   };
 }
