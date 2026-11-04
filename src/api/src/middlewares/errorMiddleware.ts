@@ -19,6 +19,15 @@ export function globalErrorHandler(
 ) {
   // 4 arguments, c'est spécifique à Express et c'est obligatoire
 
+  // JSON mal écrit dans le body (ex. virgule en trop, valeur manquante) : erreur du client → 400
+  // express.json() lance une SyntaxError avant d'arriver au contrôleur
+  if (error instanceof SyntaxError && "body" in error) {
+    return res.status(400).json({
+      error: "Les données envoyées sont mal formées.",
+      status: 400,
+    });
+  }
+
   // Erreurs de validation Zod : données envoyées invalides → 400
   // on renvoie le premier message, écrit en français dans le schéma
   if (error instanceof ZodError) {
@@ -27,26 +36,21 @@ export function globalErrorHandler(
       .json({ error: error.issues[0].message, status: 400 });
   }
 
-  // JSON mal formé dans le body (ex. virgule en trop) : express.json() n'arrive pas
-  // à le lire (JSON.parse lève une SyntaxError) → erreur du client, donc 400 et non 500
-  if (error instanceof SyntaxError) {
-    return res.status(400).json({
-      error: "Les données envoyées sont mal formées.",
-      status: 400,
-    });
-  }
-
   //  Erreurs HttpClientError (../lib/errors.ts)
   // Gère tous les HttpClientError --> attrape toutes les classes filles de HttClientError
   // - ex : throw new NotFoundError()
   // - ex : throw new ConflictError()
   if (error instanceof HttpClientError) {
-    console.error("HTTP Client error", {
-      error: error.message,
-      status: error.status ?? "",
-      stack: error.stack ?? "",
-    });
+    // en test, les erreurs 4xx sont attendues : on ne les logge pas
+    if (process.env.NODE_ENV !== "test") {
+      console.error("HTTP Client error", {
+        error: error.message,
+        status: error.status ?? "",
+        stack: error.stack ?? "",
+      });
+    }
 
+    // la réponse est envoyée dans tous les cas, test compris
     return res.status(error.status).json({
       error: error.message,
       status: error.status,

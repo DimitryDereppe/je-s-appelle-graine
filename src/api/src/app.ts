@@ -6,6 +6,7 @@ import { router as apiRouter } from "./routers/indexRouter.ts";
 import { validateContentType } from "./middlewares/validateContentTypeMiddleware.ts";
 
 import cors from "cors";
+import { config } from "../config.ts";
 import {
   globalErrorHandler,
   notFoundMiddleware,
@@ -13,7 +14,8 @@ import {
 
 export const app = express();
 
-app.use(cors());
+// CORS : seul notre front peut lire les réponses de l'API ; credentials pour le cookie accessToken
+app.use(cors({ origin: config.allowedOrigins, credentials: true }));
 
 app.use(express.json());
 

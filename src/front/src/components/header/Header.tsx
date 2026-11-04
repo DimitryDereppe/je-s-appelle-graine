@@ -26,7 +26,7 @@ export default function Header() {
   // message à afficher sous l'en-tête (ex. compte désactivé) ; null = rien à afficher
   const [alertMessage, setAlertMessage] = useState<string | null>(null);
 
-  // Au premier affichage : demander à l'API qui est connecté (le navigateur envoie le cookie)
+  // À chaque changement de page : redemander à l'API qui est connecté (le navigateur envoie le cookie)
   useEffect(() => {
     async function fetchCurrentUser() {
       try {
@@ -52,7 +52,7 @@ export default function Header() {
       }
     }
     fetchCurrentUser();
-  }, []);
+  }, [pathname]);
 
   // Au clic sur « Déconnexion » : l'API supprime le cookie, puis on oublie l'utilisateur
   async function handleLogout() {

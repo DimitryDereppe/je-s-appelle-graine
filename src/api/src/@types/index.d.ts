@@ -1,5 +1,8 @@
 import type { Request } from "express";
 
+// Rôles de la table role. Exception à la règle « interface » : une liste de valeurs ne peut pas être une interface
+export type Role = "customer" | "admin";
+
 // Accueil
 export interface IFeaturedTree {
   id: number;
@@ -21,15 +24,24 @@ export interface ITree extends ICatalogueTree {
   description: string | null;
 }
 
-// Compte client
-export interface IAccount {
-  id: number;
+// Champs communs à tous les comptes
+export interface IAccountBase {
   firstname: string;
   lastname: string;
   email: string;
   accountType: "particulier" | "association" | "entreprise";
   organizationName: string | null;
-  role: "admin" | "customer";
+}
+
+// Compte client
+export interface IAccount extends IAccountBase {
+  id: number;
+  role: Role;
+}
+
+// Compte connecté renvoyé par GET /api/users/me : avec l'adresse (pour récapitulatif de la commande F5, espace client F6)
+export interface IAccountProfile extends IAccount {
+  address: string | null;
 }
 
 // Compte client pour le login : avec le mot de passe haché et compte actif
@@ -38,9 +50,29 @@ export interface IAccountLogin extends IAccount {
   password: string;
 }
 
+// Compte à créer à l'inscription (createAccount) : pas encore d'id, rôle client ajouté par la requête SQL
+export interface INewAccount extends IAccountBase {
+  password: string; // déjà haché par argon2
+}
+
+// Contenu du jeton JWT : créé par createAccessToken (lib/token.ts), relu par isConnected
+export interface IAccessToken {
+  userId: number;
+  userRole: Role;
+}
+
 // Requête d'un utilisateur connecté : isConnected y ajoute l'id et le rôle lus dans le JWT
 // champs facultatifs (?) : avant isConnected, la requête ne les a pas encore
-export interface AuthenticatedRequest extends Request {
+export interface IAuthenticatedRequest extends Request {
   userId?: number;
-  userRole?: "customer" | "admin";
+  userRole?: Role;
+}
+//Formulaire inscription client
+export interface IRegister {
+  firstname: string;
+  lastname: string;
+  accountType: IAccount["accountType"];
+  organizationName: string | null;
+  email: string;
+  password: string;
 }

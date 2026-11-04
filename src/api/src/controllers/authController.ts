@@ -12,8 +12,10 @@ import {
 export async function login(req: Request, res: Response) {
   // schema attendu du body
   const loginBodySchema = z.object({
-    email: z.email({ error: "Email invalide." }),
-    password: z.string({ error: "Mot de passe obligatoire." }),
+    email: z.email({ error: "Veuillez saisir une adresse e-mail valide." }),
+    password: z
+      .string({ error: "Veuillez saisir votre mot de passe." })
+      .min(1, { error: "Veuillez saisir votre mot de passe." }),
   });
 
   // validation du body par Zod

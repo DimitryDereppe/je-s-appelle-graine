@@ -39,7 +39,7 @@ export function LoginForm({ next }: LoginFormProps) {
         setErrorMessage("Quelque chose n’a pas fonctionné.");
         return;
       }
-      // Connexion réussie : où renvoyer l'utilisateur ? Trois cas, testés dans l'ordre.
+      // Connexion réussie : où renvoyer l'utilisateur ? Deux cas, testés dans l'ordre.
 
       // 1. Une page a demandé la connexion et donné son adresse dans l'URL,
       //    ex. AddToCartButton → /connexion?next=/arbres/12 (page.tsx lit ?next= et le passe ici).
@@ -58,14 +58,9 @@ export function LoginForm({ next }: LoginFormProps) {
       ) {
         // push : ajoute la page à l'historique, comme un clic sur un lien
         router.push(next);
-      } else if (window.history.length > 1) {
-        // 2. Pas de ?next= valide, mais l'onglet a un historique : on revient à la page
-        //    précédente (celle d'où l'utilisateur a cliqué sur « Connexion »),
-        //    comme le bouton « Retour » du navigateur.
-        router.back();
       } else {
-        // 3. Pas d'historique (page de connexion ouverte directement, nouvel onglet) :
-        //    router.back() ne mènerait nulle part, on envoie donc vers l'accueil.
+        // 2. Pas de ?next= valide : on envoie vers l'accueil.
+        //    (Pas de router.back() : après une inscription, la page précédente serait /inscription.)
         router.push("/");
       }
     } catch {

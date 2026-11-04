@@ -1,5 +1,10 @@
 import { pool } from "../data/db-client.ts";
-import type { IAccount, IAccountLogin } from "../@types/index.d.ts";
+import type {
+  IAccount,
+  IAccountLogin,
+  IAccountProfile,
+  INewAccount,
+} from "../@types/index.d.ts";
 export const accountDatamapper = {
   async findByEmail(email: string): Promise<IAccountLogin | undefined> {
     const sqlQuery = `
@@ -20,14 +25,7 @@ export const accountDatamapper = {
     return result.rows[0];
   },
 
-  async createAccount(account: {
-    firstname: string;
-    lastname: string;
-    email: string;
-    password: string; // déjà haché par argon2
-    accountType: "particulier" | "association" | "entreprise";
-    organizationName: string | null;
-  }): Promise<IAccount> {
+  async createAccount(account: INewAccount): Promise<IAccount> {
     const sqlQuery = `
             INSERT INTO account
               (firstname, lastname, email, password,
@@ -52,6 +50,25 @@ export const accountDatamapper = {
       account.organizationName,
     ]);
     // une seule ligne insérée : rows[0]
+    return result.rows[0];
+  },
+
+  // le compte connecté selon son id, sans mot de passe (GET /api/users/me)
+  async findById(id: number): Promise<IAccountProfile | undefined> {
+    const sqlQuery = `
+            SELECT account.id, account.firstname, account.lastname, account.email,
+                   account.address,
+                   account.account_type AS "accountType",
+                   account.organization_name AS "organizationName",
+                   role.name AS "role"
+            FROM account
+            -- à chaque compte, on colle son rôle (pour lire son nom)
+            JOIN role ON account.role_id = role.id
+            -- une seule ligne : celle dont l'id vaut $1
+            WHERE account.id = $1
+        `;
+    const result = await pool.query(sqlQuery, [id]);
+    // aucune ligne trouvée : rows est vide, rows[0] vaut undefined
     return result.rows[0];
   },
 };
