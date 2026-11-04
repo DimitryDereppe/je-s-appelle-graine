@@ -34,7 +34,7 @@ export async function api<
   const response = await fetch(`${process.env.API_URL}/api/${endpoint}`, options);
 
   if (!response.ok) {
-    throw new Error(`Failed to fetch ${endpoint}: ${response.statusText}`);
+    throw new Error(`Nous n'avons pas pu atteindre ${endpoint}: ${response.statusText}`);
   }
 
   return (await response.json()) as TResponse;
