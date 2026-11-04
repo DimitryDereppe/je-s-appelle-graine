@@ -1,0 +1,141 @@
+.page {
+  min-height: 100vh;
+  background-color: #fdfaf3;
+  padding: 2rem 2rem 4rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  font-family: "Georgia", "Times New Roman", serif;
+  color: #1a3a2a;
+}
+
+/* --- Breadcrumb --- */
+.breadcrumb ol {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  list-style: none;
+  padding: 0;
+  margin: 0 0 0.5rem;
+  font-size: 0.85rem;
+  color: #5a7a6a;
+}
+
+.breadcrumb li:not(:last-child)::after {
+  content: "›";
+  margin: 0 0.4rem;
+  color: #8aaa9a;
+}
+
+.breadcrumb a {
+  color: #5a7a6a;
+  text-decoration: none;
+}
+
+.breadcrumb a:hover {
+  text-decoration: underline;
+}
+
+.breadcrumb [aria-current="page"] {
+  color: #1a3a2a;
+  font-weight: 600;
+}
+
+/* --- Back link --- */
+.backLink {
+  display: inline-block;
+  margin-bottom: 2rem;
+  font-size: 0.9rem;
+  color: #3a5a4a;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.backLink:hover {
+  color: #1a3a2a;
+  text-decoration: underline;
+}
+
+/* --- Main layout --- */
+.treeDetail {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3rem;
+  align-items: start;
+}
+
+@media (max-width: 768px) {
+  .treeDetail {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+}
+
+/* --- Image column --- */
+.imageColumn {
+  border-radius: 12px;
+  overflow: hidden;
+  aspect-ratio: 1 / 1;
+  box-shadow: 0 4px 24px rgba(26, 58, 42, 0.08);
+}
+
+.treeImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* --- Info column --- */
+.infoColumn {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  padding-top: 0.5rem;
+}
+
+.categoryBadge {
+  display: inline-block;
+  align-self: flex-start;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: #1a3a2a;
+  border: 1.5px solid #1a3a2a;
+  border-radius: 4px;
+  padding: 0.3rem 0.75rem;
+}
+
+.title {
+  font-size: 2.2rem;
+  font-weight: 700;
+  line-height: 1.2;
+  margin: 0;
+  color: #1a3a2a;
+}
+
+.price {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #8b4513;
+  margin: 0;
+}
+
+.description {
+  font-size: 1rem;
+  line-height: 1.7;
+  color: #2d4a3a;
+  margin: 0;
+}
+
+.origin {
+  font-size: 0.95rem;
+  font-style: italic;
+  color: #5a7a6a;
+  margin: 0;
+}
+
+/* --- Error state --- */
+.error {
+  font-size: 1.1rem;
+  color: #8b4513;
+  margin-bottom: 1.5rem;
+}   
