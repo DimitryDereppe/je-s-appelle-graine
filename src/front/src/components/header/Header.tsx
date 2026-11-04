@@ -2,7 +2,9 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { Suspense, useState } from "react";
+import SearchBar from "./SearchBar";
+
 import styles from "./header.module.css";
 import Image from "next/image";
 
@@ -46,28 +48,33 @@ export default function Header() {
         >
           <span aria-hidden="true">{isMenuOpen ? "×" : "☰"}</span>
         </button>
+        <div className={styles.navArea}>
+          <nav
+            id="site-navigation"
+            className={`${styles.navigation} ${
+              isMenuOpen ? styles.navigationOpen : ""
+            }`}
+            aria-label="Navigation principale"
+          >
+            {navigationLinks.map(({ href, label }) => (
+              <Link
+                key={href}
+                className={`${styles.navigationLink} ${
+                  pathname === href ? styles.activeLink : ""
+                }`}
+                href={href}
+                aria-current={pathname === href ? "page" : undefined}
+                onClick={() => setIsMenuOpen(false)}
+              >
+                {label}
+              </Link>
+            ))}
+          </nav>
 
-        <nav
-          id="site-navigation"
-          className={`${styles.navigation} ${
-            isMenuOpen ? styles.navigationOpen : ""
-          }`}
-          aria-label="Navigation principale"
-        >
-          {navigationLinks.map(({ href, label }) => (
-            <Link
-              key={href}
-              className={`${styles.navigationLink} ${
-                pathname === href ? styles.activeLink : ""
-              }`}
-              href={href}
-              aria-current={pathname === href ? "page" : undefined}
-              onClick={() => setIsMenuOpen(false)}
-            >
-              {label}
-            </Link>
-          ))}
-        </nav>
+          <Suspense fallback={null}>
+            <SearchBar />
+          </Suspense>
+        </div>
 
         <Link
           className={styles.cartLink}

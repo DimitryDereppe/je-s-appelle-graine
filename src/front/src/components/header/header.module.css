@@ -9,6 +9,8 @@
 
 /* Toute la largeur de l’écran est utilisée ; ce padding règle l’écart aux bords. */
 .inner {
+  flex-wrap: wrap;
+  padding-block: 0.75rem;
   display: flex;
   align-items: center;
   gap: 1rem;
@@ -126,6 +128,47 @@
   outline-offset: 3px;
 }
 
+/* Boîte qui contient le menu + la barre de recherche */
+/* Mobile : elle passe sur sa propre ligne, sous le logo */
+.navArea {
+  order: 1; /* se place après le panier */
+  flex-basis: 100%; /* prend toute la largeur → nouvelle ligne */
+}
+
+.search {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.searchInput {
+  flex: 1; /* prend toute la place restante à côté du bouton */
+  min-width: 0; /* autorise le champ à rétrécir (sinon il déborde) */
+  min-height: 44px;
+  padding: 0.5rem 0.75rem;
+  color: inherit;
+  background-color: #fff;
+  border: 1px solid var(--color-border, #e4e1d9);
+  border-radius: 10px;
+  font: inherit;
+}
+
+.searchButton {
+  min-height: 44px;
+  padding: 0.5rem 1rem;
+  color: var(--color-ivory, #f8f6f0);
+  background-color: var(--color-primary-green, #245a46);
+  border: 0;
+  border-radius: 10px;
+  cursor: pointer;
+  font: inherit;
+}
+
+.searchInput:focus-visible,
+.searchButton:focus-visible {
+  outline: 3px solid var(--color-terracotta, #b6532c);
+  outline-offset: 3px;
+}
+
 @media (min-width: 900px) {
   .inner {
     min-height: 100px;
@@ -147,10 +190,23 @@
     flex-direction: row;
     align-items: center;
     gap: clamp(0.5rem, 1vw, 1rem);
-    margin-left: auto;
     padding: 0;
     background: transparent;
     border: 0;
+  }
+
+  /* La boîte revient sur la ligne du logo, poussée à droite */
+  .navArea {
+    order: 0; /* reprend sa place : entre le logo et le panier */
+    flex-basis: auto;
+    display: flex;
+    flex-direction: column; /* menu en haut, recherche en dessous */
+    gap: 0.5rem;
+    margin-left: auto; /* pousse la boîte à droite */
+  }
+
+  .inner {
+    flex-wrap: nowrap;
   }
 }
 
