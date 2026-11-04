@@ -5,14 +5,57 @@ import Commitments from "@/components/commitments/Commitments";
 import { api } from "./utils/apiCall";
 import Link from "next/link";
 import TreeCard from "@/components/treeCard/TreeCard";
+import { Suspense } from "react";
 
 export const dynamic = "force-dynamic";
 
-export default async function Home() {
-  const trees: ICatalogueTree[] = await api<ICatalogueTree, ICatalogueTree[]>(
-    "trees/featured/",
-  );
+async function FeaturedTrees() {
+  let trees: ICatalogueTree[] = [];
+  let hasError = false;
 
+  try {
+    trees = await api<ICatalogueTree, ICatalogueTree[]>("trees/featured/");
+  } catch (error) {
+    console.error("Échec du chargement des arbres :", error);
+    hasError = true;
+  }
+
+  if (hasError) {
+    return (
+      <div className={styles.errorContainer}>
+        <p className={styles.errorMessage}>
+          Impossible de charger les arbres pour le moment.
+          <br />
+          Veuillez réessayer plus tard.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className={styles.cardsGrid}>
+      {trees.map((tree) => (
+        <TreeCard key={tree.id} tree={tree} />
+      ))}
+    </div>
+  );
+}
+
+function CardsSkeleton() {
+  return (
+    <div className={styles.cardsGrid} aria-busy="true">
+      {[1, 2, 3].map((i) => (
+        <div key={i} className={styles.treeCardSkeleton}>
+          <div className={styles.skeletonImage} />
+          <p>Chargement en cours</p>
+          <div className={`${styles.skeletonLine} ${styles.skeletonShort}`} />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+export default async function Home() {
   return (
     <main className={styles.main}>
       <section className={styles.welcome}>
@@ -53,11 +96,9 @@ export default async function Home() {
         <h2 className={styles.sectionTitle}>
           <span className={styles.underline}>Les</span> arbres du moment
         </h2>
-        <div className={styles.cardsGrid}>
-          {trees.map((tree) => (
-            <TreeCard key={tree.id} tree={tree} />
-          ))}
-        </div>
+        <Suspense fallback={<CardsSkeleton />}>
+          <FeaturedTrees />
+        </Suspense>
       </section>
       <div className={styles.commitmentsMobile}>
         <Commitments />
