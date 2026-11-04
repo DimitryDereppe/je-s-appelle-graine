@@ -38,6 +38,27 @@ describe("userController", () => {
       assert.strictEqual(response.data.password, undefined);
     });
 
+    it("should respond 201 with exactly the fields of the contract", async () => {
+      // Arrange : le rôle "customer" doit exister (voir le test 201)
+      await pool.query("INSERT INTO role (name) VALUES ('customer')");
+
+      // Act
+      const response = await libTests.requester.post("/users", newUser);
+
+      // Assert : la liste complète des clés (triées), ni plus ni moins
+      // un champ en trop (password, role_id...) ou manquant ferait échouer le test
+      assert.strictEqual(response.status, 201);
+      assert.deepStrictEqual(Object.keys(response.data).sort(), [
+        "accountType",
+        "email",
+        "firstname",
+        "id",
+        "lastname",
+        "organizationName",
+        "role",
+      ]);
+    });
+
     it("should respond 400 if password has less than 12 characters", async () => {
       // Act : mot de passe de 11 caractères
       const response = await libTests.requester.post("/users", {
@@ -51,6 +72,23 @@ describe("userController", () => {
         response.data.error,
         "Le mot de passe doit contenir au moins 12 caractères.",
       );
+    });
+
+    it("should respond 201 if password has exactly 12 characters", async () => {
+      // Arrange : le rôle "customer" doit exister (voir le test 201)
+      await pool.query("INSERT INTO role (name) VALUES ('customer')");
+
+      // Act : "JeSApe!Groot" fait 12 caractères pile, la limite du schéma (.min(12))
+      const response = await libTests.requester.post("/users", {
+        firstname: "Groot",
+        lastname: "GalaxyGuardian",
+        email: "groot@galaxy.com",
+        password: "JeSApe!Groot",
+      });
+
+      // Assert : la limite est incluse, le compte est créé
+      assert.strictEqual(response.status, 201);
+      assert.strictEqual(response.data.email, "groot@galaxy.com");
     });
 
     it("should respond 409 if email is already used", async () => {
@@ -90,6 +128,20 @@ describe("userController", () => {
       // Assert : 400 avec le message du schéma Zod
       assert.strictEqual(response.status, 400);
       assert.strictEqual(response.data.error, "Prénom obligatoire.");
+    });
+
+    it("should respond 400 if lastname is empty", async () => {
+      // Act : Bruce oublie son nom de famille
+      const response = await libTests.requester.post("/users", {
+        firstname: "Bruce",
+        lastname: "",
+        email: "bruce@wayne.com",
+        password: "1AmTheBatman!",
+      });
+
+      // Assert : 400 avec le message du schéma Zod
+      assert.strictEqual(response.status, 400);
+      assert.strictEqual(response.data.error, "Nom obligatoire.");
     });
 
     it("should respond 400 if email is invalid", async () => {
