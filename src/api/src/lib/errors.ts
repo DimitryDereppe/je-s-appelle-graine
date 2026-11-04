@@ -38,3 +38,9 @@ export class ConflictError extends HttpClientError {
     super(message, { status: 409 });
   }
 }
+
+export class ContentTypeError extends HttpClientError {
+  constructor(message: string) {
+    super(message, { status: 415 });
+  }
+}
