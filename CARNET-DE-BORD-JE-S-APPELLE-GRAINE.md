@@ -1,5 +1,31 @@
 # Carnet de bord — Je s’appelle Graine
 
+## 2026-11-04 — F3 fusionnée dans `main` ; fiche arbre et catalogue
+
+### Travail réalisé
+
+- **F3 dans `main`** (PR #153) :
+  - back par Fabrice (PR #136 et #144 vers `back-F3`) : `/users/me`, droits admin, CORS, tests ;
+  - en-tête mis à jour après la connexion par Dimitry (PR #150) ;
+  - page d'inscription par Shanna et Dimitry (PR #151) ;
+  - corrections du front par Fabrice : `next` vérifié avec `new URL`, focus après une erreur.
+  - compte désactivé après la connexion → 403 sur `/users/me` et tests d'inscription par Dimitry (PR #155).
+- **Catalogue côté API** par Mahamadou (PR #147 vers `back-F2`) : une seule route et une seule requête pour le filtre et la recherche, tests de la recherche.
+- **Fiche arbre et page 404** par Loïc (PR #149 et #152 vers `front-F2`).
+- **Kanban** : cartes de F3 terminées (#83 à #88, #121) ; US05 et US05b déplacées dans la F4.
+
+### Décisions
+
+- La redirection du visiteur depuis « Ajouter au panier » (US05, US05b) est traitée avec la F4.
+- Après l'inscription, le visiteur passe par la page de connexion, puis revient à sa page d'origine.
+
+### À poursuivre
+
+- F2 (Loïc, Mahamadou) : `GET /api/categories`, id trop grand qui répond 500, tests du filtre.
+- `main` : retirer `arbres/[slug]`, qui casse le build du front.
+- Conflit à résoudre en fusionnant F2 et `main` : `src/api/test/index.ts`, en gardant les deux côtés (à voir avec Fabrice).
+- Organisation de la suite du sprint à définir en équipe.
+
 ## 2026-11-03 — F3 : inscription, déconnexion, droits et tests ; catalogue côté front
 
 ### Travail réalisé
