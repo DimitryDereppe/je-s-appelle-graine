@@ -32,6 +32,18 @@ async function FeaturedTrees() {
     );
   }
 
+  if (trees.length === 0) {
+    return (
+      <div className={styles.emptyContainer}>
+        <p className={styles.emptyMessage}>
+          Aucun arbre n&apos;est disponible pour le moment.
+          <br />
+          Revenez bientôt pour découvrir nos nouveautés&nbsp;!
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div className={styles.cardsGrid}>
       {trees.map((tree) => (
