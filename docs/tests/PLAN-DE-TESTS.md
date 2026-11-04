@@ -73,16 +73,18 @@ Critères d'acceptation : voir l'issue #3 ; contrat d'API : carte #83. Tests de 
 
 ### Tests d'intégration — inscription `POST /api/users`
 
-Fichier : `src/api/src/controllers/userController.spec.test.ts`. Les 7 cas passent.
+Fichier : `src/api/src/controllers/userController.spec.test.ts`. Les 9 cas passent.
 
-| N°       | Cas                                                  | Type        | Attendu                                                                      | Obtenu |
-| -------- | ---------------------------------------------------- | ----------- | ---------------------------------------------------------------------------- | ------ |
-| F3-INT-1 | Inscription valide, sans type de compte ni structure | Intégration | `201`, `accountType: "particulier"`, `role: "customer"`, pas de mot de passe | ✅     |
-| F3-INT-2 | Mot de passe de 11 caractères                        | Intégration | `400`, « Le mot de passe doit contenir au moins 12 caractères. »             | ✅     |
-| F3-INT-3 | Email déjà utilisé                                   | Intégration | `409`, « Cet email est déjà utilisé. »                                       | ✅     |
-| F3-INT-4 | Body envoyé comme un formulaire HTML (pas du JSON)   | Intégration | `415` (`validateContentType`, protection CSRF)                               | ✅     |
-| F3-INT-5 | Prénom vide, email invalide                          | Intégration | `400`, « Prénom obligatoire. » / « Email invalide. »                         | ✅     |
-| F3-INT-6 | Mot de passe enregistré                              | Intégration | haché en Argon2 en base (commence par `$argon2`, jamais en clair)            | ✅     |
+| N°        | Cas                                                  | Type        | Attendu                                                                      | Obtenu |
+| --------- | ---------------------------------------------------- | ----------- | ---------------------------------------------------------------------------- | ------ |
+| F3-INT-1  | Inscription valide, sans type de compte ni structure | Intégration | `201`, `accountType: "particulier"`, `role: "customer"`, pas de mot de passe | ✅     |
+| F3-INT-2  | Mot de passe de 11 caractères                        | Intégration | `400`, « Le mot de passe doit contenir au moins 12 caractères. »             | ✅     |
+| F3-INT-3  | Email déjà utilisé                                   | Intégration | `409`, « Cet email est déjà utilisé. »                                       | ✅     |
+| F3-INT-4  | Body envoyé comme un formulaire HTML (pas du JSON)   | Intégration | `415` (`validateContentType`, protection CSRF)                               | ✅     |
+| F3-INT-5  | Prénom vide, email invalide                          | Intégration | `400`, « Prénom obligatoire. » / « Email invalide. »                         | ✅     |
+| F3-INT-6  | Mot de passe enregistré                              | Intégration | haché en Argon2 en base (commence par `$argon2`, jamais en clair)            | ✅     |
+| F3-INT-24 | Particulier qui envoie un nom de structure           | Intégration | `201`, `organizationName: null` (structure ignorée)                          | ✅     |
+| F3-INT-25 | Association avec un nom de structure                 | Intégration | `201`, nom de structure enregistré                                           | ✅     |
 
 ### Tests d'intégration — connexion et déconnexion `POST /api/auth`, `DELETE /api/auth`
 

@@ -3,6 +3,7 @@ import type {
   IAccount,
   IAccountLogin,
   IAccountProfile,
+  INewAccount,
 } from "../@types/index.d.ts";
 export const accountDatamapper = {
   async findByEmail(email: string): Promise<IAccountLogin | undefined> {
@@ -24,14 +25,7 @@ export const accountDatamapper = {
     return result.rows[0];
   },
 
-  async createAccount(account: {
-    firstname: string;
-    lastname: string;
-    email: string;
-    password: string; // déjà haché par argon2
-    accountType: "particulier" | "association" | "entreprise";
-    organizationName: string | null;
-  }): Promise<IAccount> {
+  async createAccount(account: INewAccount): Promise<IAccount> {
     const sqlQuery = `
             INSERT INTO account
               (firstname, lastname, email, password,

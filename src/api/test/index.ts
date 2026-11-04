@@ -1,6 +1,7 @@
 import axios, { AxiosInstance, AxiosResponse } from "axios";
 import argon2 from "argon2";
 import { pool } from "../src/data/db-client.ts";
+import type { Role } from "../src/@types/index.d.ts";
 
 const apiBaseUrl = `http://localhost:${process.env.PORT}/api/`;
 
@@ -76,7 +77,7 @@ interface ITestAccount {
   lastname: string;
   email: string;
   password: string;
-  role: "customer" | "admin";
+  role: Role;
   isActive: boolean;
 }
 

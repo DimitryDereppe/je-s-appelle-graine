@@ -1,5 +1,5 @@
 import type {
-  AuthenticatedRequest,
+  IAuthenticatedRequest,
   IAccountProfile,
 } from "../@types/index.d.ts";
 import { accountDatamapper } from "../datamappers/accountDatamapper.ts";
@@ -9,7 +9,7 @@ import { UnauthorizedError } from "../lib/errors.ts";
 // recherche le compte connecté selon l'id placé par isConnected dans la requête
 // --------------------------------
 export async function getAuthenticatedUser(
-  req: AuthenticatedRequest,
+  req: IAuthenticatedRequest,
 ): Promise<IAccountProfile> {
   const userId = req.userId;
   if (!userId) {

@@ -1,5 +1,5 @@
 import type { Request, Response } from "express";
-import type { AuthenticatedRequest } from "../@types/index.d.ts";
+import type { IAuthenticatedRequest } from "../@types/index.d.ts";
 import { getAuthenticatedUser } from "./utils.ts";
 import { z } from "zod";
 import { ConflictError } from "../lib/errors.ts";
@@ -48,13 +48,17 @@ export async function register(req: Request, res: Response) {
   // mot de passe haché avec argon2 : seul le hash sera enregistré en BDD
   const hashedPassword = await argon2.hash(password);
 
+  // particulier → pas de structure (null), même si le front en envoie une (champ masqué mais encore rempli)
+  const savedOrganizationName =
+    accountType === "particulier" ? null : (organizationName ?? null);
+
   const newAccount = await accountDatamapper.createAccount({
     firstname,
     lastname,
     email,
     password: hashedPassword,
     accountType,
-    organizationName: organizationName ?? null,
+    organizationName: savedOrganizationName,
   });
   res.status(201).json(newAccount);
 }
@@ -64,7 +68,7 @@ export async function register(req: Request, res: Response) {
 // contrat #83 : réponse de POST /api/auth, plus l'adresse et le type de compte
 // (pour récapitulatif de la commande F5, espace client F6)
 // --------------------------------
-export async function getMe(req: AuthenticatedRequest, res: Response) {
+export async function getMe(req: IAuthenticatedRequest, res: Response) {
   const account = await getAuthenticatedUser(req);
 
   res.status(200).json({

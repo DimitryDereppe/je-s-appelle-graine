@@ -170,9 +170,11 @@ Ouvre `src/api/.env` et remplace `a_remplir` par le mot de passe de la base (le 
 NODE_ENV=development
 PORT=4050
 DATABASE_URL=postgres://graine:a_remplir@localhost:5433/graine
+ALLOWED_ORIGINS=http://localhost:3000
 ```
 
 - `PORT=4050` : un port différent de celui de l'API Docker (4000), pour éviter tout conflit.
+- `ALLOWED_ORIGINS` : l'adresse du front, le seul site autorisé à appeler l'API depuis un navigateur (CORS).
 - Dans `DATABASE_URL`, l'hôte est `localhost` et le port `5433`. Depuis ta machine, tu passes par le port publié par Docker (`POSTGRES_PORT`). L'hôte `db` et le port `5432` ne marchent qu'entre conteneurs.
 
 **Le front** (depuis `src/front/`) :
