@@ -29,17 +29,6 @@ export default function RegisterForm({ next }: RegisterFormProps) {
     setErrorMessage("");
     setSuccessMessage("");
 
-    const submittedAccountType = formData.get("accountType");
-
-    if (
-      submittedAccountType !== "particulier" &&
-      submittedAccountType !== "association" &&
-      submittedAccountType !== "entreprise"
-    ) {
-      setErrorMessage("Veuillez sélectionner un type de compte valide.");
-      return;
-    }
-
     const firstname = String(formData.get("firstName") ?? "").trim();
     const lastname = String(formData.get("lastName") ?? "").trim();
     const email = String(formData.get("email") ?? "").trim();
@@ -163,14 +152,13 @@ export default function RegisterForm({ next }: RegisterFormProps) {
 
         {accountType !== "particulier" && (
           <div className={styles.field}>
-            <label htmlFor="organizationName">Nom de la structure *</label>
+            <label htmlFor="organizationName">Nom de la structure </label>
             <input
               id="organizationName"
               name="organizationName"
               type="text"
               autoComplete="organization"
               placeholder="Nom de l’association ou de l’entreprise"
-              required
             />
           </div>
         )}
@@ -194,6 +182,7 @@ export default function RegisterForm({ next }: RegisterFormProps) {
             name="password"
             type="password"
             autoComplete="new-password"
+            placeholder="12 caractères minimum"
             required
           />
         </div>
