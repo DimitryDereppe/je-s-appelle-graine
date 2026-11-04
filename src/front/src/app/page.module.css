@@ -292,6 +292,15 @@
   text-align: center;
 }
 
+.buttonError {
+  border: none;
+  background-color: transparent;
+  color: #b00020;
+  text-align: center;
+  font-size: 1.4rem;
+  text-decoration: underline;
+
+}
 .treeCardSkeleton {
   display: flex;
   flex-direction: column;

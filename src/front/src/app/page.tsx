@@ -26,7 +26,11 @@ async function FeaturedTrees() {
         <p className={styles.errorMessage}>
           Impossible de charger les arbres pour le moment.
           <br />
-          Veuillez réessayer plus tard.
+           Chercher votre bonheur dans notre           <Link href="/arbres" passHref>
+            <button type="button" className={styles.buttonError}>
+              catalogue
+            </button>
+          </Link> !
         </p>
       </div>
     );
@@ -38,7 +42,11 @@ async function FeaturedTrees() {
         <p className={styles.emptyMessage}>
           Aucun arbre n&apos;est disponible pour le moment.
           <br />
-          Revenez bientôt pour découvrir nos nouveautés&nbsp;!
+         Chercher votre bonheur dans notre           <Link href="/arbres" passHref>
+            <button className={styles.ctaButton} type="button">
+              catalogue <span className={styles.arrow}>→</span>
+            </button>
+          </Link> !
         </p>
       </div>
     );
