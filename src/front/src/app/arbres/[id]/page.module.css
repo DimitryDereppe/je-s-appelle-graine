@@ -1,4 +1,3 @@
-
 .detail {
   width: 100%;
   min-height: 100vh;
@@ -52,6 +51,7 @@
   max-width: 720px;
   margin: 0 auto;
   background-color: #f8f6f8;
+  position: relative;
 }
 
 /* --- Image centrée --- */
@@ -67,6 +67,9 @@
   height: 260px;
   object-fit: cover;
   display: block;
+}
+.detailsWrapper {
+  position: relative;
 }
 
 /* --- Prix en vert, sous l'image à gauche --- */

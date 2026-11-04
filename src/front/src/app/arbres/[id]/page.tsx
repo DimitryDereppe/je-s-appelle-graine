@@ -16,7 +16,7 @@ export default async function FicheArbre({ params }: TreePageProps) {
 
   try {
     const response: ICatalogueTree = await api<ICatalogueTree, ICatalogueTree>(
-      `trees/${id}/`,
+      `trees/${id}`,
     );
     if (!response) {
       throw new Error("Impossible de charger cet arbre pour le moment.");
@@ -66,50 +66,53 @@ export default async function FicheArbre({ params }: TreePageProps) {
               alt={tree.name}
               className={styles.detailImage}
               fill
-              sizes="(min-width: 600px) 60vw, 100vw"
+              sizes="(max-width: 600px) 100vw, 30vw"
             />
           )}
         </div>
+        <div className={styles.detailsWrapper}>
+          <p className={styles.price}>{tree.price}€ TTC</p>
 
-        <p className={styles.price}>{tree.price}€ TTC</p>
+          <h1 className={styles.title}>{tree.name}</h1>
+          {tree.availabilityName && (
+            <p className={styles.subtitle}>{tree.availabilityName}</p>
+          )}
+          <p className={styles.subtitle}>{tree.categoryName}</p>
 
-        <h1 className={styles.title}>{tree.name}</h1>
-        {tree.availabilityName && (
-          <p className={styles.subtitle}>{tree.availabilityName}</p>
-        )}
-        <p className={styles.subtitle}>{tree.categoryName}</p>
-
-        {/* {tree.description && (
+          {/* {tree.description && (
           <p className={styles.description}>{tree.description}</p>
         )} */}
 
-        <p className={styles.location}>
-          <span className={styles.locationIcon} aria-hidden="true">
-            <Image
-              src="/assets/localisation.svg"
-              alt=""
-              className={styles.locationIcon}
-              width={18}
-              height={18}
-            />
-          </span>
-          <span className={styles.cardScientific}>{tree.plantingLocation}</span>
-        </p>
+          <p className={styles.location}>
+            <span className={styles.locationIcon} aria-hidden="true">
+              <Image
+                src="/assets/localisation.svg"
+                alt=""
+                className={styles.locationIcon}
+                width={18}
+                height={18}
+              />
+            </span>
+            <span className={styles.cardScientific}>
+              {tree.plantingLocation}
+            </span>
+          </p>
 
-        <div className={styles.actions}>
-          <button
-            className={styles.basketButton}
-            type="button"
-            aria-label={`Ajouter ${tree.name} au panier`}
-          >
-            <Image
-              src="/assets/panier.svg"
-              alt=""
-              className={styles.basketIcon}
-              width={24}
-              height={24}
-            />
-          </button>
+          <div className={styles.actions}>
+            <button
+              className={styles.basketButton}
+              type="button"
+              aria-label={`Ajouter ${tree.name} au panier`}
+            >
+              <Image
+                src="/assets/panier.svg"
+                alt=""
+                className={styles.basketIcon}
+                width={24}
+                height={24}
+              />
+            </button>
+          </div>
         </div>
       </section>
     </main>
