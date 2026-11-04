@@ -2,6 +2,92 @@
 
 Suivi de mon travail sur Je s’appelle Graine. Les décisions notées ici ont été prises avec l'équipe ; le suivi de l'équipe est dans le [carnet de bord Je s’appelle Graine](CARNET-DE-BORD-JE-S-APPELLE-GRAINE.md), que je tiens à jour.
 
+## 2026-11-04 — F3 dans `main`, relecture de F2 et priorités de fin de sprint
+
+### Travail réalisé
+
+- **Fin du back de F3** (#85, #88) : PR #136 et #144 fusionnées dans `back-F3`.
+  - `GET /api/users/me` complété avec l'adresse et le type de compte ;
+  - CORS limité au front avec `ALLOWED_ORIGINS`, port de l'API par défaut à 4050 ;
+  - un particulier enregistré sans structure ;
+  - typage : `IAccountBase`, `INewAccount`, `IAuthenticatedRequest`, `Role`, `IAccessToken` partagé.
+- **Fin du front de F3** avec le trinôme : `next` vérifié avec `new URL` (une tabulation dans l'adresse permettait de quitter le site), structure facultative, focus sur le champ à corriger après une erreur.
+- **Fusion de la F3 dans `main`** : PR #153.
+- **Priorités proposées à l'équipe** : terminer F1, F2 et F3 avant d'ouvrir de nouvelles features.
+- **Relecture de `back-F2`** pour aider Mahamadou : route `GET /api/categories` manquante, id trop grand qui répond 500, tests du filtre par catégorie à ajouter.
+
+### Ce que j'ai appris
+
+- Résoudre un conflit : lire les deux côtés, garder ce qui doit l'être, corriger à la main, puis tester avant de valider. « Accepter les deux » peut laisser une accolade manquante.
+- `git merge --abort` permet d'essayer une fusion en local, pour voir les conflits sans rien envoyer.
+- Le navigateur retire les tabulations et les retours à la ligne d'une adresse : contrôler le début d'une chaîne ne suffit pas, `new URL` donne la vraie destination.
+- Le type `FormEvent` de React est déprécié : pour un formulaire, c'est `SubmitEvent` (dû à la version de React).
+
+### Décisions (prises avec l'équipe)
+
+- La redirection du visiteur depuis « Ajouter au panier » (US05, US05b) est traitée avec la F4.
+- Après l'inscription, le visiteur passe par la page de connexion, puis revient à sa page d'origine.
+
+### À poursuivre
+
+- Accompagner Mahamadou et Loïc sur la fin de F2.
+- Organisation de la suite du sprint à définir avec l'équipe.
+
+## 2026-11-03 — Fin du back de F3 : `/users/me`, droits admin et tests
+
+### Travail réalisé
+
+- **Branche `feat/tests-auth`** (#85, #88), PR #136 vers `back-F3` :
+  - fusion de `back-F3` et `front-F3` pour travailler sur le code à jour ;
+  - `GET /api/users/me` (`isConnected`) : les champs de la connexion, plus `address`, `accountType` et `organizationName` (récapitulatif de F5, espace client F6) ;
+  - `getAuthenticatedUser` dans `controllers/utils.ts`, comme dans le cours : retrouve le compte connecté (401 s'il n'existe plus) ; prépare F4 (panier du client), F5 (acheteur copié dans la commande) et F6 (espace client) ;
+  - `/api/admin` protégé par `isConnected` et `checkRoles(["admin"])`, `adminRouter` prêt pour F7, F8, F9 ;
+  - `checkRoles` : pas de rôle → 401, rôle non autorisé → 403 ; messages conformes au contrat ;
+  - un seul traitement du JSON mal formé dans `errorMiddleware` après la fusion ;
+  - tests d'intégration : connexion, déconnexion (401 sans être connecté), inscription (201, 400, 409, 415, mot de passe haché), `/users/me`, droits sur `/api/admin` ; helper `loginAs` dans `test/index.ts` ;
+  - premiers tests unitaires du projet : `checkRoles` ;
+  - plan de tests : section F3 et nouveau type « Unitaire ».
+- **Relecture du code de l'équipe** (front et back) : remarques par fichier, partagées en tenant compte du travail en cours.
+- **Kanban** : #84 terminé (PR #141), #85 et #88 en revue (PR #136).
+
+### À poursuivre
+
+- Faire relire la PR #136 et la fusionner après vérification, puis #85 et #88 dans « Terminé ».
+- F5 front (#107) : récapitulatif (adresse de l'acheteur lue avec `/users/me`), paiement, confirmation.
+
+## 2026-11-02 — Préparation du sprint 2 et connexion `POST /api/auth`
+
+### Travail réalisé
+
+- **Préparation du sprint 2** :
+  - cartes du sprint 2 (#81 à #114, puis #121 à #123), classées par priorité ; format « Groupe / Responsable » ;
+  - organisation par feature : trinôme (Fabrice, Dimitry, Shanna) sur F3 et F5, binôme (Loïc, Mahamadou) sur F2 et F4 ;
+  - contrats d'API dans les cartes #83 (F3), #89 (F2), #99 (F4), #103 (F5) ;
+  - feuilles de route des 5 membres et vues du Kanban (« Sprint en cours », « Backlog », « Par personne ») mises à jour.
+- **Connexion `POST /api/auth`** (#85) avec Shanna (PR #132 vers `Back`) :
+  - Shanna : `authRouter` et `accountDatamapper.findByEmail` (jointure sur `role`) ;
+  - Fabrice : `login` (Zod, argon2, compte actif), jeton JWT de 24 h dans le cookie `accessToken` (`lib/token.ts`), erreurs Zod → 400 dans `errorMiddleware` ;
+  - `JWT_SECRET` dans `config.ts` : obligatoire en production, clé de secours en dev et en test ; ligne ajoutée dans DEPLOIEMENT.md ;
+  - réponses testées avec Rest Client : 400, 401 (même message que l'email existe ou non), 403, 200 avec le cookie.
+- **Seed** : nouveaux comptes (`prenom@graine.fr`, `alice` à `eve@test.fr`), mots de passe de 12 caractères hachés en Argon2 ; `bdd-arbres.json` supprimé (inutilisé, mots de passe en clair).
+
+### Ce que j'ai appris
+
+- `||` et non `??` pour `JWT_SECRET` : une ligne vide `JWT_SECRET=` donne `""`, pas `undefined`.
+- `res.cookie` et `res.clearCookie` sont dans Express ; `cookie-parser` ne sert qu'à lire `req.cookies`.
+- Le volume nommé `node_modules` de Docker n'est pas mis à jour par `--build` : après une nouvelle dépendance, il faut le supprimer (`docker volume rm src_api-node-modules`).
+
+### Décisions (prises avec l'équipe)
+
+- JWT : un jeton de 24 h (cahier des charges).
+
+### À poursuivre
+
+- `DELETE /api/auth`, `GET /api/users/me`, middlewares `isConnected` et `isAdmin` : Dimitry les utilise déjà dans le front (#86).
+- Tests de la connexion (#88).
+- Avec Dimitry : `JWT_SECRET` dans le `.env` du VPS, et mots de passe admin de la base de production.
+- Fusionner `Back` dans `main`.
+
 ## 2026-10-30 — Photos des arbres, revue du front et présentation du sprint 1
 
 ### Travail réalisé

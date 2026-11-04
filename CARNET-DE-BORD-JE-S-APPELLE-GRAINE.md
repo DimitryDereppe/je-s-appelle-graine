@@ -1,5 +1,86 @@
 # Carnet de bord — Je s’appelle Graine
 
+## 2026-11-04 — F3 fusionnée dans `main` ; fiche arbre et catalogue
+
+### Travail réalisé
+
+- **F3 dans `main`** (PR #153) :
+  - back par Fabrice (PR #136 et #144 vers `back-F3`) : `/users/me`, droits admin, CORS, tests ;
+  - en-tête mis à jour après la connexion par Dimitry (PR #150) ;
+  - page d'inscription par Shanna et Dimitry (PR #151) ;
+  - corrections du front par Fabrice : `next` vérifié avec `new URL`, focus après une erreur.
+  - compte désactivé après la connexion → 403 sur `/users/me` et tests d'inscription par Dimitry (PR #155).
+- **Catalogue côté API** par Mahamadou (PR #147 vers `back-F2`) : une seule route et une seule requête pour le filtre et la recherche, tests de la recherche.
+- **Fiche arbre et page 404** par Loïc (PR #149 et #152 vers `front-F2`).
+- **Kanban** : cartes de F3 terminées (#83 à #88, #121) ; US05 et US05b déplacées dans la F4.
+
+### Décisions
+
+- La redirection du visiteur depuis « Ajouter au panier » (US05, US05b) est traitée avec la F4.
+- Après l'inscription, le visiteur passe par la page de connexion, puis revient à sa page d'origine.
+
+### À poursuivre
+
+- F2 (Loïc, Mahamadou) : `GET /api/categories`, id trop grand qui répond 500, tests du filtre.
+- Conflit à résoudre en fusionnant F2 et `main` : `src/api/test/index.ts`, en gardant les deux côtés (à voir avec Fabrice).
+- Organisation de la suite du sprint à définir en équipe.
+
+## 2026-11-03 — F3 : inscription, déconnexion, droits et tests ; catalogue côté front
+
+### Travail réalisé
+
+- **Inscription `POST /api/users`** (#84) par Dimitry (PR #141 vers `back-F3`, carte terminée) : validation Zod, 409 si l'email existe déjà, mot de passe haché ; middleware `validateContentType` (415 si le body n'est pas du JSON), JSON mal formé → 400.
+- **Déconnexion `DELETE /api/auth`** par Shanna (PR #134 vers `back-F3`), protégée ensuite par `isConnected`.
+- **`/users/me` (appelée par l'en-tête de Dimitry), droits admin et tests de F3** (#85, #88) par Fabrice (PR #136 vers `back-F3`, en revue) : `checkRoles`, `/api/admin` protégé, tests d'intégration de l'inscription, de la connexion, de la déconnexion et des droits, premiers tests unitaires, section F3 du plan de tests ; `/users/me` renvoie aussi l'adresse et le type de compte, et `getAuthenticatedUser` (`controllers/utils.ts`, comme dans le cours) retrouve le compte connecté : ils préparent F4 (panier), F5 (commande) et F6 (espace client).
+- **Page de connexion et en-tête connecté** (#86) par Dimitry sur `front-F3`, relus ensemble.
+- **Catalogue côté front** par Loïc (PR #135, #137, #138 et #142 vers `front-F2`) : photos venues de l'API, fonction commune d'appel à l'API, carte arbre du catalogue.
+- **Filtre et recherche du catalogue côté API** par Mahamadou sur `feat/tree` : filtre par catégorie, recherche par nom combinable, tests compatibles Windows.
+
+### Branches en cours sur GitHub
+
+| Branche           | Qui        | Contenu                                                       | État                                        |
+| ----------------- | ---------- | ------------------------------------------------------------- | ------------------------------------------- |
+| `back-F3`         | trinôme F3 | inscription, connexion, déconnexion                           | reçoit les PR de F3, pas encore dans `main` |
+| `front-F3`        | Dimitry    | connexion et en-tête connecté (#86), avec `back-F3` fusionnée | pas encore dans `main`                      |
+| `feat/tests-auth` | Fabrice    | `/users/me`, droits admin, tests de F3                        | PR #136 vers `back-F3`, en revue            |
+| `front-F2`        | Loïc       | catalogue côté front, appel à l'API commun                    | pas encore dans `main`                      |
+| `feat/tree`       | Mahamadou  | filtre par catégorie et recherche par nom                     | pas de PR                                   |
+
+La page d'inscription (#121, Shanna) est en cours, sans branche sur GitHub pour l'instant.
+
+### À poursuivre
+
+- F3 : relire la PR #136, terminer `back-F3` et `front-F3`, puis les fusionner dans `main` après vérification.
+- F2 : terminer `feat/tree` (filtre et recherche du catalogue) et `front-F2`, puis les fusionner après vérification.
+- Page d'inscription (#121) et messages d'erreur des formulaires (#87).
+- F5 (commande) : contrat #103, puis back et front.
+
+## 2026-11-02 — Début du sprint 2 : connexion, catalogue et production
+
+### Travail réalisé
+
+- **Sprint 2 préparé** : cartes classées par priorité, contrats d'API dans les cartes de chaque feature, feuilles de route et vues du Kanban.
+- **Connexion `POST /api/auth`** (#85) par Shanna et Fabrice (PR #132 vers `Back`) : validation Zod, mot de passe vérifié avec argon2, jeton JWT de 24 h dans le cookie `accessToken` ; `JWT_SECRET` obligatoire en production.
+- **Seed** : nouveaux comptes de test, mots de passe de 12 caractères ; `bdd-arbres.json` supprimé.
+- **Page de connexion et en-tête connecté** (#86) par Dimitry (PR #130 vers `Front`) : formulaire, messages 401 et 403, déconnexion, retour à la page d'origine après la connexion (US06).
+- **Valeurs métier en français** (disponibilité, statut, type de compte, paiement) par Dimitry (PR #124), tests mis à jour.
+- **Build de production de l'API corrigé** par Dimitry (PR #127) : les fichiers de test n'entrent plus dans le build ; dépendances npm dédoublonnées (PR #126) ; guide de mise à jour de la BDD de la VM (PR #129).
+- **Catalogue** par Loïc et Mahamadou : page `/arbres` (dossier renommé), vignettes `TreeCard`, photos servies par l'API (PR #128), filtre par catégorie côté API (`feat/tree`).
+
+### Décisions
+
+- Organisation du sprint 2 par feature : trinôme (Fabrice, Dimitry, Shanna) sur F3 et F5, binôme (Loïc, Mahamadou) sur F2 et F4 ;
+- JWT : un jeton de 24 h.
+- Après la connexion, retour vers la page d'origine (US06), validé par le trinôme.
+- Mots de passe des comptes clients de test dans le dépôt ; ceux des admins partagés en privé.
+
+### À poursuivre
+
+- Après la fusion de la connexion, chacun recrée le volume `node_modules` de l'API et relance `npm run db:seed`.
+- Routes `DELETE /api/auth` et `GET /api/users/me`, utilisées par le front (#86) ; puis inscription (#84, #121).
+- Production : `JWT_SECRET` dans le `.env` du VPS, mots de passe admin à changer.
+- Déploiements individuels de Mahamadou et Shanna (#34, #36).
+
 ## 2026-10-30 — Accueil branché sur l'API, tests et présentation du sprint 1
 
 ### Travail réalisé

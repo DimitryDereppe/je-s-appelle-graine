@@ -2,7 +2,363 @@
 
 Suivi de mon travail sur Je s’appelle Graine. Les décisions notées ici ont été prises avec l'équipe sur Discord ; le suivi de l'équipe est dans le [[Apothéose/apo-jesappellegraine/CARNET-DE-BORD-JE-S-APPELLE-GRAINE|carnet de bord Je s’appelle Graine]].
 
-## 2026-10-30 (soir) — Déploiement : certificat renouvelé et site mis à jour automatiquement
+## 2026-11-03 (après-midi) — Carte #84 : création du compte, 415, JSON mal formé, PR prête
+
+Branche `feat/userRouter`, poussée, à jour avec GitHub, sans conflit avec `back-F3`. Commits `fba0c82` (INSERT + hachage), `d5a9a5c` et `9958a84` (415), `c23d0e0` et `91f05ef` (JSON mal formé), `4c84622` (middleware de connexion, hors carte), `0959b02` (renommage `indexRouter.ts`). Fichiers : `accountDatamapper.ts`, `userController.ts`, `validateContentTypeMiddleware.ts` (nouveau), `isConnectedMiddleware.ts` (nouveau), `errors.ts`, `errorMiddleware.ts`, `app.ts`, `@types/index.d.ts`, `test.user.http`.
+
+**Résultat** : `POST /api/users` crée vraiment le compte : `201` avec l'`id`, sans le mot de passe, hash `$argon2id` en base, rôle `customer`. Un body non JSON renvoie `415`, un JSON mal formé `400` au lieu de `500`. Tous les cas de `test.user.http` donnent le code attendu. Le code de la carte #84 est fini ; la description de la PR est prête, la PR pas encore ouverte.
+
+### Travail réalisé
+
+- **Création du compte** (commit `fba0c82`) : `accountDatamapper.createAccount` :
+  - `INSERT INTO account (...) VALUES ($1, ..., $6, ...)` paramétré (protège de l'injection SQL) ;
+  - `role_id` par sous-requête `(SELECT id FROM role WHERE name = 'customer')`, sans id en dur ;
+  - `RETURNING` des champs du contrat avec alias camelCase, **sans** `password`, plus `'customer' AS "role"` (valeur fixe, évite une jointure) ;
+  - dans `register` : `password: hashedPassword`, `organizationName ?? null`, puis `res.status(201).json(newAccount)`.
+- **415** (commits `d5a9a5c`, `9958a84`) : classe `ContentTypeError` (415) dans `errors.ts` ; middleware `validateContentType` sur le modèle de `validateId` :
+  - ne contrôle que POST, PUT et PATCH (`["POST", "PUT", "PATCH"].includes(req.method)`) ;
+  - lit l'en-tête avec `req.get("Content-Type")` et accepte `application/json; charset=utf-8` grâce à `startsWith` ;
+  - branché dans `app.ts` avant `cookieParser` et `apiRouter`.
+- **JSON mal formé → 400** (commits `c23d0e0`, `91f05ef`) : `if (error instanceof SyntaxError)` dans `globalErrorHandler`, placé avant le `500`, message du contrat « Les données envoyées sont mal formées. ».
+- **Contrat #83 modifié** : `"role": "customer"` ajouté à la réponse `201` de `POST /api/users` (même forme que `POST /api/auth`).
+- **`test.user.http`** : mots de passe des comptes du seed corrigés (alice avait celui des admins), connexion de `robert` (absent du seed) remplacée par `dimitry`, ajout de `bob` (compte désactivé → `403`).
+- **Hors carte** (commit `4c84622`) : `isConnected` (pas de cookie ou JWT invalide/expiré → `401`, `jwt.verify` dans un `try/catch`) et `checkRoles([...])` (rôle non autorisé → `403`), type `AuthenticatedRequest` dans `@types/index.d.ts`. Branchés sur aucune route. Relève de la carte #85 (Fabrice).
+
+### Décisions
+
+- **415 seulement sur POST, PUT, PATCH** : GET et DELETE n'ont pas de body ; sinon `GET /api/trees` et le logout seraient bloqués.
+- **`startsWith` et non `===`** sur le `Content-Type` : un client peut ajouter `; charset=utf-8`.
+- **Garder `role` dans la réponse 201** et mettre le contrat à jour plutôt que retirer le champ : même réponse que la connexion, rien ne casse côté front.
+- **Tests d'intégration hors de la carte #84** : ils sont dans la carte #88 (Fabrice). La carte #84 dit encore « Tests écrits et au vert » : à signaler dans la PR.
+- **`Closes #84` dans la PR** : relie la PR à la carte, mais ne la ferme pas au merge (la base est `back-F3`, pas `main`).
+
+### Difficultés
+
+- **`500` sur l'inscription** : virgule après le dernier champ du body dans `test.user.http`. JSON l'interdit ; `express.json()` levait une `SyntaxError` → `500`. D'où le cas « JSON mal formé → 400 ».
+- **Message Zod trompeur sans 415** : un body `text/plain` n'est pas lu par `express.json()`, `req.body` vaut `undefined` et Zod répondait `400` « expected object, received undefined ».
+- **API plantée** : guillemet en trop à la fin de l'import de `validateContentType` dans `app.ts` (`TS1002: Unterminated string literal`), puis `if (error instanceof` laissé inachevé dans `errorMiddleware.ts`.
+- **Middleware de connexion recopié d'oQuiz** : imports vers Prisma (`Role`), `../@types/express.js` et `../lib/tokens.ts` inexistants ; `jwt.verify` non attrapé (→ `500`) ; `checkRoles` renvoyait `401` au lieu de `403`.
+- **Fausse alerte « alice absente »** : requête SQL limitée à 4 lignes ; alice existe (id 6), seul son mot de passe était faux dans `test.user.http`.
+
+### À poursuivre
+
+- **Carte #84** : ouvrir la PR vers `back-F3` (relecteur `loicRoch`), description prête ; prévenir le trinôme et le front du changement du contrat #83.
+- **Carte #85** : voir avec Fabrice pour `isConnectedMiddleware.ts` (éviter un doublon), et le brancher sur `/api/admin`.
+- **Carte #88** : tests d'intégration de l'inscription (`201` sans mot de passe, `400`, `409`, `415`, JSON mal formé).
+- Limite connue : `instanceof SyntaxError` attrape aussi une `SyntaxError` levée par notre propre code (elle donnerait `400` au lieu de `500`).
+
+## 2026-11-03 (suite) — Carte #84 : email déjà utilisé (409) et hachage argon2
+
+Branche `feat/userRouter`, commits `204fb66` (suppression du `.gitkeep` de `middlewares/`) et `d54a024` (409), pas encore poussés. Fichier : `src/api/src/controllers/userController.ts`.
+
+**Résultat** : un email déjà en base renvoie `409` « Cet email est déjà utilisé. » ; un nouvel email passe en `201`. Le hachage du mot de passe est écrit mais pas encore commité (il ne sert qu'avec l'`INSERT` de l'étape 5).
+
+### Travail réalisé
+
+- **Email unique** (commit `d54a024`) : `accountDatamapper.findByEmail(email)` réutilisé ; `if (existingAccount) throw new ConflictError(...)`. `findByEmail` renvoie un compte ou `undefined`, et `undefined` est *falsy* : le `if` suffit.
+- **Hachage** (non commité) : `const hashedPassword = await argon2.hash(password);`, placé **après** la vérification de l'email. `password` remis dans la déstructuration du résultat de Zod.
+- **`.gitkeep`** : supprimés de `controllers/` et `middlewares/`, qui contiennent maintenant des fichiers ; gardé dans `services/`, encore vide.
+
+### Décisions
+
+- **`409 Conflict` et non `401`** : le visiteur n'a rien à prouver, sa demande entre en conflit avec un compte existant.
+- **Pas de contrôle `isActive` à l'inscription** : il a du sens à la connexion, pas pour un compte qui n'existe pas encore.
+- **Hacher après le contrôle de l'email** : argon2 est volontairement lent ; inutile de payer ce coût pour une demande refusée.
+- **Commit du 409 seul, hachage gardé en local** : avec `--max-warnings=0`, une variable `hashedPassword` (ou un import `argon2`) inutilisée bloque le commit. Le hachage sera commité avec l'`INSERT`.
+
+### Difficultés
+
+- **`500` pour un nouvel email** : bloc `isActive` recopié de `login` ; `findByEmail` renvoyait `undefined`, et lire `undefined.isActive` faisait planter. En plus, le `if` n'était pas fermé : la réponse `201` était dedans (`}}` en fin de fonction).
+- **Ligne insérée au milieu d'une instruction** : `const hashedPassword = ...` placé entre `const { ... } =` et `await registerBodySchema.parseAsync(...)`.
+- **Commit bloqué par lint-staged** : `'argon2' is defined but never used` une fois la ligne du hachage commentée.
+
+### À poursuivre (carte #84)
+
+- **Étape 5** : `accountDatamapper.create` — `INSERT INTO account (...) VALUES ($1, ...)` paramétré, `role_id` via une sous-requête sur `role` (`name = 'customer'`) sans `1` en dur, `RETURNING` des 6 champs du contrat avec alias camelCase et **sans** `password`. Dans `register` : appeler `create` avec `hashedPassword`, répondre `201` avec la ligne renvoyée (`id` compris). Commiter alors hachage + `INSERT` ensemble.
+- **Étape 7** : middleware `415` (POST, PUT, PATCH seulement) + classe d'erreur 415 dans `errors.ts`.
+- **Étape 8** : tests d'intégration (`201` sans mot de passe, `400`, `409`, `415`).
+- PR vers `back-F3` (`Closes #84` si tous les critères sont remplis), relecteur `loicRoch`.
+
+## 2026-11-03 (matin) — Carte #84 : inscription `POST /api/users`, route et validation Zod
+
+Branche `feat/userRouter` (partie de `back-F3`), commits `d0a63cd` et `3c68601` (pas encore poussés). Fichiers : `src/api/src/routers/userRouter.ts` (nouveau), `src/api/src/routers/index.router.ts`, `src/api/src/controllers/userController.ts` (nouveau), `src/api/test/test.user.http` (nouveau).
+
+**Résultat** : `POST /api/users` répond et valide le body selon le contrat de la carte #83 : `201` avec les données validées (sans le mot de passe) ou `400` avec un message en français. Rien n'est encore enregistré en base.
+
+### Travail réalisé
+
+- **Routeur `userRouter`** : `router.post("/users", register)`, branché dans `index.router.ts` comme `treeRouter` et `authRouter`. Le chemin est `/users`, sans `/api`, que `app.ts` ajoute déjà (`app.use("/api", apiRouter)`). Les routes des cartes suivantes (`/users/me`…) sont gardées en commentaire comme mémo.
+- **Schéma Zod `registerBodySchema`** (commit `3c68601`) :
+  - `firstname`, `lastname` : `z.string({ error })` pour un champ absent, `.min(1, { error })` pour un champ vide ;
+  - `email` : `z.email()` ;
+  - `password` : `.min(12)` avec son propre message (« Le mot de passe doit contenir au moins 12 caractères. ») ;
+  - `accountType` : `z.enum(["particulier", "association", "entreprise"]).default("particulier")`, mêmes valeurs que le `CHECK` de la table `account` ;
+  - `organizationName` : `.optional().nullable()` (absent ou `null`).
+- **Réponse provisoire** : `201` avec les champs validés, `organizationName ?? null` pour que la clé apparaisse toujours (une valeur `undefined` disparaît du JSON).
+- **`test.user.http`** : 10 requêtes nommées (`### code attendu · cas`) : 3 cas `201`, 5 cas `400`, `409` (email d'alice) et `415` (body en `text/plain`) pour les étapes suivantes.
+- **Vérifications** : les 7 cas `201`/`400` donnent le code et le message attendus ; ESLint passe.
+
+### Décisions
+
+- **Un routeur `userRouter` à part plutôt que dans `authRouter`** : `/users` est une ressource (les comptes), `/auth` la session. Un fichier par responsabilité (SoC).
+- **Deux messages par champ texte obligatoire** : avec Zod 4, le message de `z.string({ error })` s'applique à toutes les erreurs du champ si la règle n'a pas le sien. Sans message sur `.min(12)`, un mot de passe trop court affichait « Mot de passe obligatoire. ».
+- **Zod refuse les mêmes valeurs que la base** : une valeur hors du `CHECK` donne un `400` clair, au lieu d'une erreur PostgreSQL en `500`.
+- **Le mot de passe n'est jamais renvoyé**, même dans la réponse provisoire (contrat #83, entête § 12).
+
+### Difficultés
+
+- **API plantée au démarrage** : `TypeError: argument handler is required` (`userRouter.ts:5`). Les lignes `router.get("/users/me")` n'avaient pas de fonction ; Express refuse une route sans *handler*. Solution : ne garder que la route qui a un controller, les autres en commentaire.
+- **`tsx` n'a pas relancé le serveur** après la correction : le processus avait planté au démarrage. Solution : `docker restart src-api-1`, puis lire `docker logs --tail 10 src-api-1`.
+- **Branche créée depuis `front-F3`** (12 commits du front en trop) : rattrapé avant le premier commit avec `git stash -u`, `git switch back-F3`, `git branch -D`, `git switch -c`, `git stash pop`. Vérification : `git log --oneline back-F3..HEAD` vide.
+- **Schéma défini mais jamais appliqué** : tout passait en `200`, même un mot de passe de 5 caractères. Il manquait `parseAsync(req.body)`.
+- **Confusion règle / valeur** dans la première version du schéma (`firstname: "John"`) : le schéma décrit des règles, les valeurs d'exemple vont dans le body de `test.user.http`.
+
+### À poursuivre (carte #84)
+
+- **Étape 3** : email déjà utilisé → `409` (`accountDatamapper.findByEmail` + `ConflictError`).
+- **Étape 4** : hacher le mot de passe (`argon2.hash`) ; remettre `password` dans la déstructuration.
+- **Étape 5** : `accountDatamapper.create` (`INSERT` paramétré, `role_id` du rôle `customer` sans le coder en dur, `RETURNING` sans le mot de passe) ; réponse `201` avec l'`id`.
+- **Étape 7** : middleware `415` pour les requêtes non JSON, limité à POST, PUT et PATCH (le `DELETE /api/auth` de la déconnexion n'a pas de body).
+- **Étape 8** : tests d'intégration (`201` sans mot de passe, `400`, `409`, `415`).
+- Écart avec le contrat dans `login` : « Ce compte est désactivé, veuillez contacter l'administrateur. » au lieu de « Ce compte est désactivé. ».
+
+## 2026-11-02 (fin de journée) — Carte #86 : en-tête connecté, déconnexion, page de connexion à la maquette
+
+Branche `feat/formulaires-connexion-inscription`, commits `aa62b94`, `aba6336` et `7d2bb4d` (pas encore poussés). Fichiers : `src/front/src/components/header/Header.tsx` et `header.module.css`, `src/front/src/app/connexion/page.tsx`, `LoginForm.tsx` et `page.module.css` (nouveau).
+
+**Résultat** : l'en-tête affiche « Bonjour {prénom} » et un bouton « Déconnexion » pour une personne connectée, et « Connexion » pour un visiteur (US20, US21). La page `/connexion` suit la maquette v7. Rien ne fonctionne encore de bout en bout : l'API n'a aucune route d'authentification.
+
+### Travail réalisé
+
+- **État connecté** (commit `aa62b94`) : state `user` (`useState<User | null>(null)`) et `useEffect` qui appelle `GET /api/users/me` au premier affichage. `200` → `setUser(data)` ; `401` ou API injoignable → `null`, sans message d'erreur. « Connexion » sort du tableau `navigationLinks` et s'affiche sous condition : `{user ? (prénom + bouton) : <Link>}`, avec un fragment `<>…</>`.
+- **Déconnexion** (commit `aba6336`) : `handleLogout` appelle `DELETE /api/auth`, puis `setUser(null)`, ferme le menu mobile et renvoie vers `/` (`router.push`).
+- **Page de connexion à la maquette** (commit `7d2bb4d`) : maquette v7 page 4 ([maquette](docs/design/maquettes/maquette-complete-je-sappelle-graine-v7.pdf)) préférée au wireframe, plus ancien. Sur-titre « Votre espace », trait terracotta sous le titre (`::after`), « * (champs obligatoires) », photo `acceuil.png` à droite sur ordinateur et au-dessus en mobile (`order`).
+- **En-tête à la maquette** : « Connexion » et « Bonjour … » en texte simple. Un cadre vert ajouté plus tôt a été retiré.
+- **Correctif mobile** : sous 375 px, l'icône panier sortait de l'écran. Le logo avait `flex: 0 0 auto` et ne pouvait pas rétrécir. Passé à `flex: 0 1 auto` + `min-width: 0`, et nom du site en `font-size: clamp(1rem, 5vw, 1.25rem)`.
+- **Vérifications** : ESLint (`--max-warnings=0`), `tsc --noEmit` et Prettier passent. Rendu vérifié dans Firefox (Playwright) à 320, 375 et 1280 px.
+
+### Décisions
+
+- **Le front ne lit jamais le cookie JWT** : il est `httpOnly`, donc invisible pour `document.cookie`, ce qui protège le token d'un script malveillant (XSS). Le navigateur l'envoie tout seul, et seule l'API peut dire qui est connecté (`GET /api/users/me`) ou supprimer le cookie (`DELETE /api/auth`, réponse `204` avec un cookie expiré).
+- **`GET /api/users/me` renvoie `200`, pas `201`** : `201 Created` répond à une création (`POST`) ; un `GET` ne fait que lire.
+- **Après la déconnexion, `setUser(null)` est obligatoire** : React ne sait rien du cookie et ne réaffiche le composant que si un state change.
+- **`Refs #86` et non `Closes #86` dans la PR** : la carte se fermerait à la fusion alors que deux critères « Fini quand » ne sont pas remplis (bout en bout, clavier).
+
+### Difficultés
+
+- **Commit refusé par husky / lint-staged** : `'user' is assigned a value but never used`. Avec `--max-warnings=0`, un seul avertissement bloque le commit. Solution : faire l'étape suivante, qui utilise `user`, avant de commiter, plutôt que `--no-verify`.
+- **Même erreur une 2e fois** : le fichier avait changé après le `git add` (`git status` : `MM`). Lint-staged ne vérifie que la version indexée ; il fallait réindexer.
+- **Connexion impossible avec les comptes de `bdd-arbres.json`** : l'API répond `404 {"error":"Ressource introuvable"}` à `POST /api/auth`. Seules `/health` et `/trees…` existent. Le formulaire a donc affiché le message générique, comme prévu.
+
+### À poursuivre
+
+- **Routes de l'API à créer** (à répartir avec le trinôme, pas de carte vue) : `POST /api/auth`, `GET /api/users/me`, `DELETE /api/auth`.
+- **Ouvrir la PR de la branche** : description préparée (`Refs #86`), relecteur `loicRoch` (cf. carte).
+- **Tester au clavier** (Tab / Entrée) la page et l'en-tête, puis de bout en bout quand l'API sera prête.
+- Le commit `7d2bb4d` a deux titres collés dans son message : à corriger avant de pousser si souhaité.
+- La page `/inscription` n'existe pas : « Créer un compte » mène à une 404.
+- Aucun message si la déconnexion échoue : à décider avec le trinôme.
+- Le dossier `.playwright-mcp/` (captures de Playwright) n'est pas dans le `.gitignore`.
+
+## 2026-11-02 (soir, suite) — Carte #86 : retour après la connexion (US06)
+
+Branche `feat/formulaires-connexion-inscription`. Commit `b7dce3e` : `connexion/LoginForm.tsx`, `connexion/page.tsx` et `arbres/AddToCartButton.tsx` (dans `src/front/src/app/`).
+
+**Résultat** : après une connexion réussie, l'utilisateur revient sur la page d'où il venait, filtres compris (ex. `/arbres?category=fruitier`). L'évolution US06 du cahier des charges est donc faite en avance sur le MVP.
+
+### Travail réalisé
+
+- **Cahier des charges relu** ([[Apothéose/apo-jesappellegraine/docs/specifications/CAHIER-DES-CHARGES-JE-S-APPELLE-GRAINE|cahier des charges]] §parcours d'achat, [[Apothéose/apo-jesappellegraine/docs/specifications/user-stories|user stories]] US05, US05b, US06) : la page où renvoyer après la connexion n'est pas fixée ; le retour automatique est une **évolution** (US06).
+- **`AddToCartButton.tsx`** : sur un 401/403, envoie vers `/connexion?next=<page actuelle>` (`window.location.pathname + window.location.search`, encodé avec `encodeURIComponent`). Remplace `next=/trees`, une page qui n'existe pas.
+- **`connexion/page.tsx`** : lit `next` dans `searchParams` (même modèle que `arbres/page.tsx`) et le passe en prop à `LoginForm`.
+- **`LoginForm.tsx`**, après une réponse réussie, dans l'ordre :
+  1. `next` présent et adresse du site → `router.push(next)` ;
+  2. sinon, s'il y a une page précédente (`window.history.length > 1`) → `router.back()` ;
+  3. sinon → `router.push("/")`.
+- **Vérifications** : `tsc --noEmit` et ESLint passent ; `/connexion?next=...` répond 200. Pas de test en navigateur (Firefox de Playwright pas installé, `POST /api/auth` absente).
+
+### Décisions
+
+- **Implémenter US06 (retour sur la page d'origine) dès maintenant, alors qu'elle est classée en évolution** :
+  - **Ce que disent les documents** : le cahier des charges ne fixe pas la page où renvoyer après la connexion pour le MVP (le client « revient sur la fiche de l'arbre » lui-même) ; US05b (MVP) demande seulement de pouvoir « accéder au panier » une fois connecté ; US06 (Évo) demande le retour automatique « pour reprendre mon achat là où je l'avais laissé ». La carte #86, elle, dit « après connexion, retour vers le panier ».
+  - **Options écartées** :
+    - **page fixe `/`** (accueil) : le visiteur perd sa place dans le catalogue et ses filtres, il doit tout refaire pour ajouter son arbre ;
+    - **retour vers le panier** (texte de la carte) : la page `/panier` n'existe pas encore, et le panier serait vide puisque l'ajout a été refusé avant la connexion ;
+    - **`router.back()` seul** (première version) : simple, mais renvoie hors du site quand on arrive sur `/connexion` depuis un e-mail ou un moteur de recherche, et ne fait rien dans un onglet neuf.
+  - **Pourquoi US06** : c'est la seule option qui ramène le visiteur au geste qu'il était en train de faire (ajouter un arbre au panier), donc qui ne casse pas le parcours d'achat. Le coût est faible (une dizaine de lignes) parce que `AddToCartButton` passait déjà un paramètre `next` (vers `/trees`, inexistant) et que le modèle `searchParams` existe déjà dans `arbres/page.tsx`.
+  - **`router.back()` et l'accueil gardés en secours** quand `next` est absent ou refusé.
+  - **Validé par le trinôme (Fabrice, Shanna) le 02/11** : la carte #86 dit maintenant « après connexion, retour vers la page d'origine, filtres compris (US06) » au lieu de « retour vers le panier ».
+- **`next` vérifié avant la redirection** : il doit commencer par `/`, mais ni par `//` ni par `/\` (que le navigateur lit comme l'adresse d'un autre site). Sans ce contrôle, un lien piégé `/connexion?next=https://faux-site.fr` renverrait l'utilisateur, juste connecté, vers un site pirate.
+- **`searchParams` côté page serveur plutôt que `useSearchParams`** : reprend un modèle déjà présent dans le projet, et évite le `<Suspense>` que Next.js exige autour de `useSearchParams`.
+
+### Difficultés
+
+- **`/home` n'existe pas** : dans l'App Router, chaque dossier de `src/app/` est une adresse ; la page d'accueil (`src/app/page.tsx`) est `/`.
+- **Un `else` jamais atteint** : `if (response.ok) ... else ...` après le `if (!response.ok) return;` — la condition à tester était « y a-t-il une page où revenir ? », pas « la réponse est-elle bonne ? ».
+
+### À poursuivre
+
+- Prévenir l'équipe front de la modification de `AddToCartButton.tsx`.
+- Tester quand `POST /api/auth` existera : depuis `/arbres?category=...` → retour au même filtre ; `/connexion` tapé dans un onglet neuf → `/` ; `next=//exemple.com` → pas de sortie du site.
+- Limite connue : sans `next`, `router.back()` peut ramener hors du site (arrivée depuis un e-mail ou Google).
+
+## 2026-11-02 (soir) — Carte #86 : page de connexion (front)
+
+Branche `feat/formulaires-connexion-inscription`, fichier `src/front/src/app/connexion/LoginForm.tsx`.
+
+**Résultat** : la page `/connexion` envoie l'e-mail et le mot de passe à `POST /api/auth` et affiche un message clair pour chaque cas d'erreur. Elle ne redirige pas encore après une connexion réussie.
+
+### Travail réalisé
+
+- **Formulaire statique** (commit `57088d4`) : champs e-mail et mot de passe, lien vers `/inscription`.
+- **Interception de l'envoi** avec `<form action={handleLogin}>` (commit `84a329d`).
+- **Message d'erreur** (commit `9dd24e2`) : état `errorMessage` (`useState`), affiché dans un `<p role="alert">` au-dessus du bouton et vidé au début de `handleLogin`.
+- **Appel à l'API** (commit `b3d1322`) : `fetch` en `POST` et en JSON, vérification `typeof` des champs avant l'envoi, messages pour le 401 (identifiants incorrects) et le 403 (compte bloqué), `try/catch` avec un message générique.
+- **Correction du cas `!response.ok`** (commit `2a2da2f`) : un `throw` suivi d'un `return` jamais exécuté. Le `catch` sans paramètre perdait le message du `throw` et affichait « Une erreur est survenue. ». Le bloc reprend la forme du 401/403 : `setErrorMessage("Quelque chose n’a pas fonctionné.")` puis `return`.
+
+### Décisions
+
+- **Le `catch` est réservé au serveur injoignable** : `fetch` ne lève pas d'erreur pour un 404 ou un 500 (c'est une réponse) ; il en lève une seulement quand aucune réponse n'arrive.
+
+### Difficultés
+
+- **Code après un `throw`** : `throw` quitte le bloc `try` tout de suite et saute dans le `catch` ; le `return` placé après ne s'exécute jamais.
+
+### À poursuivre
+
+- **Étape 5 — redirection après connexion réussie** :
+  1. rediriger vers une page fixe (`useRouter` + `router.push`, comme dans `AddToCartButton.tsx`) ;
+  2. lire le paramètre `next` de l'adresse pour revenir à la page d'origine ;
+  3. n'accepter qu'un `next` qui commence par `/` (pas de redirection vers un autre site).
+- **`AddToCartButton.tsx` ligne 30** envoie vers `/connexion?next=/trees`, mais la page des arbres est `/arbres` (pas de dossier `trees` dans `src/app/`).
+- **La route `POST /api/auth` n'existe pas encore dans l'API** (ni sur `main`, ni sur `back`) : elle répond 404 pour l'instant. Tester les cas 401, 403 et la connexion réussie quand elle sera faite.
+
+## 2026-11-02 (après-midi) — Production : build de l'API cassé par les tests
+
+Branche `fix/build-api-sans-tests` (commit `74ec70e`), créée depuis `main`.
+
+**Résultat** : l'image de production de l'API se construit à nouveau (testé en local avec `Dockerfile.prod`). Sur la VM, rien n'a changé : le site tourne toujours avec l'ancienne image et l'ancienne base, qui sont cohérentes entre elles.
+
+### Travail réalisé
+
+- **Mise à jour de la VM tentée** (passage des valeurs en français) : `docker compose -f docker-compose.prod.yml up -d --build` a échoué au build de l'API (`TS2307: Cannot find module '../test/index.ts'`).
+- **Correction** :
+  - `src/api/tsconfig.build.json` : reprend `tsconfig.json` sans `test/` ni les `*.spec.test.ts` / `*.unit.test.ts` ;
+  - `npm run build` lance `tsc -p tsconfig.build.json` ; `Dockerfile.prod` copie ce fichier ;
+  - `.dockerignore` : `tests` corrigé en `test`.
+- **Tests** :
+  - erreur reproduite en local en compilant sans `test/`, comme dans l'image ;
+  - après correction : `build`, `typecheck` (tests compris) et `lint` passent ;
+  - image construite avec `Dockerfile.prod` : aucun fichier de test dans `dist/`, photos présentes ; conteneur démarré sur la base locale → `/api/health`, `/api/trees/featured` et une photo en `200`.
+- **Guide** « mettre à jour la bdd vm apres modifs.md » (pas encore commité) : quand et comment mettre à jour la base de la VM après une modification du schéma ou du seed (recréer la base, ou migration SQL).
+
+### Décisions
+
+- **Un `tsconfig.build.json` à part** plutôt que d'exclure les tests de `tsconfig.json` : `npm run typecheck` continue de vérifier les tests.
+- **Réinstallation complète de la VM** plutôt qu'une remise à zéro de la base : ce n'est pas un vrai site, et sur une VM neuve PostgreSQL joue lui-même le schéma et le seed en français.
+
+### Difficultés
+
+- **Commandes lancées depuis `~` sur la VM** : `open /home/student/docker-compose.prod.yml: no such file or directory`. Le chemin `-f` est lu à partir du dossier courant ; il faut d'abord `cd ~/apo-jesappellegraine/src`.
+- **Le build marchait sur ma machine** : `test/` y existe. Dans l'image, seul `src/` est copié, et `tsc` compile tous les `.ts`, tests compris.
+- **Ne pas recréer la base avant de réparer le build** : la base passerait en français alors que l'ancienne image de l'API cherche encore `'available'` (accueil vide).
+
+### À poursuivre
+
+- Pousser `fix/build-api-sans-tests` et faire passer la PR vers `main`.
+- Puis réinstaller la VM (DEPLOIEMENT.md, section 3) et vérifier : accueil (`id` 20, 19, 16), catalogue (18 arbres), `SELECT * FROM availability` en français.
+- Prévenir l'équipe : même build cassé sur leur VM tant que la correction n'est pas dans `main`.
+- Décider du nom et de la branche du guide de mise à jour de la base, puis le commiter.
+
+## 2026-11-02 (suite) — Dépendances npm, ménage des branches et carnet
+
+Branches `back` (PR #126) et `docs/carnet-dimitry`.
+
+**Résultat** : les dépendances sont dédoublonnées et npm évite les doublons pour toute l'équipe (`prefer-dedupe`). Il ne reste que 4 branches : `main`, `Front`, `back` et `docs/carnet-dimitry`.
+
+### Travail réalisé
+
+- **Audit des dépendances** (racine, `src/api`, `src/front`) : tous les paquets déclarés sont utilisés, `npm ls` ne signale aucun paquet en trop, manquant ou de mauvaise version.
+- **`npm dedupe`** (commit `2c1551c`) : dans l'API, `globals` passe de 17.13.0 à 17.14.0 ; dans le front, 2 copies en double sont retirées et `@eslint-community/eslint-utils` n'existe plus qu'en 4.9.1.
+- **`directories.test`** de `src/api/package.json` corrigé : `"tests"` → `"test"`, le vrai nom du dossier.
+- **Réinstallation propre** (`npm ci`) dans les 3 dossiers, et `src/front/.next` local supprimé (70 Mo, recréé par `npm run build`).
+- **`.npmrc` avec `prefer-dedupe=true`** dans les 3 dossiers (commit `53fd6cf`) : npm réutilise une version déjà installée quand elle convient, au lieu d'en ajouter une autre.
+- **Vérifications** : `typecheck` et `lint` de l'API et du front, les 15 tests d'intégration passent.
+- **Ménage des branches** : 9 branches locales et 6 sur GitHub supprimées, toutes entièrement fusionnées dans `main` (aucun commit perdu).
+- **Deux branches de sauvegarde comparées avec `main`, puis supprimées** :
+  - `sauvegarde-stash-erd` : le MCD est identique à celui de `main` (38 formes, mêmes libellés, mêmes positions ; seul le format, compressé, change). Le lien README ajouté menait à `divers/08-erd.md`, hors du dépôt.
+  - `sauvegarde-carnet-dimitry` : le tableau de versions du README est déjà dans `main`, mais l'entrée du carnet du 23/10 (jeu de données JSON, photos et crédits) n'existait plus nulle part.
+- **Carnet** : branche reconstruite à partir de `main`, entrée du 23/10 récupérée (liens mis à jour, points « À poursuivre » vérifiés au 02/11), titre « Carte #114 » et 2 points « À poursuivre » de l'entrée du 30/10 (soir) rétablis.
+
+### Décisions
+
+- **`prefer-dedupe` dans un `.npmrc` commité** plutôt qu'un `npm dedupe` dans le hook `pre-commit` : le hook modifierait le `package-lock.json` pendant le commit, et `npm find-dupes` ne renvoie pas d'erreur quand il trouve un doublon.
+- **`npm audit` non corrigé** : la faille modérée de `minimatch` vient d'ESLint, qui ne sert qu'en développement. `npm audit fix --force` installerait ESLint 4.0.0, qui casserait la configuration : on attend une mise à jour d'ESLint.
+- **Seules les branches entièrement fusionnées dans `main` sont supprimées** ; `Front` (9 commits de Loïc pas encore dans `main`) est gardée.
+- **Anciennes entrées du carnet** : on ne les réécrit pas, mais on rétablit ce qu'une fusion a effacé et on note l'état d'un point « À poursuivre » avec sa date.
+- **Le carnet est poussé en fin de journée seulement.**
+
+### Difficultés
+
+- **`git pull` bloqué par des fichiers non fusionnés** : un `git stash pop` du stash « maj carnet » (fait sur `back`) avait créé un conflit dans le carnet. Son contenu était déjà dans la branche (commit `d8c1f74`) → fichier remis comme dans `HEAD` (`git restore --source=HEAD --staged --worktree`), stash supprimé.
+- **`git restore` : « ne correspond à aucun fichier connu »** : le terminal n'était pas à la racine du dépôt, et Git lit un chemin à partir du dossier courant.
+- **`git pull` : « impossible de trouver la référence distante »** : la branche avait été supprimée sur GitHub après la fusion de la PR #117 (`[disparue]` dans `git status`).
+- **Branche `back` recréée sur GitHub par erreur** : supprimée après la PR #125, mais `git fetch` sans `--prune` gardait l'ancienne référence locale `origin/back`.
+- **Fusion `18d2d43` (`docs/installation-docker`)** : la résolution de conflit avait remis l'ancien titre « Déploiement » et effacé 2 points « À poursuivre » de l'entrée du 30/10 (soir). Un premier contrôle par `grep '^[+-][^+-]'` ne les voyait pas, car ces lignes commencent par un tiret.
+
+### À poursuivre
+
+- Prévenir Loïc : `welcomePage` a été supprimée sur GitHub (entièrement dans `main`).
+- Carte #114 : la PR #118 a été fusionnée sans relecture enregistrée sur GitHub.
+- Suivre la mise à jour d'ESLint qui corrigera la faille `minimatch`.
+- Fin de journée : pousser `docs/carnet-dimitry` et ouvrir la PR vers `main`.
+
+## 2026-11-02 — Valeurs métier en français
+
+Branche `feat/deployment` (commit `abeb3b0`, fusionné dans `main` par la PR #124), puis `back` pour les tests (commit `c4c2719`).
+
+**Résultat** : les valeurs que le client peut voir sont maintenant en français, dans la base, le code et la documentation. Les rôles (`customer`, `admin`), que le client ne voit jamais, restent en anglais.
+
+### Travail réalisé
+
+- **Nouvelles valeurs** :
+  - `availability.name` : `disponible`, `en rupture de stock`, `retiré` ;
+  - `purchase.status` : `en attente`, `payée`, `plantée`, `annulée` ;
+  - `account.account_type` : `particulier`, `association`, `entreprise` ;
+  - `purchase.payment_method` : `virement`, `chèque`.
+- **Code** : `01-schema.sql` (`DEFAULT` et `CHECK`), `02-seed.sql`, `bdd-arbres.json`, `treeDatamapper.ts` (`= 'disponible'` pour l'accueil, `<> 'retiré'` pour le catalogue), `treeController.ts` (404 si `"retiré"`) et le type `availabilityName`.
+- **Doc** :
+  - [[Apothéose/apo-jesappellegraine/docs/conception/modele-de-donnees/00-dictionnaire-de-donnees|dictionnaire de données]], [[Apothéose/apo-jesappellegraine/docs/conception/modele-de-donnees/06-mld|MLD]], [[Apothéose/apo-jesappellegraine/docs/conception/modele-de-donnees/07-mpd|MPD]] et le SVG drawio du MPD ;
+  - [[Apothéose/apo-jesappellegraine/docs/specifications/CAHIER-DES-CHARGES-JE-S-APPELLE-GRAINE|cahier des charges]], user stories, entités et diagrammes `.puml` 02, 03 et 04.
+- **« Épuisé » devient « en rupture de stock »** partout, pour que la doc emploie le même mot que la base.
+- **Tests** dans une base temporaire (schéma et seed chargés, puis base supprimée) :
+  - 13 arbres disponibles, 5 en rupture, 3 retirés ;
+  - l'accueil renvoie les arbres 20, 19 et 16, et le catalogue 18 arbres ;
+  - 7 particuliers, 2 entreprises, 1 association ;
+  - une commande payée par `chèque` est acceptée et prend le statut `en attente` ; une commande payée par `check` est refusée par le `CHECK` ;
+  - `typecheck` et `lint` passent.
+- **Tests d'intégration** (`test/index.ts` et `treeController.spec.test.ts`) : `createTree` crée par défaut un arbre `"disponible"`, et les arbres de test passent en `"en rupture de stock"` ou `"retiré"`. Avant : 6 tests sur 15 échouaient ; après : **les 15 passent**.
+
+### Décisions
+
+- **Tout ce qui est affiché au client passe en français**, avec l'équipe : le front pourra afficher la valeur telle quelle, sans table de traduction.
+- **`paid` et `planted` traduits aussi**, pour ne pas avoir une liste de statuts à moitié en anglais.
+- **Les noms de colonnes ne changent pas** (`paid_at`, `planted_at`, `cancelled_at`) : seules les valeurs changent.
+- **Les anciennes entrées des carnets ne changent pas** : ce sont des historiques.
+
+### Difficultés
+
+- **Code et base doivent changer ensemble** : avec les anciennes valeurs encore en base, l'accueil serait vide, les arbres retirés apparaîtraient dans le catalogue et leur fiche ne renverrait plus 404.
+- **`db:seed` ne suffit plus** : il ne recrée pas le schéma, donc les anciennes contraintes `CHECK` refuseraient `'particulier'`. Il faut `db:reset`.
+- **Tests d'intégration en échec** : `createTree` crée lui-même la ligne `availability` avec le nom qu'on lui donne (`"available"` par défaut). Le code filtrant sur `'disponible'`, aucun arbre de test ne correspondait.
+
+### À poursuivre
+
+- Prévenir l'équipe : `npm run db:reset` après le pull.
+- **Urgent — production** : le changement est déjà dans `main` (PR #124). Au prochain redémarrage de la VM, le cron `@reboot` récupère `main` sans toucher à la base : accueil vide, arbres retirés visibles. Écrire et passer la migration (supprimer les `CHECK`, `UPDATE` des valeurs, recréer les `CHECK`) avant, ou ne pas redémarrer la VM d'ici là.
+- Réexporter les PNG des diagrammes 02, 03 et 04 avec l'extension PlantUML (Java absent de la machine).
+
+## 2026-10-30 (soir) — Carte #114 : certificat renouvelé et site mis à jour automatiquement
 
 Branche `docs/renouvellement-certificat` (commit `5b70c69`), créée depuis `main`.
 
@@ -42,6 +398,8 @@ Branche `docs/renouvellement-certificat` (commit `5b70c69`), créée depuis `mai
 ### À poursuivre
 
 - `git push -u origin docs/renouvellement-certificat`, puis la PR vers `main`.
+- Carte #114 : ajouter l'étape « si Docker n'est pas installé » (étape 2 du chap. 3). → **Fait** (commit `5a54291`, PR #118).
+- Carte #114 : PR relue dans le groupe, puis approuvée par quelqu'un d'un autre groupe. → PR #118 fusionnée le 02/11, **sans relecture enregistrée sur GitHub**.
 - Supprimer la clé `deploy-graine` de mon compte GitHub quand la VM ne sert plus, ou la remplacer par une _Deploy key_ ajoutée par un admin.
 - Collègues : installer `crontab.prod` sur leur VM (DEPLOIEMENT.md, section 6).
 
@@ -416,6 +774,33 @@ Travail fait en groupe.
 - Ajouter `start_period` au healthcheck, pour que la première initialisation ne soit plus déclarée « unhealthy ».
 - ~~Garder un seul dossier de données : `api/data/` et `api/src/data/` contiennent les mêmes fichiers.~~ → fait le 2026-10-27 (`api/src/data/` conservé).
 - Installer l'extension VS Code YAML (Red Hat) : elle signale les erreurs de `docker-compose.yml` pendant la frappe.
+
+## 2026-10-23 — Jeu de données JSON et photos des arbres
+
+### Travail réalisé
+
+- **Jeu de données en JSON** : [bdd-arbres.json](src/api/src/data/bdd-arbres.json), tiré de [[Apothéose/divers/bdd arbres|bdd arbres]]. Il reprend les noms de tables et de colonnes du [[Apothéose/apo-jesappellegraine/docs/conception/modele-de-donnees/00-dictionnaire-de-donnees|dictionnaire de données]] : `role`, `availability`, `category`, `account`, `tree`.
+  - **10 comptes** : 5 admins (Dimitry, Loïc, Shanna, Mahamadou, Fabrice) et 5 clients de test, dont 2 bloqués (`is_active: false`). Les clients couvrent les 3 types de compte : particulier, association, entreprise.
+  - **21 arbres répartis** : 13 disponibles, 5 en rupture (If, Sorbier, Chêne tauzin, Chêne-liège, Olivier sauvage), 3 retirés (Épicéa, Laurier noble, Pin parasol). Chaque lieu garde au moins 2 arbres disponibles.
+- **Photos des arbres** : [src/api/src/public/images/trees/](src/api/src/public/images/trees/) (copie dans [src/front/public/images/trees/](src/front/public/images/trees/)).
+  - 21 photos d'arbres **entiers**, prises sur **Wikimedia Commons** : 19 sous licence CC BY ou CC BY-SA, 2 dans le domaine public. Elles remplacent les anciennes photos Pexels et Commons, qui montraient souvent seulement un détail (écorce, baies, feuilles).
+  - Converties en **WebP**, 1200 px maximum sur le plus grand côté, de 180 à 440 Ko chacune.
+  - Les noms de fichiers suivent le chemin `/images/trees/<arbre>.webp` attendu par le seed SQL. Les `photo_url` du JSON ont été mis à jour : les 21 fichiers existent bien.
+  - Les crédits (auteur, licence, page source) sont dans [[Apothéose/apo-jesappellegraine/src/api/src/public/images/trees/CREDITS|CREDITS]] et `credits.json`.
+
+### Décisions
+
+- **Les crédits des photos sont obligatoires** pour les licences CC BY et CC BY-SA : il faut citer l'auteur et la licence (avec un lien). Comme les photos ont été redimensionnées et converties, il faut aussi le signaler (« redimensionnée »).
+- **Les crédits restent hors de la table `tree`** pour l'instant : le dictionnaire de données n'a pas de colonne pour l'auteur ou la licence.
+- **Les mots de passe du JSON sont en clair** (comptes de test seulement). Un script qui lirait ce JSON devrait les hacher avec Argon2 avant l'`INSERT`.
+
+### À poursuivre
+
+- Aligner `02-seed.sql` sur le JSON : le seed n'a qu'un admin et seulement 2 arbres non disponibles (20 retiré, 21 épuisé). → **Fait** (vérifié le 02/11 : 10 comptes, 13 disponibles, 5 en rupture de stock, 3 retirés).
+- Remplacer les noms de famille provisoires (« GreenRoots ») des 4 autres admins dans le JSON. → **Fait** (vérifié le 02/11).
+- Copier `public/images/trees/` dans le dossier du front. → **Fait** (vérifié le 02/11 : 21 photos dans `src/front/public/images/trees/`).
+- Choisir où stocker les crédits des photos (fichier à part ou colonne dans `tree`) et les afficher sous chaque photo. → Stockés dans `CREDITS.md` et `credits.json` ; **pas encore affichés** dans le front (au 02/11).
+- Mettre à jour la section « Photos » de [[Apothéose/divers/bdd arbres|bdd arbres]], qui décrit encore les anciennes photos. → **Toujours à faire** au 02/11 (la section parle encore de Pexels).
 
 ## 2026-10-23 — Versions communes et scripts SQL
 

@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import styles from "./header.module.css";
 import Image from "next/image";
 
@@ -10,12 +10,68 @@ const navigationLinks = [
   { href: "/", label: "Accueil" },
   { href: "/arbres", label: "Nos arbres" },
   { href: "/qui-sommes-nous", label: "Qui sommes-nous" },
-  { href: "/connexion", label: "Connexion" },
 ];
+
+// Ce dont l'en-tête a besoin dans la réponse de GET /api/users/me
+interface User {
+  firstname: string;
+}
 
 export default function Header() {
   const pathname = usePathname();
+  const router = useRouter();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  // null = aucun utilisateur connecté (ou pas encore de réponse de l'API)
+  const [user, setUser] = useState<User | null>(null);
+  // message à afficher sous l'en-tête (ex. compte désactivé) ; null = rien à afficher
+  const [alertMessage, setAlertMessage] = useState<string | null>(null);
+
+  // À chaque changement de page : redemander à l'API qui est connecté (le navigateur envoie le cookie)
+  useEffect(() => {
+    async function fetchCurrentUser() {
+      try {
+        const response = await fetch("/api/users/me");
+        // 403 : jeton valide, mais l'admin a désactivé le compte après la connexion
+        //       → on affiche le message renvoyé par l'API, et l'en-tête d'un visiteur
+        if (response.status === 403) {
+          const data: { error: string } = await response.json();
+          setAlertMessage(data.error);
+          setUser(null);
+          return;
+        }
+        if (!response.ok) {
+          // 401 : simplement pas connecté, ce n'est pas une erreur à afficher
+          setUser(null);
+          return;
+        }
+        const data: User = await response.json();
+        setUser(data);
+      } catch {
+        // API injoignable : on affiche l'en-tête comme pour un visiteur
+        setUser(null);
+      }
+    }
+    fetchCurrentUser();
+  }, [pathname]);
+
+  // Au clic sur « Déconnexion » : l'API supprime le cookie, puis on oublie l'utilisateur
+  async function handleLogout() {
+    try {
+      const response = await fetch("/api/auth", { method: "DELETE" });
+      // 204 : déconnexion réussie
+      // 401 : jeton expiré ou invalide, la personne n'est déjà plus connectée côté serveur
+      //       → on la déconnecte aussi côté front, sinon le bouton resterait sans effet
+      // autre erreur (ex. 500) : on ne change rien
+      if (!response.ok && response.status !== 401) {
+        return;
+      }
+      setUser(null);
+      setIsMenuOpen(false);
+      router.push("/");
+    } catch {
+      // API injoignable : on reste connecté, rien n'a changé
+    }
+  }
 
   return (
     <header className={styles.header}>
@@ -67,6 +123,31 @@ export default function Header() {
               {label}
             </Link>
           ))}
+
+          {/* Connecté : prénom + déconnexion ; visiteur : lien vers la connexion */}
+          {user ? (
+            <>
+              <span className={styles.greeting}>Bonjour {user.firstname}</span>
+              <button
+                type="button"
+                className={`${styles.navigationLink} ${styles.logoutButton}`}
+                onClick={handleLogout}
+              >
+                Déconnexion
+              </button>
+            </>
+          ) : (
+            <Link
+              className={`${styles.navigationLink} ${
+                pathname === "/connexion" ? styles.activeLink : ""
+              }`}
+              href="/connexion"
+              aria-current={pathname === "/connexion" ? "page" : undefined}
+              onClick={() => setIsMenuOpen(false)}
+            >
+              Connexion
+            </Link>
+          )}
         </nav>
 
         <Link
@@ -85,6 +166,13 @@ export default function Header() {
           <span className={styles.visuallyHidden}>Panier</span>
         </Link>
       </div>
+
+      {/* Affiché seulement s'il y a un message ; role="alert" le fait lire par les lecteurs d'écran */}
+      {alertMessage && (
+        <p className={styles.alert} role="alert">
+          {alertMessage}
+        </p>
+      )}
     </header>
   );
 }

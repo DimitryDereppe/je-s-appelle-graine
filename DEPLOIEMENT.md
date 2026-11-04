@@ -133,7 +133,9 @@ Dans le `.env` :
 
 - même mot de passe dans `POSTGRES_PASSWORD` et dans `DATABASE_URL` ;
 - `DOMAINE` s'écrit **sans** `https://` (`PSEUDO-server.eddi.cloud`) ;
-- `SITE_URL` s'écrit **avec** (`https://PSEUDO-server.eddi.cloud`).
+- `SITE_URL` s'écrit **avec** (`https://PSEUDO-server.eddi.cloud`) ;
+- `JWT_SECRET` : la clé qui signe les jetons de connexion, générée avec `openssl rand -hex 32`. Laissée vide, l'API refuse de démarrer.
+- `ALLOWED_ORIGINS` : l'adresse du site **avec** `https://` (la même que `SITE_URL`) ; seul ce site peut appeler l'API depuis un navigateur (CORS).
 
 **Pourquoi `--standalone` au premier certificat :** Nginx ne peut pas démarrer sans certificat, car
 sa configuration HTTPS pointe dessus. Certbot lance donc son propre petit serveur sur le port 80,
