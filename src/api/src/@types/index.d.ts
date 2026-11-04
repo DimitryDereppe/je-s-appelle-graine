@@ -1,3 +1,5 @@
+import type { Request } from "express";
+
 // Accueil
 export interface IFeaturedTree {
   id: number;
@@ -34,4 +36,11 @@ export interface IAccount {
 export interface IAccountLogin extends IAccount {
   isActive: boolean;
   password: string;
+}
+
+// Requête d'un utilisateur connecté : isConnected y ajoute l'id et le rôle lus dans le JWT
+// champs facultatifs (?) : avant isConnected, la requête ne les a pas encore
+export interface AuthenticatedRequest extends Request {
+  userId?: number;
+  userRole?: "customer" | "admin";
 }
