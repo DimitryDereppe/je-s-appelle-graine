@@ -2,9 +2,33 @@
 
 Suivi de mon travail sur Je s’appelle Graine. Les décisions notées ici ont été prises avec l'équipe sur Discord ; le suivi de l'équipe est dans le [[Apothéose/apo-jesappellegraine/CARNET-DE-BORD-JE-S-APPELLE-GRAINE|carnet de bord Je s’appelle Graine]].
 
+## 2026-11-04 (après-midi) — Inscription → connexion, fusion dans `fix/header`, Header rafraîchi
+
+### Inscription (branche `feat/inscription`, poussée)
+
+- `469ec92` — **`next` conservé de bout en bout** : le lien « Créer un compte » de `/connexion` transmet `next` à `/inscription` ; `inscription/page.tsx` le lit et le passe à `RegisterForm`, qui renvoie vers `/connexion?next=...` (`/` par défaut).
+  - Message de succès affiché **3 s** (`setTimeout`) avant la redirection ; bouton désactivé pendant ce temps (évite un 2e envoi → `409`).
+  - `LoginForm` : **suppression de `router.back()`** — après une inscription, la page précédente serait `/inscription`. Sans `next` valide → accueil.
+- `88981d4` — `RegisterForm` : `400` et `409` traités ensemble, le message vient de l'API (`body.error`).
+
+### Branche `fix/header` (locale, non poussée)
+
+- `44eec1f` — fusion de `feat/inscription`. Conflit dans `LoginForm.tsx` (la version de `front-F3` gardait `router.back()` commenté) : résolu en **gardant la suppression** de `469ec92` ; commentaires passés de « trois cas » à « deux cas ».
+- `4133512` — `Header.tsx` : le `useEffect` qui appelle `GET /api/users/me` dépend de **`pathname`** (au lieu de `[]`). Le Header reste monté d'une page à l'autre (layout) : avec `[]`, après la connexion et `router.push`, il affichait toujours « visiteur ».
+
+### Back (branche `back-F3`, locale)
+
+- `26b3da8` — 3 tests d'inscription : réponse `201` limitée aux champs du contrat, mot de passe d'exactement 12 caractères accepté, nom vide → `400`.
+
+### Reste à faire
+
+- Tester dans le navigateur : inscription → connexion → retour à la page d'origine, Header à jour sans rechargement.
+- `alertMessage` du Header n'est jamais remis à `null` : le message « compte désactivé » reste affiché en changeant de page. À décider.
+- Pousser `fix/header` et ouvrir la PR.
+
 ## 2026-11-04 — Header : message « compte désactivé » (403)
 
-Branche `front-F3`, fichiers `src/front/src/components/header/Header.tsx` et `header.module.css`. Modification **non commitée** (avec la correction du 401 à la déconnexion), en attente de relecture.
+Branche `front-F3`, fichiers `src/front/src/components/header/Header.tsx` et `header.module.css`. Commité avec la correction du 401 : `354610f` (+ commentaires de `LoginForm` dans `473bd52`), poussé sur `origin/front-F3`.
 
 **Résultat** : quand `GET /api/users/me` répond `403`, le Header affiche un bandeau avec le message de l'API (« Ce compte est désactivé, veuillez contacter l'administrateur. ») et l'en-tête d'un visiteur (lien « Connexion »). Prettier, `tsc` et ESLint sans erreur ; pas testé dans le navigateur (le `403` est sur `back-F3`, pas sur `front-F3`).
 
@@ -50,7 +74,7 @@ Branche `back-F3`, commit local `12220a5` (non poussé, git en panne). Fichiers 
 
 ## 2026-11-04 — Header : déconnexion avec un jeton expiré (401)
 
-Branche `front-F3`, fichier `src/front/src/components/header/Header.tsx`, fonction `handleLogout`. Modification **non commitée** (en attente de relecture), branche locale en retard de 14 commits sur `origin/front-F3`.
+Branche `front-F3`, fichier `src/front/src/components/header/Header.tsx`, fonction `handleLogout`. Commité dans `354610f` (avec le message 403), poussé sur `origin/front-F3`.
 
 **Résultat** : quand `DELETE /api/auth` répond `401`, le Header déconnecte quand même l'utilisateur (`setUser(null)`, menu fermé, retour à l'accueil) au lieu de ne rien faire.
 
