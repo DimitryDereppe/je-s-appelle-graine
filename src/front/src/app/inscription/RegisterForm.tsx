@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import styles from "./page.module.css";
 import Link from "next/link";
 
@@ -11,6 +12,7 @@ export default function RegisterForm() {
     useState<IRegister["accountType"]>("particulier");
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
+  const router = useRouter();
 
   async function handleRegister(formData: FormData) {
     setErrorMessage("");
@@ -82,11 +84,7 @@ export default function RegisterForm() {
         return;
       }
 
-      if (response.status === 201) {
-        setSuccessMessage(
-          "Votre compte a été créé. Vous pouvez maintenant vous connecter.",
-        );
-      }
+      router.push("/connexion");
     } catch {
       setErrorMessage("Une erreur est survenue.");
     }
