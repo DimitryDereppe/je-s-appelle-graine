@@ -2,6 +2,37 @@
 
 Suivi de mon travail sur Je s’appelle Graine. Les décisions notées ici ont été prises avec l'équipe ; le suivi de l'équipe est dans le [carnet de bord Je s’appelle Graine](CARNET-DE-BORD-JE-S-APPELLE-GRAINE.md), que je tiens à jour.
 
+## 2026-11-04 — F3 dans `main`, relecture de F2 et priorités de fin de sprint
+
+### Travail réalisé
+
+- **Fin du back de F3** (#85, #88) : PR #136 et #144 fusionnées dans `back-F3`.
+  - `GET /api/users/me` complété avec l'adresse et le type de compte ;
+  - CORS limité au front avec `ALLOWED_ORIGINS`, port de l'API par défaut à 4050 ;
+  - un particulier enregistré sans structure ;
+  - typage : `IAccountBase`, `INewAccount`, `IAuthenticatedRequest`, `Role`, `IAccessToken` partagé.
+- **Fin du front de F3** avec le trinôme : `next` vérifié avec `new URL` (une tabulation dans l'adresse permettait de quitter le site), structure facultative, focus sur le champ à corriger après une erreur.
+- **Fusion de la F3 dans `main`** : PR #153.
+- **Priorités proposées à l'équipe** : terminer F1, F2 et F3 avant d'ouvrir de nouvelles features.
+- **Relecture de `back-F2`** pour aider Mahamadou : route `GET /api/categories` manquante, id trop grand qui répond 500, tests du filtre par catégorie à ajouter.
+
+### Ce que j'ai appris
+
+- Résoudre un conflit : lire les deux côtés, garder ce qui doit l'être, corriger à la main, puis tester avant de valider. « Accepter les deux » peut laisser une accolade manquante.
+- `git merge --abort` permet d'essayer une fusion en local, pour voir les conflits sans rien envoyer.
+- Le navigateur retire les tabulations et les retours à la ligne d'une adresse : contrôler le début d'une chaîne ne suffit pas, `new URL` donne la vraie destination.
+- Le type `FormEvent` de React est déprécié : pour un formulaire, c'est `SubmitEvent` (dû à la version de React).
+
+### Décisions (prises avec l'équipe)
+
+- La redirection du visiteur depuis « Ajouter au panier » (US05, US05b) est traitée avec la F4.
+- Après l'inscription, le visiteur passe par la page de connexion, puis revient à sa page d'origine.
+
+### À poursuivre
+
+- Accompagner Mahamadou et Loïc sur la fin de F2.
+- Organisation de la suite du sprint à définir avec l'équipe.
+
 ## 2026-11-03 — Fin du back de F3 : `/users/me`, droits admin et tests
 
 ### Travail réalisé
