@@ -11,23 +11,21 @@
 /* --- Hero 404 --- */
 .hero {
   width: 100%;
-  flex: 1;
+
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  
   text-align: center;
   padding: 56px 16px 40px;
-  gap: 8px;
+ 
 }
 
 .tagline {
-  font-size: 14px;
+  font-size: 34px;
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: #245a46;
-  margin: 0 0 16px;
 }
 
 .title {
@@ -111,7 +109,7 @@
 /* --- Image --- */
 .heroImage {
   width: 100%;
-  height: 182px;
+  min-height: 40vh;
   position: relative;
   overflow: hidden;
   border-radius: 12px;
@@ -120,7 +118,7 @@
 }
 
 .heroImg {
-  object-fit: cover;
+  /* object-fit: cover; */
 }
 
 /* ===== Desktop (≥ 600px) ===== */
@@ -148,8 +146,9 @@
     padding: 12px 32px;
   }
 
-  .heroImage {
-    width: 50%;
-    height: 290px;
-  }
+.heroImage {
+
+  min-height: 70vh;
+
+}
 }
