@@ -1,7 +1,7 @@
 import styles from "./TreeCard.module.css";
 import Image from "next/image";
 import type { ICatalogueTree } from "../../@types";
-import { log } from "console";
+import Link from "next/link";
 
 interface FeaturedTreeProps {
   tree: ICatalogueTree;
@@ -10,7 +10,11 @@ export default async function TreeCard({ tree }: FeaturedTreeProps) {
   console.log(tree);
   return (
     <article key={tree.id} className={styles.card}>
-      <div className={styles.cardImage}>
+      <Link
+        href={`/trees/${tree.id}`}
+        className={styles.cardImage}
+        aria-label={`Voir le détail de ${tree.name}`}
+      >
         {tree.photoUrl && (
           <Image
             src={tree.photoUrl}
@@ -20,7 +24,7 @@ export default async function TreeCard({ tree }: FeaturedTreeProps) {
             sizes="(min-width: 600px) 30vw, 90vw"
           />
         )}
-      </div>
+      </Link>
       <div className={styles.cardBody}>
         <div className={styles.cardInfo}>
           <h3 className={styles.cardTitle}>{tree.name} </h3>{" "}

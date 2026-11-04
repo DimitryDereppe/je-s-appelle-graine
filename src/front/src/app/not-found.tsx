@@ -13,16 +13,16 @@ export default function NotFound() {
         </h1>
 
         <p className={styles.subtitle}>
-          La page que vous cherchez n'existe pas dans notre forêt.
+          La page que vous cherchez n&apos;existe pas dans notre forêt.
         </p>
 
-        <Link href="/arbres" passHref>
+        <Link href="/arbres">
           <button className={styles.ctaButton} type="button">
             Retour à nos arbres <span className={styles.arrow}>→</span>
           </button>
         </Link>
 
-        <Link href="/" passHref>
+        <Link href="/">
           <button className={styles.secondaryButton} type="button">
             Revenir à l&apos;accueil
           </button>
