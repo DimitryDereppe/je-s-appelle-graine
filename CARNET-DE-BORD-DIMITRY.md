@@ -2,6 +2,29 @@
 
 Suivi de mon travail sur Je s’appelle Graine. Les décisions notées ici ont été prises avec l'équipe sur Discord ; le suivi de l'équipe est dans le [[Apothéose/apo-jesappellegraine/CARNET-DE-BORD-JE-S-APPELLE-GRAINE|carnet de bord Je s’appelle Graine]].
 
+## 2026-11-04 — Header : message « compte désactivé » (403)
+
+Branche `front-F3`, fichiers `src/front/src/components/header/Header.tsx` et `header.module.css`. Modification **non commitée** (avec la correction du 401 à la déconnexion), en attente de relecture.
+
+**Résultat** : quand `GET /api/users/me` répond `403`, le Header affiche un bandeau avec le message de l'API (« Ce compte est désactivé, veuillez contacter l'administrateur. ») et l'en-tête d'un visiteur (lien « Connexion »). Prettier, `tsc` et ESLint sans erreur ; pas testé dans le navigateur (le `403` est sur `back-F3`, pas sur `front-F3`).
+
+### Travail réalisé
+
+- Nouvel état `alertMessage` (`string | null`, `null` = rien à afficher).
+- Dans `fetchCurrentUser`, avant le `if (!response.ok)` : `if (response.status === 403)` → lecture du JSON, `setAlertMessage(data.error)`, `setUser(null)`.
+- Affichage conditionnel `{alertMessage && (<p role="alert">…</p>)}` sous la barre de navigation.
+- Classe `.alert` dans `header.module.css` : texte ivoire sur fond terracotta (couleurs déjà utilisées par le Header).
+
+### Décisions
+
+- **Message lu dans la réponse de l'API** plutôt qu'écrit en dur : un seul endroit à modifier (le back).
+- **Test du `403` avant `!response.ok`** : sinon le `403` serait attrapé par le cas général (visiteur, sans message).
+- **`role="alert"`** : le message est lu automatiquement par les lecteurs d'écran (accessibilité).
+
+### Reste à faire
+
+- Tester dans le navigateur une fois `back-F3` et `front-F3` réunis : se connecter, désactiver le compte en base, recharger la page.
+
 ## 2026-11-04 — Back : compte désactivé après la connexion → 403 sur `GET /api/users/me`
 
 Branche `back-F3`, commit local `12220a5` (non poussé, git en panne). Fichiers : `controllers/utils.ts`, `datamappers/accountDatamapper.ts`, `@types/index.d.ts`, `controllers/userController.spec.test.ts`.
@@ -19,7 +42,7 @@ Branche `back-F3`, commit local `12220a5` (non poussé, git en panne). Fichiers 
 
 - **Vérification dans `getAuthenticatedUser`, pas dans `getMe`** : toutes les routes qui chargent le compte connecté (espace client F6, commande F5…) en profitent sans rien ajouter.
 - **403 et non 401** : la personne est bien identifiée (jeton valide), mais n'a plus le droit d'accéder à son compte ; même code et même message que `login`.
-- **Pas de changement dans le Header** : son `if (!response.ok)` traite le `403` comme un visiteur. L'affichage d'un message « compte désactivé » reste à décider.
+- **Côté front** : le Header affiche le message du `403` (voir l'entrée « Header : message compte désactivé »).
 
 ### Difficultés
 
