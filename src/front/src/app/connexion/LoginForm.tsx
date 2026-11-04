@@ -8,6 +8,19 @@ interface LoginFormProps {
   next?: string;
 }
 
+// new URL lit l'adresse comme le navigateur, qui retire les tabulations et retours à la ligne
+// ("/<tabulation>/site.fr" passait les startsWith et menait à un autre site)
+function getSafeNextPath(next?: string): string {
+  if (!next) return "/";
+  try {
+    const url = new URL(next, window.location.origin);
+    if (url.origin !== window.location.origin) return "/";
+    return url.pathname + url.search + url.hash;
+  } catch {
+    return "/"; // adresse illisible
+  }
+}
+
 export function LoginForm({ next }: LoginFormProps) {
   const [errorMessage, setErrorMessage] = useState("");
   const router = useRouter();
@@ -29,10 +42,14 @@ export function LoginForm({ next }: LoginFormProps) {
 
       if (response.status === 401) {
         setErrorMessage("Adresse e-mail ou mot de passe incorrect.");
+        // focus sur le premier champ à corriger
+        document.getElementById("email")?.focus();
         return;
       }
       if (response.status === 403) {
         setErrorMessage("Compte bloqué. Veuillez contacter l’administrateur.");
+        // focus sur le premier champ
+        document.getElementById("email")?.focus();
         return;
       }
       if (!response.ok) {
@@ -50,19 +67,7 @@ export function LoginForm({ next }: LoginFormProps) {
       //    "https://..." ne commence pas par "/" → refusé.
       //    Sans ces tests, un lien piégé /connexion?next=https://site-pirate.fr enverrait
       //    l'utilisateur, tout juste connecté, vers un faux site (redirection ouverte).
-      if (
-        next !== undefined &&
-        next.startsWith("/") &&
-        !next.startsWith("//") &&
-        !next.startsWith("/\\")
-      ) {
-        // push : ajoute la page à l'historique, comme un clic sur un lien
-        router.push(next);
-      } else {
-        // 2. Pas de ?next= valide : on envoie vers l'accueil.
-        //    (Pas de router.back() : après une inscription, la page précédente serait /inscription.)
-        router.push("/");
-      }
+      router.push(getSafeNextPath(next));
     } catch {
       setErrorMessage("Une erreur est survenue.");
     }

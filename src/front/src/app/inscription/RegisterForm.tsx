@@ -36,18 +36,16 @@ export default function RegisterForm({ next }: RegisterFormProps) {
 
     if (password.length < 12) {
       setErrorMessage("Le mot de passe doit contenir au moins 12 caractères.");
+      // focus sur le champ à corriger
+      document.getElementById("password")?.focus();
       return;
     }
 
+    // (US07) : structure facultative, champ vide → null
     const organizationName =
       accountType === "particulier"
         ? null
         : String(formData.get("organizationName") ?? "").trim() || null;
-
-    if (accountType !== "particulier" && !organizationName) {
-      setErrorMessage("Veuillez renseigner le nom de la structure.");
-      return;
-    }
 
     const values: IRegister = {
       firstname,
@@ -71,6 +69,10 @@ export default function RegisterForm({ next }: RegisterFormProps) {
         setErrorMessage(
           body.error ?? "Les informations saisies sont invalides.",
         );
+        // 409, l'email est le champ à corriger
+        if (response.status === 409) {
+          document.getElementById("email")?.focus();
+        }
         return;
       }
 
