@@ -1,15 +1,11 @@
 import jwt from "jsonwebtoken";
 import { config } from "../../config.ts";
 import type { CookieOptions } from "express";
+import type { IAccessToken } from "../@types/index.d.ts";
 
 // --------------------------------
 // crée un token JWT qui contient le user id + role et une date d'expiration de 24 heures
 // --------------------------------
-interface IAccessToken {
-  userId: number;
-  userRole: "customer" | "admin";
-}
-
 export function createAccessToken(payload: IAccessToken): string {
   // calcul du token JWT (string)
   return jwt.sign(payload, config.jwtSecret, { expiresIn: "24h" });
