@@ -47,8 +47,6 @@ export function LoginForm({ next }: LoginFormProps) {
         !next.startsWith("/\\")
       ) {
         router.push(next);
-      } else if (window.history.length > 1) {
-        router.back();
       } else {
         router.push("/");
       }

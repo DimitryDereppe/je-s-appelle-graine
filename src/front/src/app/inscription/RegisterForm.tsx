@@ -19,11 +19,11 @@ export default function RegisterForm({ next }: RegisterFormProps) {
   const [successMessage, setSuccessMessage] = useState("");
   const router = useRouter();
 
-  // Adresse de la page connexion, en gardant "next" s'il existe,
-  // pour que LoginForm ramène ensuite le visiteur là où il était.
-  const loginUrl = next
-    ? `/connexion?next=${encodeURIComponent(next)}`
-    : "/connexion";
+  // Adresse de la page connexion, en gardant "next" pour que LoginForm
+  // ramène ensuite le visiteur là où il était.
+  // Sans "next", on met "/" (l'accueil) : sinon LoginForm ferait
+  // router.back() et renverrait le visiteur sur... la page d'inscription.
+  const loginUrl = `/connexion?next=${encodeURIComponent(next ?? "/")}`;
 
   async function handleRegister(formData: FormData) {
     setErrorMessage("");
@@ -95,15 +95,18 @@ export default function RegisterForm({ next }: RegisterFormProps) {
         return;
       }
 
-      if (response.status === 201) {
-        setSuccessMessage(
-          "Votre compte a été créé. Vous pouvez maintenant vous connecter.",
-        );
-      }
+      // Ici, la réponse est forcément "ok" (2xx) : le compte est créé.
+      setSuccessMessage(
+        "Votre compte a été créé. Vous allez être redirigé vers la page de connexion.",
+      );
 
       // Le compte est créé mais le visiteur n'est pas encore connecté :
       // on l'envoie vers la connexion (avec "next") plutôt que vers l'accueil.
-      router.push(loginUrl);
+      // setTimeout attend 3 secondes (3000 ms) avant de lancer la fonction,
+      // pour laisser le temps de lire le message de succès.
+      setTimeout(() => {
+        router.push(loginUrl);
+      }, 3000);
     } catch {
       setErrorMessage("Une erreur est survenue.");
     }
@@ -210,7 +213,13 @@ export default function RegisterForm({ next }: RegisterFormProps) {
             {successMessage}
           </p>
         )}
-        <button className={styles.submitButton} type="submit">
+        <button
+          className={styles.submitButton}
+          type="submit"
+          // Désactivé une fois le compte créé : évite un 2e envoi
+          // (l'API répondrait 409 "email déjà utilisé") pendant les 3 secondes.
+          disabled={successMessage !== ""}
+        >
           Créer mon compte
         </button>
       </form>

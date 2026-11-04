@@ -1,10 +1,21 @@
-"use client";
-
+// Pas de "use client" ici : la page reste un composant serveur pour pouvoir
+// lire "searchParams" (comme connexion/page.tsx). Le formulaire, lui,
+// est déjà un composant client (RegisterForm.tsx).
 import Image from "next/image";
 import RegisterForm from "./RegisterForm";
 import styles from "./page.module.css";
 
-export default function RegisterPage() {
+interface RegisterPageProps {
+  // Paramètres de l'URL (?next=...), fournis par Next.js sous forme de promesse
+  searchParams: Promise<{ next?: string }>;
+}
+
+export default async function RegisterPage({
+  searchParams,
+}: RegisterPageProps) {
+  // Page où revenir après la connexion, si on vient d'une page protégée
+  const { next } = await searchParams;
+
   return (
     <main className={styles.main}>
       <section className={styles.layout}>
@@ -35,7 +46,8 @@ export default function RegisterPage() {
         {/* Titre, texte et formulaire à droite */}
         <div className={styles.formPanel}>
           <div className={styles.formContent}>
-            <RegisterForm />
+            {/* On transmet "next" au formulaire pour qu'il le garde jusqu'à la connexion */}
+            <RegisterForm next={next} />
           </div>
         </div>
       </section>
