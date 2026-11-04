@@ -22,7 +22,6 @@
 ### À poursuivre
 
 - F2 (Loïc, Mahamadou) : `GET /api/categories`, id trop grand qui répond 500, tests du filtre.
-- `main` : retirer `arbres/[slug]`, qui casse le build du front.
 - Conflit à résoudre en fusionnant F2 et `main` : `src/api/test/index.ts`, en gardant les deux côtés (à voir avec Fabrice).
 - Organisation de la suite du sprint à définir en équipe.
 
