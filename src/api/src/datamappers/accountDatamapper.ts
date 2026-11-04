@@ -60,6 +60,7 @@ export const accountDatamapper = {
                    account.address,
                    account.account_type AS "accountType",
                    account.organization_name AS "organizationName",
+                   account.is_active AS "isActive",
                    role.name AS "role"
             FROM account
             -- à chaque compte, on colle son rôle (pour lire son nom)

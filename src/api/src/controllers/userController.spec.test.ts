@@ -264,6 +264,27 @@ describe("userController", () => {
       assert.strictEqual(response.status, 401);
       assert.strictEqual(response.data.error, "Vous devez être connecté.");
     });
+
+    it("should respond 403 if the account was deactivated after login", async () => {
+      // Arrange : ALICE se connecte (compte actif), puis l'admin désactive son compte
+      const aliceId = await libTests.createAccount(libTests.ALICE);
+      const cookie = await libTests.loginAs(libTests.ALICE);
+      await pool.query("UPDATE account SET is_active = FALSE WHERE id = $1", [
+        aliceId,
+      ]);
+
+      // Act : le jeton est toujours valide (24 h)
+      const response = await libTests.requester.get("/users/me", {
+        headers: { Cookie: cookie },
+      });
+
+      // Assert : 403 avec le même message qu'à la connexion
+      assert.strictEqual(response.status, 403);
+      assert.strictEqual(
+        response.data.error,
+        "Ce compte est désactivé, veuillez contacter l'administrateur.",
+      );
+    });
   });
 
   // ==================
