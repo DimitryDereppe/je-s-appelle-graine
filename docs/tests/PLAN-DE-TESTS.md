@@ -67,7 +67,7 @@ Problèmes relevés :
 - **Bonnes pratiques** — l'icône « Des arbres sélectionnés » (`arbres-selectionnes.png`, 200 × 263) est affichée en 24 × 24, donc déformée ; erreurs 404 dans la console (liens ci-dessus).
 - **Performance mobile** — la grande image d'accueil est chargée en différé (`loading="lazy"`), alors que c'est le plus gros élément visible : affichage complet en 4,7 s. Images des vignettes plus grandes que nécessaire (environ 570 Kio de trop).
 
-## F3 · Authentification (US05, US05b, US07, US20, US21, US40)
+## F3 · Authentification (US06, US07, US20, US21)
 
 Critères d'acceptation : voir l'issue #3 ; contrat d'API : carte #83. Tests de la carte #88, branche `feat/tests-auth`, le 03/11/2026.
 
@@ -140,8 +140,8 @@ Fichier : `src/api/src/middlewares/isConnectedMiddleware.unit.test.ts`. Les 3 ca
 
 | N°       | Cas                                                         | Type   | Attendu                                                                 | Obtenu                                       |
 | -------- | ----------------------------------------------------------- | ------ | ----------------------------------------------------------------------- | -------------------------------------------- |
-| F3-MAN-1 | Visiteur qui clique sur « Ajouter au panier » (US05)        | Manuel | redirigé vers `/connexion`, avec un lien vers l'inscription             | ⏳ à tester                                  |
-| F3-MAN-2 | Connexion réussie après une redirection (US05b)             | Manuel | retour sur la page d'origine                                            | ⏳ à tester                                  |
+| F3-MAN-1 | Visiteur qui clique sur « Ajouter au panier » (US05)        | Manuel | redirigé vers `/connexion`, avec un lien vers l'inscription             | reporté à la F4                              |
+| F3-MAN-2 | Connexion réussie après une redirection (US06)              | Manuel | retour sur la page d'origine                                            | ⏳ à tester                                  |
 | F3-MAN-3 | Mauvais identifiants, compte désactivé                      | Manuel | message d'erreur lisible, annoncé aux lecteurs d'écran (`role="alert"`) | ⏳ à tester                                  |
 | F3-MAN-4 | En-tête après connexion, puis après rechargement de la page | Manuel | « Bonjour <prénom> » et « Déconnexion »                                 | ⏳ à tester (`GET /api/users/me` disponible) |
 | F3-MAN-5 | Déconnexion depuis l'en-tête                                | Manuel | retour à l'état visiteur                                                | ⏳ à tester                                  |
