@@ -42,7 +42,7 @@ export default function RegisterForm({ next }: RegisterFormProps) {
     const organizationName =
       accountType === "particulier"
         ? null
-        : String(formData.get("organizationName") ?? "").trim();
+        : String(formData.get("organizationName") ?? "").trim() || null;
 
     if (accountType !== "particulier" && !organizationName) {
       setErrorMessage("Veuillez renseigner le nom de la structure.");
