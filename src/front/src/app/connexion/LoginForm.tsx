@@ -39,17 +39,33 @@ export function LoginForm({ next }: LoginFormProps) {
         setErrorMessage("Quelque chose n’a pas fonctionné.");
         return;
       }
-      // N'accepte qu'une adresse du site : "/arbres" oui, "//autre-site.fr" ou "https://..." non.
+      // Connexion réussie : où renvoyer l'utilisateur ? Trois cas, testés dans l'ordre.
+
+      // 1. Une page a demandé la connexion et donné son adresse dans l'URL,
+      //    ex. AddToCartButton → /connexion?next=/arbres/12 (page.tsx lit ?next= et le passe ici).
+      //    On y retourne, mais seulement si c'est une adresse du site (sécurité) :
+      //    - startsWith("/")     : chemin interne, ex. "/arbres" → accepté
+      //    - !startsWith("//")   : "//autre-site.fr" serait lu par le navigateur comme un autre site
+      //    - !startsWith("/\\")  : "/\autre-site.fr" aussi (certains navigateurs changent \ en /)
+      //    "https://..." ne commence pas par "/" → refusé.
+      //    Sans ces tests, un lien piégé /connexion?next=https://site-pirate.fr enverrait
+      //    l'utilisateur, tout juste connecté, vers un faux site (redirection ouverte).
       if (
         next !== undefined &&
         next.startsWith("/") &&
         !next.startsWith("//") &&
         !next.startsWith("/\\")
       ) {
+        // push : ajoute la page à l'historique, comme un clic sur un lien
         router.push(next);
       } else if (window.history.length > 1) {
+        // 2. Pas de ?next= valide, mais l'onglet a un historique : on revient à la page
+        //    précédente (celle d'où l'utilisateur a cliqué sur « Connexion »),
+        //    comme le bouton « Retour » du navigateur.
         router.back();
       } else {
+        // 3. Pas d'historique (page de connexion ouverte directement, nouvel onglet) :
+        //    router.back() ne mènerait nulle part, on envoie donc vers l'accueil.
         router.push("/");
       }
     } catch {
