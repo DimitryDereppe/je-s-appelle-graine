@@ -77,16 +77,11 @@ export default function RegisterForm({ next }: RegisterFormProps) {
         body: JSON.stringify(values),
       });
 
-      if (response.status === 400) {
+      if (response.status === 400 || response.status === 409) {
         const body = (await response.json()) as { error?: string };
         setErrorMessage(
           body.error ?? "Les informations saisies sont invalides.",
         );
-        return;
-      }
-      if (response.status === 409) {
-        const body = (await response.json()) as { error?: string };
-        setErrorMessage(body.error ?? "Cet email est déjà utilisé.");
         return;
       }
 
