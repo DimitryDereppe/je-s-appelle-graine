@@ -2,6 +2,29 @@
 
 Suivi de mon travail sur Je s’appelle Graine. Les décisions notées ici ont été prises avec l'équipe sur Discord ; le suivi de l'équipe est dans le [[Apothéose/apo-jesappellegraine/CARNET-DE-BORD-JE-S-APPELLE-GRAINE|carnet de bord Je s’appelle Graine]].
 
+## 2026-11-04 — Back : compte désactivé après la connexion → 403 sur `GET /api/users/me`
+
+Branche `back-F3`, commit local `12220a5` (non poussé, git en panne). Fichiers : `controllers/utils.ts`, `datamappers/accountDatamapper.ts`, `@types/index.d.ts`, `controllers/userController.spec.test.ts`.
+
+**Résultat** : un compte désactivé par l'admin alors que son jeton est encore valide (24 h) reçoit `403` « Ce compte est désactivé, veuillez contacter l'administrateur. » au lieu de `200` avec son profil. 49 tests au vert (3 unitaires, 46 d'intégration).
+
+### Travail réalisé
+
+- `accountDatamapper.findById` : ajout de `account.is_active AS "isActive"` dans le `SELECT`.
+- Type `IAccountProfile` : champ `isActive: boolean` (lu pour la vérification, pas renvoyé par `getMe`, qui liste ses champs un par un).
+- `getAuthenticatedUser` : après le test « compte introuvable → 401 », `if (!account.isActive)` → `ForbiddenError` (403), même message qu'à la connexion.
+- Test d'intégration « should respond 403 if the account was deactivated after login » : ALICE se connecte, `UPDATE account SET is_active = FALSE`, puis `GET /users/me` avec son cookie → `403`.
+
+### Décisions
+
+- **Vérification dans `getAuthenticatedUser`, pas dans `getMe`** : toutes les routes qui chargent le compte connecté (espace client F6, commande F5…) en profitent sans rien ajouter.
+- **403 et non 401** : la personne est bien identifiée (jeton valide), mais n'a plus le droit d'accéder à son compte ; même code et même message que `login`.
+- **Pas de changement dans le Header** : son `if (!response.ok)` traite le `403` comme un visiteur. L'affichage d'un message « compte désactivé » reste à décider.
+
+### Difficultés
+
+- Fichier `test/config/.env.test` suivi par git sur `back-F3` écrasé par erreur pendant les tests (copie depuis `front-F3`, où il manque une ligne), puis retiré du commit et les tests relancés avec la bonne version.
+
 ## 2026-11-04 — Header : déconnexion avec un jeton expiré (401)
 
 Branche `front-F3`, fichier `src/front/src/components/header/Header.tsx`, fonction `handleLogout`. Modification **non commitée** (en attente de relecture), branche locale en retard de 14 commits sur `origin/front-F3`.
@@ -27,7 +50,7 @@ Branche `front-F3`, fichier `src/front/src/components/header/Header.tsx`, foncti
 ### Reste à faire
 
 - Réparer l'accès SSH à GitHub, puis `git pull` sur `front-F3` (14 commits de retard) avant de commiter la correction.
-- Faille repérée, non traitée : un compte désactivé (`isActive = false`) avec un jeton encore valide reçoit `200` sur `GET /api/users/me` (`getAuthenticatedUser` ne vérifie pas `isActive`).
+- Pousser `back-F3` (commit `12220a5`, faille du compte désactivé, voir ci-dessous) une fois git réparé.
 
 ## 2026-11-03 (après-midi) — Carte #84 : création du compte, 415, JSON mal formé, PR prête
 
