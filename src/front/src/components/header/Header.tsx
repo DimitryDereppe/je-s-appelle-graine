@@ -23,12 +23,22 @@ export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   // null = aucun utilisateur connecté (ou pas encore de réponse de l'API)
   const [user, setUser] = useState<User | null>(null);
+  // message à afficher sous l'en-tête (ex. compte désactivé) ; null = rien à afficher
+  const [alertMessage, setAlertMessage] = useState<string | null>(null);
 
   // Au premier affichage : demander à l'API qui est connecté (le navigateur envoie le cookie)
   useEffect(() => {
     async function fetchCurrentUser() {
       try {
         const response = await fetch("/api/users/me");
+        // 403 : jeton valide, mais l'admin a désactivé le compte après la connexion
+        //       → on affiche le message renvoyé par l'API, et l'en-tête d'un visiteur
+        if (response.status === 403) {
+          const data: { error: string } = await response.json();
+          setAlertMessage(data.error);
+          setUser(null);
+          return;
+        }
         if (!response.ok) {
           // 401 : simplement pas connecté, ce n'est pas une erreur à afficher
           setUser(null);
@@ -48,7 +58,11 @@ export default function Header() {
   async function handleLogout() {
     try {
       const response = await fetch("/api/auth", { method: "DELETE" });
-      if (!response.ok) {
+      // 204 : déconnexion réussie
+      // 401 : jeton expiré ou invalide, la personne n'est déjà plus connectée côté serveur
+      //       → on la déconnecte aussi côté front, sinon le bouton resterait sans effet
+      // autre erreur (ex. 500) : on ne change rien
+      if (!response.ok && response.status !== 401) {
         return;
       }
       setUser(null);
@@ -152,6 +166,13 @@ export default function Header() {
           <span className={styles.visuallyHidden}>Panier</span>
         </Link>
       </div>
+
+      {/* Affiché seulement s'il y a un message ; role="alert" le fait lire par les lecteurs d'écran */}
+      {alertMessage && (
+        <p className={styles.alert} role="alert">
+          {alertMessage}
+        </p>
+      )}
     </header>
   );
 }

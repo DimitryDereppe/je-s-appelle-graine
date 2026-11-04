@@ -139,6 +139,15 @@
   cursor: pointer;
 }
 
+/* Bandeau d'alerte sous l'en-tête (ex. compte désactivé) */
+.alert {
+  margin: 0;
+  padding: 0.75rem 1rem;
+  text-align: center;
+  color: var(--color-ivory, #f8f6f0);
+  background-color: var(--color-terracotta, #b6532c);
+}
+
 .brand:focus-visible,
 .menuToggle:focus-visible,
 .navigationLink:focus-visible,
