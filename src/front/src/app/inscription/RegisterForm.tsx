@@ -7,12 +7,23 @@ import Link from "next/link";
 
 import type { IRegister } from "@/@types";
 
-export default function RegisterForm() {
+interface RegisterFormProps {
+  // Page à laquelle revenir après la connexion, transmise par page.tsx
+  next?: string;
+}
+
+export default function RegisterForm({ next }: RegisterFormProps) {
   const [accountType, setAccountType] =
     useState<IRegister["accountType"]>("particulier");
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const router = useRouter();
+
+  // Adresse de la page connexion, en gardant "next" s'il existe,
+  // pour que LoginForm ramène ensuite le visiteur là où il était.
+  const loginUrl = next
+    ? `/connexion?next=${encodeURIComponent(next)}`
+    : "/connexion";
 
   async function handleRegister(formData: FormData) {
     setErrorMessage("");
@@ -84,7 +95,15 @@ export default function RegisterForm() {
         return;
       }
 
-      router.push("/connexion");
+      if (response.status === 201) {
+        setSuccessMessage(
+          "Votre compte a été créé. Vous pouvez maintenant vous connecter.",
+        );
+      }
+
+      // Le compte est créé mais le visiteur n'est pas encore connecté :
+      // on l'envoie vers la connexion (avec "next") plutôt que vers l'accueil.
+      router.push(loginUrl);
     } catch {
       setErrorMessage("Une erreur est survenue.");
     }
@@ -196,7 +215,7 @@ export default function RegisterForm() {
         </button>
       </form>
       <p className={styles.loginPrompt}>Déjà inscrit ?</p>
-      <Link className={styles.loginLink} href="/connexion">
+      <Link className={styles.loginLink} href={loginUrl}>
         Se connecter
       </Link>
     </section>
