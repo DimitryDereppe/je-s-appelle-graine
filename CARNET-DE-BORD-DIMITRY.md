@@ -2,6 +2,33 @@
 
 Suivi de mon travail sur Je s’appelle Graine. Les décisions notées ici ont été prises avec l'équipe sur Discord ; le suivi de l'équipe est dans le [[Apothéose/apo-jesappellegraine/CARNET-DE-BORD-JE-S-APPELLE-GRAINE|carnet de bord Je s’appelle Graine]].
 
+## 2026-11-04 — Header : déconnexion avec un jeton expiré (401)
+
+Branche `front-F3`, fichier `src/front/src/components/header/Header.tsx`, fonction `handleLogout`. Modification **non commitée** (en attente de relecture), branche locale en retard de 14 commits sur `origin/front-F3`.
+
+**Résultat** : quand `DELETE /api/auth` répond `401`, le Header déconnecte quand même l'utilisateur (`setUser(null)`, menu fermé, retour à l'accueil) au lieu de ne rien faire.
+
+### Travail réalisé
+
+- Condition `if (!response.ok)` remplacée par `if (!response.ok && response.status !== 401)` : on s'arrête seulement sur une erreur **autre** que 401 (ex. `500`).
+- Commentaires ajoutés au-dessus du `if` : sens du `204`, du `401` et des autres erreurs.
+
+### Décisions
+
+- **401 traité comme une réussite** : la route passe par `isConnected` ; un `401` veut dire que le jeton a expiré (24 h) ou est invalide, donc la personne n'est déjà plus connectée côté serveur.
+- **Pas de gestion du 403 dans le Header** : `GET /api/users/me` et `DELETE /api/auth` ne renvoient jamais `403` (seuls la connexion d'un compte désactivé et les routes `/admin` le font).
+- **`fetchCurrentUser` inchangé** : son `if (!response.ok)` traite déjà le `401` (visiteur non connecté).
+
+### Difficultés
+
+- **Bouton « Déconnexion » sans effet** après expiration du jeton : `user` est rempli au chargement de la page, l'API répond `401` au clic, et `if (!response.ok) return;` s'arrêtait avant `setUser(null)`.
+- **Git** : `git fetch` échoue (`Permission denied (publickey)`) ; `~/.ssh/config` modifié le matin même force la clé `id_ed25519_wsl` pour `github.com`. Rien de poussé.
+
+### Reste à faire
+
+- Réparer l'accès SSH à GitHub, puis `git pull` sur `front-F3` (14 commits de retard) avant de commiter la correction.
+- Faille repérée, non traitée : un compte désactivé (`isActive = false`) avec un jeton encore valide reçoit `200` sur `GET /api/users/me` (`getAuthenticatedUser` ne vérifie pas `isActive`).
+
 ## 2026-11-03 (après-midi) — Carte #84 : création du compte, 415, JSON mal formé, PR prête
 
 Branche `feat/userRouter`, poussée, à jour avec GitHub, sans conflit avec `back-F3`. Commits `fba0c82` (INSERT + hachage), `d5a9a5c` et `9958a84` (415), `c23d0e0` et `91f05ef` (JSON mal formé), `4c84622` (middleware de connexion, hors carte), `0959b02` (renommage `indexRouter.ts`). Fichiers : `accountDatamapper.ts`, `userController.ts`, `validateContentTypeMiddleware.ts` (nouveau), `isConnectedMiddleware.ts` (nouveau), `errors.ts`, `errorMiddleware.ts`, `app.ts`, `@types/index.d.ts`, `test.user.http`.
