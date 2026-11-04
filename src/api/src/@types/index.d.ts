@@ -42,6 +42,8 @@ export interface IAccount extends IAccountBase {
 // Compte connecté renvoyé par GET /api/users/me : avec l'adresse (pour récapitulatif de la commande F5, espace client F6)
 export interface IAccountProfile extends IAccount {
   address: string | null;
+  // lu pour vérifier que le compte n'a pas été désactivé, mais pas renvoyé par getMe
+  isActive: boolean;
 }
 
 // Compte client pour le login : avec le mot de passe haché et compte actif
