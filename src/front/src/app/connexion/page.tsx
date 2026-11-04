@@ -10,6 +10,12 @@ interface LoginPageProps {
 export default async function LoginPage({ searchParams }: LoginPageProps) {
   const { next } = await searchParams;
 
+  // Adresse de la page inscription, en gardant "next" s'il existe,
+  // pour que RegisterForm puisse le renvoyer ensuite vers la connexion.
+  const registerUrl = next
+    ? `/inscription?next=${encodeURIComponent(next)}`
+    : "/inscription";
+
   return (
     <main className={styles.main}>
       <section className={styles.layout}>
@@ -24,7 +30,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
 
           <p className={styles.signup}>
             Vous n’avez pas encore de compte ?
-            <Link className={styles.signupLink} href="/inscription">
+            <Link className={styles.signupLink} href={registerUrl}>
               Créer un compte
             </Link>
           </p>
