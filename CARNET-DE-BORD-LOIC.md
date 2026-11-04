@@ -151,3 +151,9 @@ Kick-off du sprint 2. Je continue de travailler sur le backlog de la première f
     <li>Mise en place d'un appel API globalisé </li>
     <li>Développement d'un composant carte arbre</li>
 </ul>
+
+## 03/11/2026 - Sprint 2
+
+### Contexte :
+
+<li>WIP</li>
