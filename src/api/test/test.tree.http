@@ -39,3 +39,6 @@ GET http://localhost:4000/api/trees HTTP/1.1
 
 ### Sans search : ton filtre catégorie fonctionne toujours
 GET http://localhost:4000/api/trees?category=1 HTTP/1.1
+
+### GET /categories pour le filtre du catalogue
+GET http://localhost:4000/api/categories HTTP/1.1
