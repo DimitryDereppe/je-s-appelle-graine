@@ -14,23 +14,45 @@ const categories = [
 ];
 
 interface TreesPageProps {
-  searchParams: Promise<{ category?: string }>;
+  searchParams: Promise<{ categorie?: string; recherche?: string }>;
 }
 
 export default async function TreesPage({ searchParams }: TreesPageProps) {
-  const { category } = await searchParams;
-  const selectedCategory = categories.some((c) => String(c.id) === category)
-    ? Number(category)
+  const { categorie, recherche } = await searchParams;
+  const selectedCategory = categories.some((c) => String(c.id) === categorie)
+    ? Number(categorie)
     : 0;
+  // Le texte cherché, sans les espaces au début et à la fin ("" si rien)
+  const searchText = typeof recherche === "string" ? recherche.trim() : "";
 
   let trees: ICatalogueTree[] = [];
   let error: string | null = null;
+
+  // On prépare les paramètres à envoyer à l'API (vide pour l'instant)
+  const params = new URLSearchParams();
+
+  // Si une vraie catégorie est choisie (pas "Tous"), on l'ajoute : category=1
+  if (selectedCategory !== 0) {
+    params.set("category", String(selectedCategory));
+  }
+
+  // Si l'utilisateur a tapé quelque chose, on l'ajoute : search=chene
+  if (searchText !== "") {
+    params.set("search", searchText);
+  }
+
+  // On transforme les paramètres en texte : ""category=1&search=pin"" ou "" si aucun filtre
+  const query = params.toString();
+
+  // Si query n'est pas vide → "trees?category=1", sinon → "trees"
+  const endpoint = query ? `trees?${query}` : "trees";
 
   try {
     const response: ICatalogueTree[] = await api<
       ICatalogueTree,
       ICatalogueTree[]
-    >("trees/");
+    >(endpoint);
+
     if (!response) {
       throw new Error("Impossible de charger les arbres pour le moment.");
     }
@@ -72,6 +94,7 @@ export default async function TreesPage({ searchParams }: TreesPageProps) {
         <TreesFilters
           categories={categories}
           selectedCategory={selectedCategory}
+          searchText={searchText}
         />
 
         <section className={styles.results} aria-label="Liste des arbres">
@@ -82,7 +105,14 @@ export default async function TreesPage({ searchParams }: TreesPageProps) {
           )}
 
           {!error && trees.length === 0 && (
-            <p>Aucun arbre n’est disponible dans cette catégorie.</p>
+            <div role="status">
+              <p>
+                {searchText !== ""
+                  ? `Aucun arbre ne correspond à « ${searchText} ».`
+                  : "Aucun arbre n’est disponible dans cette catégorie."}
+              </p>
+              <Link href="/arbres">Voir tous nos arbres</Link>
+            </div>
           )}
 
           {!error && trees.length > 0 && (
