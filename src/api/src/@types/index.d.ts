@@ -94,3 +94,27 @@ export interface ICartItem {
   // availability.name est NOT NULL : toujours une chaîne
   availabilityName: string;
 }
+
+// --------------------------------
+// Commandes (F5, contrat carte #103) — table purchase ("order" est réservé en SQL)
+// --------------------------------
+export type PaymentMethod = "virement" | "chèque";
+
+// ligne de commande : nom, prix et lieu figés au moment de l'achat
+export interface IOrderLine {
+  treeName: string;
+  unitPrice: number;
+  quantity: number;
+  plantingLocation: string | null;
+}
+
+// commande telle que lue en BDD (sans les instructions de paiement, qui viennent de la config)
+export interface IOrder {
+  id: number;
+  purchaseDate: string;
+  dueDate: string; // "AAAA-MM-JJ" : date de commande + 10 jours
+  status: string;
+  paymentMethod: PaymentMethod;
+  totalAmount: number;
+  lines: IOrderLine[];
+}

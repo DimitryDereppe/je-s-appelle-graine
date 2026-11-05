@@ -21,4 +21,17 @@ export const config = {
   // Site autorisé à appeler l'API depuis un navigateur (CORS) : le front.
   // || pour la même raison que jwtSecret (ligne vide dans le .env)
   allowedOrigins: process.env.ALLOWED_ORIGINS || "http://localhost:3000",
+  // Instructions de paiement renvoyées après une commande (contrat carte #103).
+  // Valeurs fictives par défaut pour le dev et les tests ; les vraies sont dans le .env de production.
+  payment: {
+    // virement
+    iban: process.env.PAYMENT_IBAN || "FR76 0000 0000 0000 0000 0000 000",
+    bic: process.env.PAYMENT_BIC || "XXXXFRPPXXX",
+    holder: process.env.PAYMENT_HOLDER || "Je s'appelle Graine",
+    // chèque
+    payableTo: process.env.PAYMENT_CHECK_PAYABLE_TO || "Je s'appelle Graine",
+    address:
+      process.env.PAYMENT_CHECK_ADDRESS ||
+      "Je s'appelle Graine, 1 rue de la Forêt, 35380 Paimpont",
+  },
 };

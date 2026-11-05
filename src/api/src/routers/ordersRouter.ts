@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { validateId } from "../middlewares/commonMiddleware.ts";
 import { isConnected } from "../middlewares/isConnectedMiddleware.ts";
+import { createOrder, getOrder } from "../controllers/ordersController.ts";
 
 export const router = Router();
 
@@ -9,11 +10,11 @@ export const router = Router();
 // Routes réservées au client connecté (sinon 401), contrat de la carte #103.
 
 // POST /api/orders → passe commande à partir du panier (transaction, carte #104)
-router.post("/orders", isConnected);
+router.post("/orders", isConnected, createOrder);
 
 // GET /api/orders/:id → détail d'une commande, pour la page de confirmation (carte #104, réutilisée par F6)
 // 404 si la commande n'existe pas ou appartient à un autre client
-router.get("/orders/:id", isConnected, validateId);
+router.get("/orders/:id", isConnected, validateId, getOrder);
 
 // --- Routes d'autres cartes, à écrire plus tard ---
 
