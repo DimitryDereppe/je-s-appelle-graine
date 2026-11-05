@@ -10,6 +10,8 @@ import {
   validateSearchQuery,
 } from "../middlewares/commonMiddleware.ts";
 
+import { getAllCategories } from "../controllers/treeController.ts";
+
 export const router = Router();
 
 // Le préfixe "/api" est déjà ajouté par app.use("/api", ...) dans app.ts :
@@ -26,3 +28,6 @@ router.get("/trees", validateCategoryQuery, validateSearchQuery, getAllCatalog);
 
 // GET /api/trees/:id → un arbre pour la fiche arbre
 router.get("/trees/:id", validateId, getOneTree);
+
+//GET /api/categories : la liste des catégories
+router.get("/categories", getAllCategories);
