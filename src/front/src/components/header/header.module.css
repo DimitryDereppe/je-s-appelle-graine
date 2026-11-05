@@ -120,6 +120,9 @@
   border-radius: 10px;
   font-size: 1rem;
   text-decoration: none;
+  & img {
+    top: 2px;
+  }
 }
 
 .cartLink:hover {

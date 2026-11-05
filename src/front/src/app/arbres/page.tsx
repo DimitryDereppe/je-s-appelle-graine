@@ -11,7 +11,7 @@ import TreeCard from "@/components/treeCard/TreeCard";
 export const metadata: Metadata = {
   title: "Nos arbres | Je s’appelle Graine",
   description:
-    "Découvrez les arbres de Je s’appelle Graine : filtrez par catégorie ou recherchez par nom.",
+    "Choisissez votre arbre parmi notre large sélection. Nos stocks comprennent des résineux, des feuillages caducs et des feuillages persistants.",
 };
 
 // Le bouton radio qui affiche tout le catalogue (ce n'est pas une catégorie de l'API)
