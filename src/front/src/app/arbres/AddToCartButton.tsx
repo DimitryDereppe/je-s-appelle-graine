@@ -27,7 +27,9 @@ export function AddToCartButton({ treeId, treeName }: AddToCartButtonProps) {
       });
 
       if (response.status === 401 || response.status === 403) {
-        router.push("/connexion?next=/trees");
+        // Page actuelle, filtres compris (ex. "/arbres?category=fruitier")
+        const currentPage = window.location.pathname + window.location.search;
+        router.push(`/connexion?next=${encodeURIComponent(currentPage)}`);
         return;
       }
 

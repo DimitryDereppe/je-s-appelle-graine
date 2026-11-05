@@ -18,3 +18,13 @@ export interface ICatalogueTree extends IFeaturedTree {
 export interface ITree extends ICatalogueTree {
   description: string | null;
 }
+
+//Formulaire inscription client
+export interface IRegister {
+  firstname: string;
+  lastname: string;
+  accountType: AccountType;
+  organizationName: string | null;
+  email: string;
+  password: string;
+}

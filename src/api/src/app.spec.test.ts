@@ -32,4 +32,27 @@ describe("app", () => {
       assert.strictEqual(body.status, 404);
     });
   });
+
+  // Test d'un body JSON mal écrit (SyntaxError de express.json() dans errorMiddleware.ts)
+  describe("[POST] JSON mal formé", () => {
+    // Doit répondre 400 et non 500 si le JSON du body est mal écrit
+    it("should return 400 if JSON is malformed", async () => {
+      // Arrange : un JSON invalide (valeur manquante après "password":)
+      const jsonMalForme = '{ "email": "alice@test.fr", "password": }';
+
+      // Act : envoie la chaîne telle quelle, sans qu'axios la transforme en JSON valide
+      const httpResponse = await libTests.requester.post(
+        "/auth",
+        jsonMalForme,
+        {
+          headers: { "Content-Type": "application/json" },
+        },
+      );
+      const body = httpResponse.data; // le JSON renvoyé ({ error, status })
+
+      // Assert : La route répond 400 avec le message de errorMiddleware
+      assert.strictEqual(httpResponse.status, 400, JSON.stringify(body));
+      assert.strictEqual(body.error, "Les données envoyées sont mal formées.");
+    });
+  });
 });

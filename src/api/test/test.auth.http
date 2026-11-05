@@ -1,0 +1,13 @@
+### POST /auth pour le login
+POST http://localhost:4000/api/auth HTTP/1.1
+content-type: application/json
+
+{
+  "email": "alice@test.fr",
+  "password": "Client12345!"
+}
+
+
+### DELETE /auth pour le logout
+DELETE http://localhost:4000/api/auth HTTP/1.1
+
