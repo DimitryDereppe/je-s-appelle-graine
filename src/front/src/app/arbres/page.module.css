@@ -152,6 +152,25 @@
   list-style: none;
 }
 
+/* La carte remplit sa case : toutes les cartes d'une ligne ont la même hauteur */
+.treeItem {
+  display: grid;
+  min-width: 0;
+}
+
+/* Lu par les lecteurs d'écran, invisible à l'écran */
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 .treeCard {
   min-width: 0;
   overflow: hidden;

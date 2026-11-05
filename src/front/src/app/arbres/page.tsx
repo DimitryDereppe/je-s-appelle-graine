@@ -1,52 +1,78 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import styles from "./page.module.css";
-import type { ICatalogueTree } from "../../@types";
+import type { ICatalogueTree, ICategory, IFeaturedTree } from "../../@types";
 import { TreesFilters } from "./TreesFilters";
 // import { AddToCartButton } from "./AddToCartButton";
 import { api } from "../utils/apiCall";
 import TreeCard from "@/components/treeCard/TreeCard";
-import type { Metadata } from "next";
 
-const categories = [
-  { id: 0, name: "Tous nos arbres" },
-  { id: 1, name: "Résineux" },
-  { id: 2, name: "Feuillage caduc" },
-  { id: 3, name: "Feuillage persistant" },
-];
+// Titre de l'onglet et description pour les moteurs de recherche
 export const metadata: Metadata = {
-  title: "Je s'appelle Graine",
+  title: "Nos arbres | Je s’appelle Graine",
   description:
-    "Choisissez votre arbre parmis notre large sélection. Nos stocks comprennent des résineux, des feuillage caduc, des feuillage persistant.",
+    "Choisissez votre arbre parmi notre large sélection. Nos stocks comprennent des résineux, des feuillages caducs et des feuillages persistants.",
 };
 
+// Le bouton radio qui affiche tout le catalogue (ce n'est pas une catégorie de l'API)
+const ALL_TREES: ICategory = { id: 0, name: "Tous nos arbres" };
+
 interface TreesPageProps {
-  searchParams: Promise<{ category?: string }>;
+  searchParams: Promise<{ categorie?: string; recherche?: string }>;
 }
 
 export default async function TreesPage({ searchParams }: TreesPageProps) {
-  const { category } = await searchParams;
-  const selectedCategory = categories.some((c) => String(c.id) === category)
-    ? Number(category)
+  const { categorie, recherche } = await searchParams;
+
+  let categories: ICategory[] = [ALL_TREES];
+
+  try {
+    const response = await api<IFeaturedTree, ICategory[]>("categories");
+    categories = [ALL_TREES, ...response];
+  } catch {
+    // Si pas de catégories, le catalogue reste utilisable : on garde « Tous nos arbres »
+  }
+
+  // Une catégorie inconnue dans l'adresse affiche tout le catalogue
+  const selectedCategory = categories.some((c) => String(c.id) === categorie)
+    ? Number(categorie)
     : 0;
+  // Le texte cherché, sans les espaces au début et à la fin ("" si rien)
+  const searchText = typeof recherche === "string" ? recherche.trim() : "";
 
   let trees: ICatalogueTree[] = [];
   let error: string | null = null;
+
+  // On prépare les paramètres à envoyer à l'API (vide pour l'instant)
+  const params = new URLSearchParams();
+
+  // Si une vraie catégorie est choisie (pas "Tous"), on l'ajoute : category=1
+  if (selectedCategory !== 0) {
+    params.set("category", String(selectedCategory));
+  }
+
+  // Si l'utilisateur a tapé quelque chose, on l'ajoute : search=chene
+  if (searchText !== "") {
+    params.set("search", searchText);
+  }
+
+  // On transforme les paramètres en texte : ""category=1&search=pin"" ou "" si aucun filtre
+  const query = params.toString();
+
+  // Si query n'est pas vide → "trees?category=1", sinon → "trees"
+  const endpoint = query ? `trees?${query}` : "trees";
 
   try {
     const response: ICatalogueTree[] = await api<
       ICatalogueTree,
       ICatalogueTree[]
-    >("trees/");
-    if (!response) {
-      throw new Error("Impossible de charger les arbres pour le moment.");
-    }
+    >(endpoint);
 
     trees = response;
   } catch (fetchError) {
-    error =
-      fetchError instanceof Error
-        ? fetchError.message
-        : "Impossible de charger les arbres pour le moment.";
+    // Le détail technique reste dans les logs : le visiteur voit un message simple
+    console.error(fetchError);
+    error = "Impossible de charger les arbres pour le moment.";
   }
 
   return (
@@ -78,9 +104,15 @@ export default async function TreesPage({ searchParams }: TreesPageProps) {
         <TreesFilters
           categories={categories}
           selectedCategory={selectedCategory}
+          searchText={searchText}
         />
 
-        <section className={styles.results} aria-label="Liste des arbres">
+        <section className={styles.results} aria-labelledby="trees-title">
+          {/* Masqué à l'écran : garde l'ordre des titres (h1, h2, puis h3 des cartes) */}
+          <h2 id="trees-title" className={styles.visuallyHidden}>
+            Liste des arbres
+          </h2>
+
           {error && (
             <p className={styles.errorMessage} role="alert">
               {error}
@@ -88,13 +120,22 @@ export default async function TreesPage({ searchParams }: TreesPageProps) {
           )}
 
           {!error && trees.length === 0 && (
-            <p>Aucun arbre n’est disponible dans cette catégorie.</p>
+            <div role="status">
+              <p>
+                {searchText !== ""
+                  ? `Aucun arbre ne correspond à « ${searchText} ».`
+                  : "Aucun arbre n’est disponible dans cette catégorie."}
+              </p>
+              <Link href="/arbres">Voir tout le catalogue</Link>
+            </div>
           )}
 
           {!error && trees.length > 0 && (
             <ul className={styles.treeGrid}>
               {trees.map((tree) => (
-                <TreeCard key={tree.id} tree={tree} />
+                <li key={tree.id} className={styles.treeItem}>
+                  <TreeCard tree={tree} />
+                </li>
               ))}
             </ul>
           )}
