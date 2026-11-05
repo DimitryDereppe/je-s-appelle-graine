@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import styles from "./page.module.css";
-import type { ICatalogueTree, ICategory, IFeaturedTree } from "../../@types";
+import type { ICatalogueTree, ICategory } from "../../@types";
 import { TreesFilters } from "./TreesFilters";
 // import { AddToCartButton } from "./AddToCartButton";
 import { api } from "../utils/apiCall";
@@ -27,7 +27,7 @@ export default async function TreesPage({ searchParams }: TreesPageProps) {
   let categories: ICategory[] = [ALL_TREES];
 
   try {
-    const response = await api<IFeaturedTree, ICategory[]>("categories");
+    const response = await api<ICategory[]>("categories");
     categories = [ALL_TREES, ...response];
   } catch {
     // Si pas de catégories, le catalogue reste utilisable : on garde « Tous nos arbres »
@@ -63,10 +63,7 @@ export default async function TreesPage({ searchParams }: TreesPageProps) {
   const endpoint = query ? `trees?${query}` : "trees";
 
   try {
-    const response: ICatalogueTree[] = await api<
-      ICatalogueTree,
-      ICatalogueTree[]
-    >(endpoint);
+    const response = await api<ICatalogueTree[]>(endpoint);
 
     trees = response;
   } catch (fetchError) {

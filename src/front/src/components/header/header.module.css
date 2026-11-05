@@ -96,12 +96,12 @@
 
 .navigationLink:hover,
 .navigationLink:focus-visible {
-  color: var(--color-primary-green, #245a46);
+  color: var(--color-green);
   background-color: var(--color-sage, #e3e9df);
 }
 
 .activeLink {
-  color: var(--color-primary-green, #245a46);
+  color: var(--color-green);
   font-weight: 700;
   text-decoration: underline;
   text-decoration-thickness: 2px;
@@ -115,8 +115,8 @@
   min-width: 44px;
   min-height: 44px;
   padding: 0.5rem 0.75rem;
-  color: var(--color-primary-green, #245a46);
-  border: 1px solid var(--color-primary-green, #245a46);
+  color: var(--color-green);
+  border: 1px solid var(--color-green);
   border-radius: 10px;
   font-size: 1rem;
   text-decoration: none;
@@ -127,7 +127,7 @@
 
 .cartLink:hover {
   color: var(--color-ivory, #f8f6f0);
-  background-color: var(--color-primary-green, #245a46);
+  background-color: var(--color-green);
 }
 
 /* Message « Bonjour … » : même alignement qu'un lien, mais pas cliquable */
@@ -194,7 +194,7 @@
   min-height: 44px;
   padding: 0.5rem 1rem;
   color: var(--color-ivory, #f8f6f0);
-  background-color: var(--color-primary-green, #245a46);
+  background-color: var(--color-green);
   border: 0;
   border-radius: 10px;
   cursor: pointer;

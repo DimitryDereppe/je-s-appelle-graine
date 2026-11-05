@@ -15,7 +15,7 @@ export default async function FicheArbre({ params }: TreePageProps) {
   let error: string | null = null;
 
   try {
-    const response: ITree = await api<ITree, ITree>(`trees/${id}`);
+    const response = await api<ITree>(`trees/${id}`);
     if (!response) {
       throw new Error("Impossible de charger cet arbre pour le moment.");
     }

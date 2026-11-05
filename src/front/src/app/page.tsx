@@ -20,7 +20,7 @@ async function FeaturedTrees() {
   let hasError = false;
 
   try {
-    trees = await api<ICatalogueTree, ICatalogueTree[]>("trees/featured/");
+    trees = await api<ICatalogueTree[]>("trees/featured/");
   } catch (error) {
     console.error("Échec du chargement des arbres :", error);
     hasError = true;
