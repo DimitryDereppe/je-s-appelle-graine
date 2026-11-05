@@ -5,6 +5,7 @@ import { TreesFilters } from "./TreesFilters";
 // import { AddToCartButton } from "./AddToCartButton";
 import { api } from "../utils/apiCall";
 import TreeCard from "@/components/treeCard/TreeCard";
+import type { Metadata } from "next";
 
 const categories = [
   { id: 0, name: "Tous nos arbres" },
@@ -12,6 +13,11 @@ const categories = [
   { id: 2, name: "Feuillage caduc" },
   { id: 3, name: "Feuillage persistant" },
 ];
+export const metadata: Metadata = {
+  title: "Je s'appelle Graine",
+  description:
+    "Choisissez votre arbre parmis notre large sélection. Nos stocks comprennent des résineux, des feuillage caduc, des feuillage persistant.",
+};
 
 interface TreesPageProps {
   searchParams: Promise<{ category?: string }>;

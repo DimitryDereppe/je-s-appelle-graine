@@ -6,8 +6,14 @@ import { api } from "./utils/apiCall";
 import Link from "next/link";
 import TreeCard from "@/components/treeCard/TreeCard";
 import { Suspense } from "react";
+import type { Metadata } from "next";
 
 export const dynamic = "force-dynamic";
+export const metadata: Metadata = {
+  title: "Je s'appelle Graine",
+  description:
+    "Aidez-nous à réparer nos forêts. Les arbres que vous achetez sont plantés dans le lieu que vous avez choisis",
+};
 
 async function FeaturedTrees() {
   let trees: ICatalogueTree[] = [];
@@ -26,11 +32,13 @@ async function FeaturedTrees() {
         <p className={styles.errorMessage}>
           Impossible de charger les arbres pour le moment.
           <br />
-           Chercher votre bonheur dans notre           <Link href="/arbres" passHref>
+          Chercher votre bonheur dans notre{" "}
+          <Link href="/arbres" passHref>
             <button type="button" className={styles.buttonError}>
               catalogue
             </button>
-          </Link> !
+          </Link>{" "}
+          !
         </p>
       </div>
     );
@@ -42,11 +50,13 @@ async function FeaturedTrees() {
         <p className={styles.emptyMessage}>
           Aucun arbre n&apos;est disponible pour le moment.
           <br />
-         Chercher votre bonheur dans notre           <Link href="/arbres" passHref>
+          Chercher votre bonheur dans notre{" "}
+          <Link href="/arbres" passHref>
             <button className={styles.ctaButton} type="button">
               catalogue <span className={styles.arrow}>→</span>
             </button>
-          </Link> !
+          </Link>{" "}
+          !
         </p>
       </div>
     );
