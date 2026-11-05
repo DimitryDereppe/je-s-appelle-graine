@@ -2,6 +2,16 @@
 
 Suivi de mon travail sur Je s’appelle Graine. Les décisions notées ici ont été prises avec l'équipe sur Discord ; le suivi de l'équipe est dans le [[Apothéose/apo-jesappellegraine/CARNET-DE-BORD-JE-S-APPELLE-GRAINE|carnet de bord Je s’appelle Graine]].
 
+## 2026-11-05 — Suite du Header, clôture
+
+- `fix/header` était déjà poussée et fusionnée dans `main` (PR #150, 04/11) : le « reste à faire » du 04/11 sur ce point est caduc.
+- Test navigateur **OK** : inscription → connexion → retour à la page d'origine, Header à jour sans rechargement.
+- **Décision** : `alertMessage` n'est pas remis à `null`. Le Header restant monté d'une page à l'autre, le bandeau « compte désactivé » reste affiché en naviguant (même si on se reconnecte avec un autre compte) ; il disparaît à l'actualisation. Cas rare, accepté tel quel.
+
+### Reste à faire
+
+- Panier (#104, branche `back-f5`) : `cartDatamapper` commité en local (`8d85525`, typage + `findCartByUserId` + `addCartItem`) ; reste contrôleur et routeur.
+
 ## 2026-11-04 (après-midi) — Inscription → connexion, fusion dans `fix/header`, Header rafraîchi
 
 ### Inscription (branche `feat/inscription`, poussée)
@@ -152,7 +162,7 @@ Branche `feat/userRouter`, commits `204fb66` (suppression du `.gitkeep` de `midd
 
 ### Travail réalisé
 
-- **Email unique** (commit `d54a024`) : `accountDatamapper.findByEmail(email)` réutilisé ; `if (existingAccount) throw new ConflictError(...)`. `findByEmail` renvoie un compte ou `undefined`, et `undefined` est *falsy* : le `if` suffit.
+- **Email unique** (commit `d54a024`) : `accountDatamapper.findByEmail(email)` réutilisé ; `if (existingAccount) throw new ConflictError(...)`. `findByEmail` renvoie un compte ou `undefined`, et `undefined` est _falsy_ : le `if` suffit.
 - **Hachage** (non commité) : `const hashedPassword = await argon2.hash(password);`, placé **après** la vérification de l'email. `password` remis dans la déstructuration du résultat de Zod.
 - **`.gitkeep`** : supprimés de `controllers/` et `middlewares/`, qui contiennent maintenant des fichiers ; gardé dans `services/`, encore vide.
 
@@ -204,7 +214,7 @@ Branche `feat/userRouter` (partie de `back-F3`), commits `d0a63cd` et `3c68601` 
 
 ### Difficultés
 
-- **API plantée au démarrage** : `TypeError: argument handler is required` (`userRouter.ts:5`). Les lignes `router.get("/users/me")` n'avaient pas de fonction ; Express refuse une route sans *handler*. Solution : ne garder que la route qui a un controller, les autres en commentaire.
+- **API plantée au démarrage** : `TypeError: argument handler is required` (`userRouter.ts:5`). Les lignes `router.get("/users/me")` n'avaient pas de fonction ; Express refuse une route sans _handler_. Solution : ne garder que la route qui a un controller, les autres en commentaire.
 - **`tsx` n'a pas relancé le serveur** après la correction : le processus avait planté au démarrage. Solution : `docker restart src-api-1`, puis lire `docker logs --tail 10 src-api-1`.
 - **Branche créée depuis `front-F3`** (12 commits du front en trop) : rattrapé avant le premier commit avec `git stash -u`, `git switch back-F3`, `git branch -D`, `git switch -c`, `git stash pop`. Vérification : `git log --oneline back-F3..HEAD` vide.
 - **Schéma défini mais jamais appliqué** : tout passait en `200`, même un mot de passe de 5 caractères. Il manquait `parseAsync(req.body)`.
