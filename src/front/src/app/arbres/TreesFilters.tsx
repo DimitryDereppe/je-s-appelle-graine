@@ -3,9 +3,10 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import styles from "./page.module.css";
+import type { ICategory } from "../../@types";
 
 interface TreesFiltersProps {
-  categories: { id: number; name: string }[];
+  categories: ICategory[];
   selectedCategory: number;
   searchText: string; // la recherche en cours, pour ne pas la perdre
 }

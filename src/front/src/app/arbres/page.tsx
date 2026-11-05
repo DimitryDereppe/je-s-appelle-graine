@@ -1,17 +1,13 @@
 import Link from "next/link";
 import styles from "./page.module.css";
-import type { ICatalogueTree } from "../../@types";
+import type { ICatalogueTree, ICategory, IFeaturedTree } from "../../@types";
 import { TreesFilters } from "./TreesFilters";
 // import { AddToCartButton } from "./AddToCartButton";
 import { api } from "../utils/apiCall";
 import TreeCard from "@/components/treeCard/TreeCard";
 
-const categories = [
-  { id: 0, name: "Tous nos arbres" },
-  { id: 1, name: "Résineux" },
-  { id: 2, name: "Feuillage caduc" },
-  { id: 3, name: "Feuillage persistant" },
-];
+// Le bouton radio qui affiche tout le catalogue (ce n'est pas une catégorie de l'API)
+const ALL_TREES: ICategory = { id: 0, name: "Tous nos arbres" };
 
 interface TreesPageProps {
   searchParams: Promise<{ categorie?: string; recherche?: string }>;
@@ -19,6 +15,17 @@ interface TreesPageProps {
 
 export default async function TreesPage({ searchParams }: TreesPageProps) {
   const { categorie, recherche } = await searchParams;
+
+  let categories: ICategory[] = [ALL_TREES];
+
+  try {
+    const response = await api<IFeaturedTree, ICategory[]>("categories");
+    categories = [ALL_TREES, ...response];
+  } catch {
+    // Si pas de catégories, le catalogue reste utilisable : on garde « Tous nos arbres »
+  }
+
+  // Une catégorie inconnue dans l'adresse affiche tout le catalogue
   const selectedCategory = categories.some((c) => String(c.id) === categorie)
     ? Number(categorie)
     : 0;

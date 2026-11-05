@@ -28,3 +28,9 @@ export interface IRegister {
   email: string;
   password: string;
 }
+
+// Menu filtre catégorie (bouton radio)
+export interface ICategory {
+  id: number;
+  name: string;
+}
