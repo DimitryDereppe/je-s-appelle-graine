@@ -79,7 +79,7 @@
 }
 
 .link:hover {
-  color: var(--color-primary-green, #245a46);
+  color: var(--color-green);
   text-decoration: underline;
   text-underline-offset: 0.2rem;
 }

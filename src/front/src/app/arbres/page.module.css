@@ -124,11 +124,11 @@
   width: 0.9rem;
   height: 0.9rem;
   flex: 0 0 auto;
-  accent-color: var(--color-primary-green, #245a46);
+  accent-color: var(--color-green);
 }
 
 .categoryOption:has(input:checked) {
-  color: var(--color-primary-green, #245a46);
+  color: var(--color-green);
   font-weight: 700;
 }
 
@@ -214,7 +214,7 @@
 }
 
 .treeNameLink:hover {
-  color: var(--color-primary-green, #245a46);
+  color: var(--color-green);
   text-decoration: underline;
   text-underline-offset: 0.2rem;
 }
