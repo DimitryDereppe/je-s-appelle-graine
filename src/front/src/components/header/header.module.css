@@ -167,6 +167,7 @@
 .navArea {
   order: 1; /* se place après le panier */
   flex-basis: 100%; /* prend toute la largeur → nouvelle ligne */
+  min-width: 0; /* autorise la boîte à rétrécir : la recherche ne touche plus le bord */
 }
 
 .search {

@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import styles from "./page.module.css";
 import type { ICatalogueTree, ICategory, IFeaturedTree } from "../../@types";
@@ -5,6 +6,13 @@ import { TreesFilters } from "./TreesFilters";
 // import { AddToCartButton } from "./AddToCartButton";
 import { api } from "../utils/apiCall";
 import TreeCard from "@/components/treeCard/TreeCard";
+
+// Titre de l'onglet et description pour les moteurs de recherche
+export const metadata: Metadata = {
+  title: "Nos arbres | Je s’appelle Graine",
+  description:
+    "Découvrez les arbres de Je s’appelle Graine : filtrez par catégorie ou recherchez par nom.",
+};
 
 // Le bouton radio qui affiche tout le catalogue (ce n'est pas une catégorie de l'API)
 const ALL_TREES: ICategory = { id: 0, name: "Tous nos arbres" };
@@ -60,16 +68,11 @@ export default async function TreesPage({ searchParams }: TreesPageProps) {
       ICatalogueTree[]
     >(endpoint);
 
-    if (!response) {
-      throw new Error("Impossible de charger les arbres pour le moment.");
-    }
-
     trees = response;
   } catch (fetchError) {
-    error =
-      fetchError instanceof Error
-        ? fetchError.message
-        : "Impossible de charger les arbres pour le moment.";
+    // Le détail technique reste dans les logs : le visiteur voit un message simple
+    console.error(fetchError);
+    error = "Impossible de charger les arbres pour le moment.";
   }
 
   return (
@@ -104,7 +107,12 @@ export default async function TreesPage({ searchParams }: TreesPageProps) {
           searchText={searchText}
         />
 
-        <section className={styles.results} aria-label="Liste des arbres">
+        <section className={styles.results} aria-labelledby="trees-title">
+          {/* Masqué à l'écran : garde l'ordre des titres (h1, h2, puis h3 des cartes) */}
+          <h2 id="trees-title" className={styles.visuallyHidden}>
+            Liste des arbres
+          </h2>
+
           {error && (
             <p className={styles.errorMessage} role="alert">
               {error}
@@ -118,14 +126,16 @@ export default async function TreesPage({ searchParams }: TreesPageProps) {
                   ? `Aucun arbre ne correspond à « ${searchText} ».`
                   : "Aucun arbre n’est disponible dans cette catégorie."}
               </p>
-              <Link href="/arbres">Voir tous nos arbres</Link>
+              <Link href="/arbres">Voir tout le catalogue</Link>
             </div>
           )}
 
           {!error && trees.length > 0 && (
             <ul className={styles.treeGrid}>
               {trees.map((tree) => (
-                <TreeCard key={tree.id} tree={tree} />
+                <li key={tree.id} className={styles.treeItem}>
+                  <TreeCard tree={tree} />
+                </li>
               ))}
             </ul>
           )}

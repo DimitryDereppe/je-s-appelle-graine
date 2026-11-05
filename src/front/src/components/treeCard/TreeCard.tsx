@@ -2,12 +2,15 @@ import styles from "./TreeCard.module.css";
 import Image from "next/image";
 import type { ICatalogueTree } from "../../@types";
 import Link from "next/link";
+import { formatEuros } from "../../app/utils/format";
 
 interface FeaturedTreeProps {
   tree: ICatalogueTree;
 }
-export default async function TreeCard({ tree }: FeaturedTreeProps) {
-  console.log(tree);
+export default function TreeCard({ tree }: FeaturedTreeProps) {
+  // Un arbre épuisé reste visible, mais ne peut pas être commandé
+  const isSoldOut = tree.availabilityName === "en rupture de stock";
+
   return (
     <article key={tree.id} className={styles.card}>
       <Link
@@ -28,42 +31,49 @@ export default async function TreeCard({ tree }: FeaturedTreeProps) {
       <div className={styles.cardBody}>
         <div className={styles.cardInfo}>
           <h3 className={styles.cardTitle}>{tree.name} </h3>{" "}
-          {tree.availabilityName ? <span>{tree.availabilityName}</span> : <></>}
+          {tree.availabilityName && (
+            <span>{isSoldOut ? "Épuisé" : tree.availabilityName}</span>
+          )}
           <p className={styles.cardScientific}>{tree.categoryName}</p>
-          <p className={styles.cardLocation}>
-            <span className={styles.locationIcon}>
-              <Image
-                src="/assets/localisation.svg"
-                alt=""
-                className={styles.badgeIcon}
-                width={18}
-                height={18}
-              />
-            </span>
+          {/* Le lieu est facultatif : sans lui, on n'affiche pas l'icône seule */}
+          {tree.plantingLocation && (
+            <p className={styles.cardLocation}>
+              <span className={styles.locationIcon}>
+                <Image
+                  src="/assets/localisation.svg"
+                  alt=""
+                  className={styles.badgeIcon}
+                  width={18}
+                  height={18}
+                />
+              </span>
 
-            <span className={styles.cardScientific}>
-              {tree.plantingLocation}
-            </span>
-          </p>
+              <span className={styles.cardScientific}>
+                {tree.plantingLocation}
+              </span>
+            </p>
+          )}
         </div>
 
         <div className={styles.cardActions}>
           <div className={styles.cardFooter}>
-            <p className={styles.cardPrice}>{tree.price}€ TTC</p>
+            <p className={styles.cardPrice}>{formatEuros(tree.price)} TTC</p>
 
-            <button
-              className={styles.basketButton}
-              type="button"
-              aria-label={`Ajouter ${tree.name} au panier`}
-            >
-              <Image
-                src="/assets/panier.svg"
-                alt=""
-                className={styles.badgeIcon}
-                width={24}
-                height={24}
-              />
-            </button>
+            {!isSoldOut && (
+              <button
+                className={styles.basketButton}
+                type="button"
+                aria-label={`Ajouter ${tree.name} au panier`}
+              >
+                <Image
+                  src="/assets/panier.svg"
+                  alt=""
+                  className={styles.badgeIcon}
+                  width={24}
+                  height={24}
+                />
+              </button>
+            )}
           </div>
         </div>
       </div>
