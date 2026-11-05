@@ -69,6 +69,7 @@ export interface IAuthenticatedRequest extends Request {
   userId?: number;
   userRole?: Role;
 }
+
 //Formulaire inscription client
 export interface IRegister {
   firstname: string;
@@ -77,6 +78,45 @@ export interface IRegister {
   organizationName: string | null;
   email: string;
   password: string;
+}
+
+//Panier
+export interface ICartItem {
+  id: number;
+  accountId: number;
+  treeId: number;
+  quantity: number;
+  name: string;
+  price: number;
+  photoUrl: string | null;
+  // planting_location sans NOT NULL dans le schéma : peut valoir null
+  plantingLocation: string | null;
+  // availability.name est NOT NULL : toujours une chaîne
+  availabilityName: string;
+}
+
+// --------------------------------
+// Commandes (F5, contrat carte #103) — table purchase ("order" est réservé en SQL)
+// --------------------------------
+export type PaymentMethod = "virement" | "chèque";
+
+// ligne de commande : nom, prix et lieu figés au moment de l'achat
+export interface IOrderLine {
+  treeName: string;
+  unitPrice: number;
+  quantity: number;
+  plantingLocation: string | null;
+}
+
+// commande telle que lue en BDD (sans les instructions de paiement, qui viennent de la config)
+export interface IOrder {
+  id: number;
+  purchaseDate: string;
+  dueDate: string; // "AAAA-MM-JJ" : date de commande + 10 jours
+  status: string;
+  paymentMethod: PaymentMethod;
+  totalAmount: number;
+  lines: IOrderLine[];
 }
 
 // Catégorie d'arbre (filtre du catalogue)

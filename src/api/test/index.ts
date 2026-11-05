@@ -71,6 +71,20 @@ export async function createTree(tree: ITestTree): Promise<number> {
 }
 
 // --------------------------------
+// ajoute une ligne au panier d'un compte, directement en BDD (Arrange des tests)
+// --------------------------------
+export async function addCartItem(
+  accountId: number,
+  treeId: number,
+  quantity: number,
+) {
+  await pool.query(
+    "INSERT INTO cart_item (account_id, tree_id, quantity) VALUES ($1, $2, $3)",
+    [accountId, treeId, quantity],
+  );
+}
+
+// --------------------------------
 // retourne l'id d'une catégorie déjà créée par createTree
 // --------------------------------
 export async function getCategoryId(name: string): Promise<number> {
