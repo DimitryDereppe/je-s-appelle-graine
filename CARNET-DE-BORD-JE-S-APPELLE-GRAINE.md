@@ -1,5 +1,33 @@
 # Carnet de bord — Je s’appelle Graine
 
+## 2026-11-05 — F2 dans `main`, branche `DEV` et organisation du sprint 3
+
+### Travail réalisé
+
+- **F2 dans `main`** (PR #192) :
+  - route `GET /api/categories` et tests de la recherche par Mahamadou (PR #186) ;
+  - catalogue par Fabrice, à partir de la barre de recherche et des filtres de Mahamadou (PR #185) : catégories lues depuis l'API, filtre et recherche combinés, arbres en rupture de stock sans bouton panier ;
+  - fiche arbre et page 404 par Loïc (PR #183, #188 et #190) ;
+  - pages d'information par Shanna (PR #189).
+- **Outils communs du front** par Fabrice : `formatEuros` et `formatDate` (PR #184), `clientApi` pour les composants clients et `api()` simplifiée pour les pages serveur (PR #187).
+- **Back de la commande (F5) et début du panier (F4)** par Dimitry (PR #191, dans `DEV`) : `POST /api/orders` en transaction, `GET /api/orders/:id`, `GET /api/cart`, `POST /api/cart/items`, tests.
+
+### Décisions
+
+- **Sprint 3 :** une feature entière par personne, le back et le front : Loïc F4, Dimitry F5, Fabrice F6, Shanna F7, Mahamadou F9. F8 revient au premier qui a fini, s'il reste du temps.
+- **Relectures réparties à égalité :** Dimitry relit F4, Loïc F5, Shanna F6, Mahamadou F7, Fabrice F9.
+- **Branche `DEV` :** chacun part de `DEV` et y envoie ses PR ; `DEV` n'est fusionnée dans `main` que lorsque l'équipe a vérifié l'ensemble. Noms de branches au format `type/fN-partie`, par exemple `feat/f4-panier-back`.
+- **Panier :** Dimitry en a commencé le back pour la commande, vu en équipe. Loïc continue à partir de ce code.
+- **Adresse du client :** demandée à la commande, car l'inscription ne la demande pas. L'email de confirmation de commande la contient.
+- **Inscription, email déjà utilisé :** le message devient « Ce compte existe déjà. ».
+
+### À poursuivre
+
+- Dimitry : ajustements de la relecture de la PR #191 (adresse, `isConnected` en haut des routeurs, test de `/api/health` à corriger, `PAYMENT_*` dans `.env.example`, `test.order.http`, plan de tests), puis email (#105) et front (#107).
+- Loïc : finitions de la fiche et de la page 404 (#93), puis fin du back et front du panier (#100, #101, #102) après les ajustements de Dimitry.
+- Mahamadou : tests du filtre par catégorie et plan de tests de F2 (#90, #94), puis F9.
+- Shanna : F7. Fabrice : F6.
+
 ## 2026-11-04 — F3 fusionnée dans `main` ; fiche arbre et catalogue
 
 ### Travail réalisé
