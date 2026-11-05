@@ -5,7 +5,7 @@ export default function NotFound() {
   return (
     <main className={styles.main}>
       <section className={styles.hero}>
-        <p className={styles.tagline}>OUPS, CETTE PAGE N&apos;EXISTE PAS</p>
+        <h1 className={styles.tagline}>OUPS, CETTE PAGE N&apos;EXISTE PAS</h1>
 
         <div className={styles.heroImage}>
           <Image
