@@ -103,7 +103,7 @@ describe("userController", () => {
 
       // Assert : 409 Conflict
       assert.strictEqual(response.status, 409);
-      assert.strictEqual(response.data.error, "Cet email est déjà utilisé.");
+      assert.strictEqual(response.data.error, "Ce compte existe déjà.");
     });
 
     it("should respond 415 if body is not JSON", async () => {

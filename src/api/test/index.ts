@@ -71,6 +71,15 @@ export async function createTree(tree: ITestTree): Promise<number> {
 }
 
 // --------------------------------
+// retourne l'id d'une catégorie déjà créée par createTree
+// --------------------------------
+export async function getCategoryId(name: string): Promise<number> {
+  const result = await pool.query("SELECT id FROM category WHERE name = $1", [
+    name,
+  ]);
+  return result.rows[0].id;
+}
+
 // définition d'un compte de test : seul l'email est obligatoire, le reste a une valeur par défaut
 interface ITestAccount {
   firstname: string;

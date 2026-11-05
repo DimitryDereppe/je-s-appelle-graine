@@ -32,7 +32,7 @@
   justify-content: center;
   width: 1.5rem;
   height: 1.5rem;
-  color: var(--color-primary-green, #245a46);
+  color: var(--color-green);
   background-color: rgb(36 90 70 / 12%);
   border-radius: 50%;
   font-size: 0.9rem;

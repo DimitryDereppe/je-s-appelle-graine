@@ -42,7 +42,7 @@ export async function register(req: Request, res: Response) {
   // email unique : un compte existe déjà avec cet email → 409
   const existingAccount = await accountDatamapper.findByEmail(email);
   if (existingAccount) {
-    throw new ConflictError("Cet email est déjà utilisé.");
+    throw new ConflictError("Ce compte existe déjà.");
   }
 
   // mot de passe haché avec argon2 : seul le hash sera enregistré en BDD

@@ -1,14 +1,12 @@
-import type { IFeaturedTree } from "../../@types";
-export const dynamic = "force-dynamic";
+// Lit une route de l'API depuis une page serveur
+export async function api<TResponse>(endpoint: string): Promise<TResponse> {
+  const response = await fetch(`${process.env.API_URL}/api/${endpoint}`);
 
-export async function getAllTrees(): Promise<IFeaturedTree[]> {
-  const res = await fetch(`${process.env.API_URL}/api/trees`, {
-    next: { revalidate: 60 },
-  });
-
-  if (!res.ok) {
-    throw new Error(`Erreur HTTP ${res.status}`);
+  if (!response.ok) {
+    throw new Error(
+      `Nous n'avons pas pu atteindre ${endpoint}: ${response.statusText}`,
+    );
   }
 
-  return res.json();
+  return (await response.json()) as TResponse;
 }

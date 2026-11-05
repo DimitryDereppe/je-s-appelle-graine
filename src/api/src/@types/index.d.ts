@@ -78,3 +78,9 @@ export interface IRegister {
   email: string;
   password: string;
 }
+
+// Catégorie d'arbre (filtre du catalogue)
+export interface ICategory {
+  id: number;
+  name: string;
+}

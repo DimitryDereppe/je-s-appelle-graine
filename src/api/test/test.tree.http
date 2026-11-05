@@ -6,3 +6,39 @@ GET http://localhost:4000/api/trees/featured HTTP/1.1
 
 ### GET /trees/:id pour la fiche
 GET http://localhost:4000/api/trees/2 HTTP/1.1
+
+### Recherche simple sans accent
+GET http://localhost:4000/api/trees?search=chene HTTP/1.1
+
+### Recherche en majuscules
+GET http://localhost:4000/api/trees?search=CHENE HTTP/1.1
+
+### Recherche combinée avec une catégorie
+GET http://localhost:4000/api/trees?search=pin&category=1 HTTP/1.1
+
+### Aucun résultat
+GET http://localhost:4000/api/trees?search=baobab HTTP/1.1
+
+### Le caractère % cherché tel quel
+GET http://localhost:4000/api/trees?search=%25 HTTP/1.1
+
+### Le caractère \ cherché tel quel
+GET http://localhost:4000/api/trees?search=%5C HTTP/1.1
+
+### Recherche répétée : doit être refusée
+GET http://localhost:4000/api/trees?search=a&search=b HTTP/1.1
+
+### Catégorie invalide : doit être refusée
+GET http://localhost:4000/api/trees?search=pin&category=abc HTTP/1.1
+
+### Recherche vide : renvoie le catalogue
+GET http://localhost:4000/api/trees?search= HTTP/1.1
+
+### Sans search : ton catalogue fonctionne toujours
+GET http://localhost:4000/api/trees HTTP/1.1
+
+### Sans search : ton filtre catégorie fonctionne toujours
+GET http://localhost:4000/api/trees?category=1 HTTP/1.1
+
+### GET /categories pour le filtre du catalogue
+GET http://localhost:4000/api/categories HTTP/1.1

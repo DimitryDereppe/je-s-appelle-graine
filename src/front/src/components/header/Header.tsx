@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
+import SearchBar from "./SearchBar";
 import styles from "./header.module.css";
 import Image from "next/image";
 
@@ -88,7 +89,7 @@ export default function Header() {
             className={styles.badgeIcon}
             width={34}
             height={34}
-          />{" "}
+          />
           <span className={styles.brandName}>Je s’appelle Graine</span>
         </Link>
 
@@ -102,53 +103,60 @@ export default function Header() {
         >
           <span aria-hidden="true">{isMenuOpen ? "×" : "☰"}</span>
         </button>
-
-        <nav
-          id="site-navigation"
-          className={`${styles.navigation} ${
-            isMenuOpen ? styles.navigationOpen : ""
-          }`}
-          aria-label="Navigation principale"
-        >
-          {navigationLinks.map(({ href, label }) => (
-            <Link
-              key={href}
-              className={`${styles.navigationLink} ${
-                pathname === href ? styles.activeLink : ""
-              }`}
-              href={href}
-              aria-current={pathname === href ? "page" : undefined}
-              onClick={() => setIsMenuOpen(false)}
-            >
-              {label}
-            </Link>
-          ))}
-
-          {/* Connecté : prénom + déconnexion ; visiteur : lien vers la connexion */}
-          {user ? (
-            <>
-              <span className={styles.greeting}>Bonjour {user.firstname}</span>
-              <button
-                type="button"
-                className={`${styles.navigationLink} ${styles.logoutButton}`}
-                onClick={handleLogout}
+        <div className={styles.navArea}>
+          <nav
+            id="site-navigation"
+            className={`${styles.navigation} ${
+              isMenuOpen ? styles.navigationOpen : ""
+            }`}
+            aria-label="Navigation principale"
+          >
+            {navigationLinks.map(({ href, label }) => (
+              <Link
+                key={href}
+                className={`${styles.navigationLink} ${
+                  pathname === href ? styles.activeLink : ""
+                }`}
+                href={href}
+                aria-current={pathname === href ? "page" : undefined}
+                onClick={() => setIsMenuOpen(false)}
               >
-                Déconnexion
-              </button>
-            </>
-          ) : (
-            <Link
-              className={`${styles.navigationLink} ${
-                pathname === "/connexion" ? styles.activeLink : ""
-              }`}
-              href="/connexion"
-              aria-current={pathname === "/connexion" ? "page" : undefined}
-              onClick={() => setIsMenuOpen(false)}
-            >
-              Connexion
-            </Link>
-          )}
-        </nav>
+                {label}
+              </Link>
+            ))}
+
+            {/* Connecté : prénom + déconnexion ; visiteur : lien vers la connexion */}
+            {user ? (
+              <>
+                <span className={styles.greeting}>
+                  Bonjour {user.firstname}
+                </span>
+                <button
+                  type="button"
+                  className={`${styles.navigationLink} ${styles.logoutButton}`}
+                  onClick={handleLogout}
+                >
+                  Déconnexion
+                </button>
+              </>
+            ) : (
+              <Link
+                className={`${styles.navigationLink} ${
+                  pathname === "/connexion" ? styles.activeLink : ""
+                }`}
+                href="/connexion"
+                aria-current={pathname === "/connexion" ? "page" : undefined}
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Connexion
+              </Link>
+            )}
+          </nav>
+
+          <Suspense fallback={null}>
+            <SearchBar />
+          </Suspense>
+        </div>
 
         <Link
           className={styles.cartLink}

@@ -3,22 +3,39 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import styles from "./page.module.css";
+import type { ICategory } from "../../@types";
 
 interface TreesFiltersProps {
-  categories: { id: number; name: string }[];
+  categories: ICategory[];
   selectedCategory: number;
+  searchText: string; // la recherche en cours, pour ne pas la perdre
 }
 
 export function TreesFilters({
   categories,
   selectedCategory,
+  searchText,
 }: TreesFiltersProps) {
   const router = useRouter();
   const [isFilterOpen, setIsFilterOpen] = useState(false);
 
   function handleCategoryChange(categoryId: number) {
     setIsFilterOpen(false);
-    router.push(categoryId === 0 ? "/trees" : `/trees?category=${categoryId}`);
+
+    // On reconstruit l'URL avec les DEUX filtres
+    const params = new URLSearchParams();
+
+    if (categoryId !== 0) {
+      params.set("categorie", String(categoryId));
+    }
+
+    // On recopie la recherche en cours, sinon elle serait perdue
+    if (searchText !== "") {
+      params.set("recherche", searchText);
+    }
+
+    const query = params.toString();
+    router.push(query ? `/arbres?${query}` : "/arbres");
   }
 
   return (
