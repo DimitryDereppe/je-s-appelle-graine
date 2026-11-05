@@ -124,11 +124,11 @@
   width: 0.9rem;
   height: 0.9rem;
   flex: 0 0 auto;
-  accent-color: var(--color-primary-green, #245a46);
+  accent-color: var(--color-green);
 }
 
 .categoryOption:has(input:checked) {
-  color: var(--color-primary-green, #245a46);
+  color: var(--color-green);
   font-weight: 700;
 }
 
@@ -150,6 +150,25 @@
   margin: 0;
   padding: 0;
   list-style: none;
+}
+
+/* La carte remplit sa case : toutes les cartes d'une ligne ont la même hauteur */
+.treeItem {
+  display: grid;
+  min-width: 0;
+}
+
+/* Lu par les lecteurs d'écran, invisible à l'écran */
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 .treeCard {
@@ -195,7 +214,7 @@
 }
 
 .treeNameLink:hover {
-  color: var(--color-primary-green, #245a46);
+  color: var(--color-green);
   text-decoration: underline;
   text-underline-offset: 0.2rem;
 }

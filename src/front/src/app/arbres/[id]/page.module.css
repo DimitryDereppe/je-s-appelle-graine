@@ -1,0 +1,245 @@
+.detail {
+  width: 100%;
+  height: auto;
+  display: flex;
+  flex-direction: column;
+  background-color: #f8f6f8;
+  font-family: "Lora", Georgia, serif;
+  color: #18352e;
+  padding: 16px 16px 40px;
+}
+
+/* --- Fil d'Ariane --- */
+.breadcrumb ol {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 16px 0;
+  margin: 0;
+  font-size: 14px;
+  color: #53615b;
+}
+
+.breadcrumb li + li::before {
+  content: "·";
+  margin: 0 8px;
+  color: #53615b;
+}
+
+.breadcrumb a {
+  color: #53615b;
+  text-decoration: none;
+}
+
+.breadcrumb a:hover {
+  text-decoration: underline;
+  text-decoration-color: #b6532c;
+}
+
+.breadcrumb [aria-current="page"] {
+  color: #18352e;
+  font-weight: 600;
+}
+
+/* --- Bouton retour --- */
+.backButton {
+  display: inline-block;
+  align-self: flex-start;
+  color: #245a46;
+  font-size: 14px;
+  text-decoration: none;
+  text-align: center;
+  border: 1px solid #245a46;
+  border-radius: 8px;
+  padding: 8px 16px;
+  margin-bottom: 16px;
+  width: 100%;
+}
+
+.backButton:hover {
+  text-decoration: underline;
+  text-decoration-color: #b6532c;
+}
+
+.backButton:focus-visible {
+  outline: 2px solid #245a46;
+  outline-offset: 2px;
+}
+
+/* --- Carte détail --- */
+.detailCard {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  background-color: #f8f6f8;
+  position: relative;
+}
+
+/* --- Image centrée --- */
+.imageWrapper {
+  width: 100%;
+  height: 220px;
+  border-radius: 12px;
+  overflow: hidden;
+  background-color: #e3e9df;
+  position: relative;
+}
+
+.detailImage {
+  object-fit: cover;
+}
+
+.detailsWrapper {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+/* --- Titre --- */
+.title {
+  font-size: 26px;
+  font-weight: 700;
+  font-family: "Lora", Georgia, serif;
+  color: #18352e;
+  margin: 0 0 4px;
+}
+
+/* --- Sous-titre catégorie en gris --- */
+.subtitle {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #53615b;
+  margin: 0 0 8px;
+}
+
+/* --- Prix en vert --- */
+.price {
+  font-size: 16px;
+  font-weight: 700;
+  color: #b6532c;
+  margin: 0 0 16px;
+}
+
+/* --- Nom scientifique (italique gris) --- */
+.scientific {
+  font-size: 14px;
+  font-style: italic;
+  color: #53615b;
+  margin: 0 0 8px;
+}
+
+/* --- Description --- */
+.description {
+  font-size: 15px;
+  line-height: 1.6;
+  color: #18352e;
+  margin: 0 0 16px;
+  text-align: justify;
+}
+
+/* --- Localisation avec icône --- */
+.location {
+  font-size: 14px;
+  color: #53615b;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 24px;
+}
+
+.locationIcon {
+  font-size: 16px;
+}
+
+/* --- Bouton panier --- */
+.actions {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin-top: 8px;
+}
+
+.basketButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background-color: #245a46;
+  color: #f8f6f8;
+  border: none;
+  border-radius: 12px;
+  padding: 14px 24px;
+  min-height: 44px;
+  width: 100%;
+  font-size: 15px;
+  font-weight: 600;
+  font-family: "Lora", Georgia, serif;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.basketButton:hover {
+  background-color: #18352e;
+}
+
+.basketButton:focus-visible {
+  outline: 3px solid #245a46;
+  outline-offset: 2px;
+}
+
+/* --- Lien retour / erreurs --- */
+.backLink {
+  color: #245a46;
+  text-decoration: none;
+  font-size: 14px;
+  margin-top: 16px;
+}
+
+.backLink:hover {
+  text-decoration: underline;
+}
+
+.errorMessage {
+  font-size: 1.1rem;
+  color: #b00020;
+  text-align: center;
+}
+
+/* ===== Desktop (≥ 600px) ===== */
+@media (min-width: 600px) {
+  .backButton {
+    width: 30%;
+  }
+
+  .detail {
+    padding: 32px;
+  }
+  .detailCard {
+    flex-direction: row;
+    width: 100%;
+    gap: 4%;
+  }
+
+  .imageWrapper {
+    height: 360px;
+  }
+
+  .price {
+    font-size: 20px;
+    margin-top: 4%;
+  }
+
+  .title {
+    font-size: 32px;
+  }
+
+  .basketButton {
+    width: 100%;
+    padding: 12px 48px;
+    margin-top: 4%;
+  }
+}

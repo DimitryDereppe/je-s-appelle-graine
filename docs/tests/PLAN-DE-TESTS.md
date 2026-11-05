@@ -79,7 +79,7 @@ Fichier : `src/api/src/controllers/userController.spec.test.ts`. Les 9 cas passe
 | --------- | ---------------------------------------------------- | ----------- | ---------------------------------------------------------------------------- | ------ |
 | F3-INT-1  | Inscription valide, sans type de compte ni structure | Intégration | `201`, `accountType: "particulier"`, `role: "customer"`, pas de mot de passe | ✅     |
 | F3-INT-2  | Mot de passe de 11 caractères                        | Intégration | `400`, « Le mot de passe doit contenir au moins 12 caractères. »             | ✅     |
-| F3-INT-3  | Email déjà utilisé                                   | Intégration | `409`, « Cet email est déjà utilisé. »                                       | ✅     |
+| F3-INT-3  | Email déjà utilisé                                   | Intégration | `409`, « Ce compte existe déjà. »                                            | ✅     |
 | F3-INT-4  | Body envoyé comme un formulaire HTML (pas du JSON)   | Intégration | `415` (`validateContentType`, protection CSRF)                               | ✅     |
 | F3-INT-5  | Prénom vide, email invalide                          | Intégration | `400`, « Prénom obligatoire. » / « Email invalide. »                         | ✅     |
 | F3-INT-6  | Mot de passe enregistré                              | Intégration | haché en Argon2 en base (commence par `$argon2`, jamais en clair)            | ✅     |

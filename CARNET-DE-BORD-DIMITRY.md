@@ -2,6 +2,103 @@
 
 Suivi de mon travail sur Je s’appelle Graine. Les décisions notées ici ont été prises avec l'équipe sur Discord ; le suivi de l'équipe est dans le [[Apothéose/apo-jesappellegraine/CARNET-DE-BORD-JE-S-APPELLE-GRAINE|carnet de bord Je s’appelle Graine]].
 
+## 2026-11-04 (après-midi) — Inscription → connexion, fusion dans `fix/header`, Header rafraîchi
+
+### Inscription (branche `feat/inscription`, poussée)
+
+- `469ec92` — **`next` conservé de bout en bout** : le lien « Créer un compte » de `/connexion` transmet `next` à `/inscription` ; `inscription/page.tsx` le lit et le passe à `RegisterForm`, qui renvoie vers `/connexion?next=...` (`/` par défaut).
+  - Message de succès affiché **3 s** (`setTimeout`) avant la redirection ; bouton désactivé pendant ce temps (évite un 2e envoi → `409`).
+  - `LoginForm` : **suppression de `router.back()`** — après une inscription, la page précédente serait `/inscription`. Sans `next` valide → accueil.
+- `88981d4` — `RegisterForm` : `400` et `409` traités ensemble, le message vient de l'API (`body.error`).
+
+### Branche `fix/header` (locale, non poussée)
+
+- `44eec1f` — fusion de `feat/inscription`. Conflit dans `LoginForm.tsx` (la version de `front-F3` gardait `router.back()` commenté) : résolu en **gardant la suppression** de `469ec92` ; commentaires passés de « trois cas » à « deux cas ».
+- `4133512` — `Header.tsx` : le `useEffect` qui appelle `GET /api/users/me` dépend de **`pathname`** (au lieu de `[]`). Le Header reste monté d'une page à l'autre (layout) : avec `[]`, après la connexion et `router.push`, il affichait toujours « visiteur ».
+
+### Back (branche `back-F3`, locale)
+
+- `26b3da8` — 3 tests d'inscription : réponse `201` limitée aux champs du contrat, mot de passe d'exactement 12 caractères accepté, nom vide → `400`.
+
+### Reste à faire
+
+- Tester dans le navigateur : inscription → connexion → retour à la page d'origine, Header à jour sans rechargement.
+- `alertMessage` du Header n'est jamais remis à `null` : le message « compte désactivé » reste affiché en changeant de page. À décider.
+- Pousser `fix/header` et ouvrir la PR.
+
+## 2026-11-04 — Header : message « compte désactivé » (403)
+
+Branche `front-F3`, fichiers `src/front/src/components/header/Header.tsx` et `header.module.css`. Commité avec la correction du 401 : `354610f` (+ commentaires de `LoginForm` dans `473bd52`), poussé sur `origin/front-F3`.
+
+**Résultat** : quand `GET /api/users/me` répond `403`, le Header affiche un bandeau avec le message de l'API (« Ce compte est désactivé, veuillez contacter l'administrateur. ») et l'en-tête d'un visiteur (lien « Connexion »). Prettier, `tsc` et ESLint sans erreur ; pas testé dans le navigateur (le `403` est sur `back-F3`, pas sur `front-F3`).
+
+### Travail réalisé
+
+- Nouvel état `alertMessage` (`string | null`, `null` = rien à afficher).
+- Dans `fetchCurrentUser`, avant le `if (!response.ok)` : `if (response.status === 403)` → lecture du JSON, `setAlertMessage(data.error)`, `setUser(null)`.
+- Affichage conditionnel `{alertMessage && (<p role="alert">…</p>)}` sous la barre de navigation.
+- Classe `.alert` dans `header.module.css` : texte ivoire sur fond terracotta (couleurs déjà utilisées par le Header).
+
+### Décisions
+
+- **Message lu dans la réponse de l'API** plutôt qu'écrit en dur : un seul endroit à modifier (le back).
+- **Test du `403` avant `!response.ok`** : sinon le `403` serait attrapé par le cas général (visiteur, sans message).
+- **`role="alert"`** : le message est lu automatiquement par les lecteurs d'écran (accessibilité).
+
+### Reste à faire
+
+- Tester dans le navigateur une fois `back-F3` et `front-F3` réunis : se connecter, désactiver le compte en base, recharger la page.
+
+## 2026-11-04 — Back : compte désactivé après la connexion → 403 sur `GET /api/users/me`
+
+Branche `back-F3`, commit local `12220a5` (non poussé, git en panne). Fichiers : `controllers/utils.ts`, `datamappers/accountDatamapper.ts`, `@types/index.d.ts`, `controllers/userController.spec.test.ts`.
+
+**Résultat** : un compte désactivé par l'admin alors que son jeton est encore valide (24 h) reçoit `403` « Ce compte est désactivé, veuillez contacter l'administrateur. » au lieu de `200` avec son profil. 49 tests au vert (3 unitaires, 46 d'intégration).
+
+### Travail réalisé
+
+- `accountDatamapper.findById` : ajout de `account.is_active AS "isActive"` dans le `SELECT`.
+- Type `IAccountProfile` : champ `isActive: boolean` (lu pour la vérification, pas renvoyé par `getMe`, qui liste ses champs un par un).
+- `getAuthenticatedUser` : après le test « compte introuvable → 401 », `if (!account.isActive)` → `ForbiddenError` (403), même message qu'à la connexion.
+- Test d'intégration « should respond 403 if the account was deactivated after login » : ALICE se connecte, `UPDATE account SET is_active = FALSE`, puis `GET /users/me` avec son cookie → `403`.
+
+### Décisions
+
+- **Vérification dans `getAuthenticatedUser`, pas dans `getMe`** : toutes les routes qui chargent le compte connecté (espace client F6, commande F5…) en profitent sans rien ajouter.
+- **403 et non 401** : la personne est bien identifiée (jeton valide), mais n'a plus le droit d'accéder à son compte ; même code et même message que `login`.
+- **Côté front** : le Header affiche le message du `403` (voir l'entrée « Header : message compte désactivé »).
+
+### Difficultés
+
+- Fichier `test/config/.env.test` suivi par git sur `back-F3` écrasé par erreur pendant les tests (copie depuis `front-F3`, où il manque une ligne), puis retiré du commit et les tests relancés avec la bonne version.
+
+## 2026-11-04 — Header : déconnexion avec un jeton expiré (401)
+
+Branche `front-F3`, fichier `src/front/src/components/header/Header.tsx`, fonction `handleLogout`. Commité dans `354610f` (avec le message 403), poussé sur `origin/front-F3`.
+
+**Résultat** : quand `DELETE /api/auth` répond `401`, le Header déconnecte quand même l'utilisateur (`setUser(null)`, menu fermé, retour à l'accueil) au lieu de ne rien faire.
+
+### Travail réalisé
+
+- Condition `if (!response.ok)` remplacée par `if (!response.ok && response.status !== 401)` : on s'arrête seulement sur une erreur **autre** que 401 (ex. `500`).
+- Commentaires ajoutés au-dessus du `if` : sens du `204`, du `401` et des autres erreurs.
+
+### Décisions
+
+- **401 traité comme une réussite** : la route passe par `isConnected` ; un `401` veut dire que le jeton a expiré (24 h) ou est invalide, donc la personne n'est déjà plus connectée côté serveur.
+- **Pas de gestion du 403 dans le Header** : `GET /api/users/me` et `DELETE /api/auth` ne renvoient jamais `403` (seuls la connexion d'un compte désactivé et les routes `/admin` le font).
+- **`fetchCurrentUser` inchangé** : son `if (!response.ok)` traite déjà le `401` (visiteur non connecté).
+
+### Difficultés
+
+- **Bouton « Déconnexion » sans effet** après expiration du jeton : `user` est rempli au chargement de la page, l'API répond `401` au clic, et `if (!response.ok) return;` s'arrêtait avant `setUser(null)`.
+- **Git** : `git fetch` échoue (`Permission denied (publickey)`) ; `~/.ssh/config` modifié le matin même force la clé `id_ed25519_wsl` pour `github.com`. Rien de poussé.
+
+### Reste à faire
+
+- Réparer l'accès SSH à GitHub, puis `git pull` sur `front-F3` (14 commits de retard) avant de commiter la correction.
+- Pousser `back-F3` (commit `12220a5`, faille du compte désactivé, voir ci-dessous) une fois git réparé.
+
 ## 2026-11-03 (après-midi) — Carte #84 : création du compte, 415, JSON mal formé, PR prête
 
 Branche `feat/userRouter`, poussée, à jour avec GitHub, sans conflit avec `back-F3`. Commits `fba0c82` (INSERT + hachage), `d5a9a5c` et `9958a84` (415), `c23d0e0` et `91f05ef` (JSON mal formé), `4c84622` (middleware de connexion, hors carte), `0959b02` (renommage `indexRouter.ts`). Fichiers : `accountDatamapper.ts`, `userController.ts`, `validateContentTypeMiddleware.ts` (nouveau), `isConnectedMiddleware.ts` (nouveau), `errors.ts`, `errorMiddleware.ts`, `app.ts`, `@types/index.d.ts`, `test.user.http`.

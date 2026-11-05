@@ -118,3 +118,9 @@ export interface IOrder {
   totalAmount: number;
   lines: IOrderLine[];
 }
+
+// Catégorie d'arbre (filtre du catalogue)
+export interface ICategory {
+  id: number;
+  name: string;
+}
