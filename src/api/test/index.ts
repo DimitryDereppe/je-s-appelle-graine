@@ -71,6 +71,20 @@ export async function createTree(tree: ITestTree): Promise<number> {
 }
 
 // --------------------------------
+// ajoute une ligne au panier d'un compte, directement en BDD (Arrange des tests)
+// --------------------------------
+export async function addCartItem(
+  accountId: number,
+  treeId: number,
+  quantity: number,
+) {
+  await pool.query(
+    "INSERT INTO cart_item (account_id, tree_id, quantity) VALUES ($1, $2, $3)",
+    [accountId, treeId, quantity],
+  );
+}
+
+// --------------------------------
 // définition d'un compte de test : seul l'email est obligatoire, le reste a une valeur par défaut
 interface ITestAccount {
   firstname: string;

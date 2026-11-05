@@ -3,16 +3,6 @@ import assert from "node:assert";
 import * as libTests from "../../test/index.ts";
 import { pool } from "../data/db-client.ts";
 
-// --------------------------------
-// ajoute une ligne au panier d'un compte, directement en BDD (Arrange des tests)
-// --------------------------------
-async function addToCart(accountId: number, treeId: number, quantity: number) {
-  await pool.query(
-    "INSERT INTO cart_item (account_id, tree_id, quantity) VALUES ($1, $2, $3)",
-    [accountId, treeId, quantity],
-  );
-}
-
 // Test d'intégration : requête HTTP et BDD de test
 describe("cartController", () => {
   // ==================
@@ -42,7 +32,7 @@ describe("cartController", () => {
         price: 9.9,
         plantingLocation: "Landiras (33)",
       });
-      await addToCart(aliceId, treeId, 2);
+      await libTests.addCartItem(aliceId, treeId, 2);
       const cookie = await libTests.loginAs(libTests.ALICE);
 
       // Act
@@ -84,8 +74,8 @@ describe("cartController", () => {
       });
       const aliceTreeId = await libTests.createTree({ name: "Chêne" });
       const otherTreeId = await libTests.createTree({ name: "Hêtre" });
-      await addToCart(aliceId, aliceTreeId, 1);
-      await addToCart(otherId, otherTreeId, 3);
+      await libTests.addCartItem(aliceId, aliceTreeId, 1);
+      await libTests.addCartItem(otherId, otherTreeId, 3);
       const cookie = await libTests.loginAs(libTests.ALICE);
 
       // Act
