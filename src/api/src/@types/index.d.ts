@@ -69,6 +69,7 @@ export interface IAuthenticatedRequest extends Request {
   userId?: number;
   userRole?: Role;
 }
+
 //Formulaire inscription client
 export interface IRegister {
   firstname: string;
@@ -77,4 +78,19 @@ export interface IRegister {
   organizationName: string | null;
   email: string;
   password: string;
+}
+
+//Panier
+export interface ICartItem {
+  id: number;
+  accountId: number;
+  treeId: number;
+  quantity: number;
+  name: string;
+  price: number;
+  photoUrl: string | null;
+  // planting_location sans NOT NULL dans le schéma : peut valoir null
+  plantingLocation: string | null;
+  // availability.name est NOT NULL : toujours une chaîne
+  availabilityName: string;
 }
