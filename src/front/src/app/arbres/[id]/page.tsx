@@ -1,7 +1,7 @@
 import Link from "next/link";
 import styles from "./page.module.css";
 import Image from "next/image";
-import type { ICatalogueTree } from "../../../@types";
+import type { ITree } from "../../../@types";
 import { api } from "../../utils/apiCall";
 
 interface TreePageProps {
@@ -11,13 +11,11 @@ interface TreePageProps {
 export default async function FicheArbre({ params }: TreePageProps) {
   const { id } = await params;
 
-  let tree: ICatalogueTree | null = null;
+  let tree: ITree | null = null;
   let error: string | null = null;
 
   try {
-    const response: ICatalogueTree = await api<ICatalogueTree, ICatalogueTree>(
-      `trees/${id}`,
-    );
+    const response: ITree = await api<ITree, ITree>(`trees/${id}`);
     if (!response) {
       throw new Error("Impossible de charger cet arbre pour le moment.");
     }
@@ -35,7 +33,7 @@ export default async function FicheArbre({ params }: TreePageProps) {
         <p className={styles.errorMessage} role="alert">
           {error}
         </p>
-        <Link href="/trees" className={styles.backLink}>
+        <Link href="/arbres" className={styles.backLink}>
           ← Retour au catalogue
         </Link>
       </main>
@@ -52,11 +50,15 @@ export default async function FicheArbre({ params }: TreePageProps) {
             <Link href="/">Accueil</Link>
           </li>
           <li>
-            <Link href="/trees">Nos arbres</Link>
+            <Link href="/arbres">Nos arbres</Link>
           </li>
           <li aria-current="page">{tree.name}</li>
         </ol>
       </nav>
+
+      <Link href="/arbres" className={styles.backButton}>
+        ← Retour aux arbres
+      </Link>
 
       <section className={styles.detailCard} aria-label={tree.name}>
         <div className={styles.imageWrapper}>
@@ -71,17 +73,10 @@ export default async function FicheArbre({ params }: TreePageProps) {
           )}
         </div>
         <div className={styles.detailsWrapper}>
-          <p className={styles.price}>{tree.price}€ TTC</p>
-
           <h1 className={styles.title}>{tree.name}</h1>
-          {tree.availabilityName && (
-            <p className={styles.subtitle}>{tree.availabilityName}</p>
-          )}
           <p className={styles.subtitle}>{tree.categoryName}</p>
-
-          {/* {tree.description && (
+          <p className={styles.price}>{tree.price}€ TTC</p>
           <p className={styles.description}>{tree.description}</p>
-        )} */}
 
           <p className={styles.location}>
             <span className={styles.locationIcon} aria-hidden="true">
@@ -104,13 +99,7 @@ export default async function FicheArbre({ params }: TreePageProps) {
               type="button"
               aria-label={`Ajouter ${tree.name} au panier`}
             >
-              <Image
-                src="/assets/panier.svg"
-                alt=""
-                className={styles.basketIcon}
-                width={24}
-                height={24}
-              />
+              <p>Ajouter au panier</p>
             </button>
           </div>
         </div>
