@@ -1,8 +1,8 @@
-/* Mise en page commune des pages d'information : une colonne de texte, mobile d'abord */
+/* Mise en page commune des pages d’information, mobile d’abord */
 .main {
+  padding: 2rem 1rem 3rem;
   background-color: var(--color-ivory);
   color: var(--color-deep-green);
-  padding: 2rem 1rem 3rem;
 }
 
 .content {
@@ -62,7 +62,7 @@
   border-radius: 8px;
 }
 
-/* Le tableau défile seul sur un petit écran : la page ne défile jamais de côté */
+/* Le tableau peut défiler horizontalement sur les petits écrans. */
 .tableWrapper {
   overflow-x: auto;
 }
