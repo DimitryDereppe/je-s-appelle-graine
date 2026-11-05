@@ -36,16 +36,15 @@ before(async () => {
   }
 
   // (Hack) S'assurer que la BDD de test a bien été supprimée
- // execSync(`docker rm -f graine_test 2>/dev/null || true`);
+  // execSync(`docker rm -f graine_test 2>/dev/null || true`);
 
-
-// Supprime le conteneur de test s'il existe déjà.
-// S'il n'existe pas, docker renvoie une erreur qu'on ignore volontairement.
-try {
-  execSync("docker rm -f graine_test", { stdio: "ignore" });
-} catch {
-  // rien à faire : le conteneur n'existait pas
-}
+  // Supprime le conteneur de test s'il existe déjà.
+  // S'il n'existe pas, docker renvoie une erreur qu'on ignore volontairement.
+  try {
+    execSync("docker rm -f graine_test", { stdio: "ignore" });
+  } catch {
+    // rien à faire : le conteneur n'existait pas
+  }
 
   // Créer un conteneur BDD dédié aux tests
   // --tmpfs : les données de PostgreSQL sont en mémoire vive (RAM), pas sur le disque
@@ -64,18 +63,6 @@ try {
       "postgres:18-alpine",
     ].join(" "),
   );
-  
-  /*(`
-    docker run \
-    -d \
-    --name graine_test \
-    --tmpfs /var/lib/postgresql \
-    -p ${process.env.POSTGRES_PORT}:5432 \
-    -e POSTGRES_USER=${process.env.POSTGRES_USER} \
-    -e POSTGRES_PASSWORD=${process.env.POSTGRES_PASSWORD} \
-    -e POSTGRES_DB=${process.env.POSTGRES_DB} \
-    postgres:18-alpine
-  `);*/
 
   // Vérifier que PostgreSQL répond avant de créer les tables
   await waitForDatabase();

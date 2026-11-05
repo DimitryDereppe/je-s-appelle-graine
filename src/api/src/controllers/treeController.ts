@@ -1,6 +1,7 @@
 import type { Request, Response } from "express";
 import { treeDatamapper } from "../datamappers/treeDatamapper.ts";
 import { NotFoundError } from "../lib/errors.ts";
+import { categoryDatamapper } from "../datamappers/categoryDatamapper.ts";
 
 // les 3 arbres mis en avant sur l'accueil
 export async function getFeaturedTrees(_req: Request, res: Response) {
@@ -30,4 +31,10 @@ export async function getOneTree(req: Request, res: Response) {
     throw new NotFoundError("Arbre introuvable");
   }
   res.status(200).json(tree);
+}
+
+// la liste des catégories, pour le filtre du catalogue
+export async function getAllCategories(_req: Request, res: Response) {
+  const categories = await categoryDatamapper.findAll();
+  res.status(200).json(categories);
 }
