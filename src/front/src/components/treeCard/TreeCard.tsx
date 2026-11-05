@@ -31,9 +31,6 @@ export default function TreeCard({ tree }: FeaturedTreeProps) {
       <div className={styles.cardBody}>
         <div className={styles.cardInfo}>
           <h3 className={styles.cardTitle}>{tree.name} </h3>{" "}
-          {tree.availabilityName && (
-            <span>{isSoldOut ? "Épuisé" : tree.availabilityName}</span>
-          )}
           <p className={styles.cardScientific}>{tree.categoryName}</p>
           {/* Le lieu est facultatif : sans lui, on n'affiche pas l'icône seule */}
           {tree.plantingLocation && (
@@ -56,6 +53,12 @@ export default function TreeCard({ tree }: FeaturedTreeProps) {
         </div>
 
         <div className={styles.cardActions}>
+          {tree.availabilityName && (
+            <p className={styles.availibityLocation}>
+              {isSoldOut ? "épuisé" : tree.availabilityName}
+            </p>
+          )}
+
           <div className={styles.cardFooter}>
             <p className={styles.cardPrice}>{formatEuros(tree.price)} TTC</p>
 

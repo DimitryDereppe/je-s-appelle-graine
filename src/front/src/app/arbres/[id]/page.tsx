@@ -1,35 +1,12 @@
 import Link from "next/link";
-import Image from "next/image";
-import { notFound } from "next/navigation";
 import styles from "./page.module.css";
+import Image from "next/image";
 import type { ITree } from "../../../@types";
 import { api } from "../../utils/apiCall";
-import { formatEuros } from "../../utils/format";
-import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 
 interface TreePageProps {
   params: Promise<{ id: string }>;
-}
-
-export async function generateMetadata({
-  params,
-}: TreePageProps): Promise<Metadata> {
-  const { id } = await params;
-
-  const tree: ITree = await api<ITree, ITree>(`trees/${id}`);
-
-  if (!tree) {
-    notFound();
-  }
-
-  return {
-    title: `${tree.name} – Fiche arbre`,
-    description: tree.description,
-    openGraph: {
-      title: tree.name,
-      images: tree.photoUrl ? [tree.photoUrl] : undefined,
-    },
-  };
 }
 
 export default async function FicheArbre({ params }: TreePageProps) {
@@ -38,7 +15,7 @@ export default async function FicheArbre({ params }: TreePageProps) {
   let tree: ITree | null = null;
 
   try {
-    const response = await api<ITree>(`trees/${id}`);
+    const response: ITree = await api<ITree>(`trees/${id}`);
     if (!response) {
       notFound();
     }
@@ -48,6 +25,8 @@ export default async function FicheArbre({ params }: TreePageProps) {
   }
 
   if (!tree) return null;
+
+  const isOutOfStock = tree.availabilityName === "en rupture de stock";
 
   return (
     <main className={styles.detail}>
@@ -82,8 +61,11 @@ export default async function FicheArbre({ params }: TreePageProps) {
         <div className={styles.detailsWrapper}>
           <h1 className={styles.title}>{tree.name}</h1>
           <p className={styles.subtitle}>{tree.categoryName}</p>
-          <p className={styles.price}>{formatEuros(tree.price)} TTC</p>
+          <p className={styles.price}>
+            {isOutOfStock ? `${tree.price}€ TTC - Épuisé` : ""}
+          </p>
           <p className={styles.description}>{tree.description}</p>
+
           {tree.plantingLocation && (
             <p className={styles.location}>
               <span className={styles.locationIcon} aria-hidden="true">
@@ -105,6 +87,7 @@ export default async function FicheArbre({ params }: TreePageProps) {
             <button
               className={styles.basketButton}
               type="button"
+              disabled={isOutOfStock}
               aria-label={`Ajouter ${tree.name} au panier`}
             >
               <p>Ajouter au panier</p>
