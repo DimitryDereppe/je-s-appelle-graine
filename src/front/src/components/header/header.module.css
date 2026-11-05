@@ -19,7 +19,9 @@
 
 .brand {
   display: flex;
-  flex: 0 0 auto;
+  /* peut rétrécir sur petit écran pour laisser la place au menu et au panier */
+  flex: 0 1 auto;
+  min-width: 0;
   flex-direction: row;
   color: inherit;
   text-decoration: none;
@@ -31,7 +33,8 @@
 
 .brandName {
   font-family: var(--font-lora, Georgia), Georgia, serif;
-  font-size: 1.25rem;
+  /* 1rem sur très petit écran, jusqu'à 1.25rem dès qu'il y a la place */
+  font-size: clamp(1rem, 5vw, 1.25rem);
   font-weight: 700;
   line-height: 1.2;
 }
@@ -120,6 +123,33 @@
 .cartLink:hover {
   color: var(--color-ivory, #f8f6f0);
   background-color: var(--color-primary-green, #245a46);
+}
+
+/* Message « Bonjour … » : même alignement qu'un lien, mais pas cliquable */
+.greeting {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0.5rem 0.75rem;
+  color: var(--color-deep-green, #18352e);
+  font-size: 1rem;
+}
+
+/* Retire l'apparence par défaut d'un <button> (bordure, fond gris, police système) */
+.logoutButton {
+  border: 0;
+  background: transparent;
+  font: inherit;
+  cursor: pointer;
+}
+
+/* Bandeau d'alerte sous l'en-tête (ex. compte désactivé) */
+.alert {
+  margin: 0;
+  padding: 0.75rem 1rem;
+  text-align: center;
+  color: var(--color-ivory, #f8f6f0);
+  background-color: var(--color-terracotta, #b6532c);
 }
 
 .brand:focus-visible,
