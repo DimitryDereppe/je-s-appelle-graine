@@ -11,7 +11,7 @@ export default async function TreeCard({ tree }: FeaturedTreeProps) {
   return (
     <article key={tree.id} className={styles.card}>
       <Link
-        href={`/trees/${tree.id}`}
+        href={`/arbres/${tree.id}`}
         className={styles.cardImage}
         aria-label={`Voir le détail de ${tree.name}`}
       >

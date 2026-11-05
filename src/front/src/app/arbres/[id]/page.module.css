@@ -1,7 +1,6 @@
-
 .detail {
   width: 100%;
-  min-height: 100vh;
+  height: auto;
   display: flex;
   flex-direction: column;
   background-color: #f8f6f8;
@@ -23,9 +22,9 @@
 }
 
 .breadcrumb li + li::before {
-  content: ">";
-  margin-right: 8px;
-  color: #b6532c;
+  content: "·";
+  margin: 0 8px;
+  color: #53615b;
 }
 
 .breadcrumb a {
@@ -43,38 +42,59 @@
   font-weight: 600;
 }
 
+/* --- Bouton retour --- */
+.backButton {
+  display: inline-block;
+  align-self: flex-start;
+  color: #245a46;
+  font-size: 14px;
+  text-decoration: none;
+  text-align: center;
+  border: 1px solid #245a46;
+  border-radius: 8px;
+  padding: 8px 16px;
+  margin-bottom: 16px;
+  width: 100%;
+}
+
+.backButton:hover {
+  text-decoration: underline;
+  text-decoration-color: #b6532c;
+}
+
+.backButton:focus-visible {
+  outline: 2px solid #245a46;
+  outline-offset: 2px;
+}
+
 /* --- Carte détail --- */
 .detailCard {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
   width: 100%;
-  max-width: 720px;
-  margin: 0 auto;
   background-color: #f8f6f8;
+  position: relative;
 }
 
 /* --- Image centrée --- */
 .imageWrapper {
   width: 100%;
+  height: 220px;
   border-radius: 12px;
   overflow: hidden;
   background-color: #e3e9df;
+  position: relative;
 }
 
 .detailImage {
-  width: 100%;
-  height: 260px;
   object-fit: cover;
-  display: block;
 }
 
-/* --- Prix en vert, sous l'image à gauche --- */
-.price {
-  font-size: 18px;
-  font-weight: 700;
-  color: #245a46;
-  margin: 24px 0 8px;
+.detailsWrapper {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
 }
 
 /* --- Titre --- */
@@ -86,14 +106,6 @@
   margin: 0 0 4px;
 }
 
-/* --- Nom scientifique (italique gris) --- */
-.scientific {
-  font-size: 14px;
-  font-style: italic;
-  color: #53615b;
-  margin: 0 0 8px;
-}
-
 /* --- Sous-titre catégorie en gris --- */
 .subtitle {
   font-size: 12px;
@@ -101,7 +113,23 @@
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: #53615b;
+  margin: 0 0 8px;
+}
+
+/* --- Prix en vert --- */
+.price {
+  font-size: 16px;
+  font-weight: 700;
+  color: #b6532c;
   margin: 0 0 16px;
+}
+
+/* --- Nom scientifique (italique gris) --- */
+.scientific {
+  font-size: 14px;
+  font-style: italic;
+  color: #53615b;
+  margin: 0 0 8px;
 }
 
 /* --- Description --- */
@@ -127,7 +155,7 @@
   font-size: 16px;
 }
 
-/* --- Bouton panier vert, centré en bas --- */
+/* --- Bouton panier --- */
 .actions {
   width: 100%;
   display: flex;
@@ -136,14 +164,18 @@
 }
 
 .basketButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
   background-color: #245a46;
   color: #f8f6f8;
   border: none;
   border-radius: 12px;
-  padding: 12px 24px;
+  padding: 14px 24px;
   min-height: 44px;
   width: 100%;
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 600;
   font-family: "Lora", Georgia, serif;
   cursor: pointer;
@@ -179,16 +211,26 @@
 
 /* ===== Desktop (≥ 600px) ===== */
 @media (min-width: 600px) {
+  .backButton {
+    width: 30%;
+  }
+
   .detail {
     padding: 32px;
   }
+  .detailCard {
+    flex-direction: row;
+    width: 100%;
+    gap: 4%;
+  }
 
-  .detailImage {
+  .imageWrapper {
     height: 360px;
   }
 
   .price {
     font-size: 20px;
+    margin-top: 4%;
   }
 
   .title {
@@ -196,7 +238,8 @@
   }
 
   .basketButton {
-    width: auto;
+    width: 100%;
     padding: 12px 48px;
+    margin-top: 4%;
   }
 }
