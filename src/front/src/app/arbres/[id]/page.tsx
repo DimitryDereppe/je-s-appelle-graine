@@ -1,43 +1,50 @@
 import Link from "next/link";
-import styles from "./page.module.css";
 import Image from "next/image";
+import { notFound } from "next/navigation";
+import styles from "./page.module.css";
 import type { ITree } from "../../../@types";
 import { api } from "../../utils/apiCall";
+import { formatEuros } from "../../utils/format";
+import type { Metadata } from "next";
 
 interface TreePageProps {
   params: Promise<{ id: string }>;
+}
+
+export async function generateMetadata({
+  params,
+}: TreePageProps): Promise<Metadata> {
+  const { id } = await params;
+
+  const tree: ITree = await api<ITree, ITree>(`trees/${id}`);
+
+  if (!tree) {
+    notFound();
+  }
+
+  return {
+    title: `${tree.name} – Fiche arbre`,
+    description: tree.description,
+    openGraph: {
+      title: tree.name,
+      images: tree.photoUrl ? [tree.photoUrl] : undefined,
+    },
+  };
 }
 
 export default async function FicheArbre({ params }: TreePageProps) {
   const { id } = await params;
 
   let tree: ITree | null = null;
-  let error: string | null = null;
 
   try {
     const response: ITree = await api<ITree, ITree>(`trees/${id}`);
     if (!response) {
-      throw new Error("Impossible de charger cet arbre pour le moment.");
+      notFound();
     }
     tree = response;
-  } catch (fetchError) {
-    error =
-      fetchError instanceof Error
-        ? fetchError.message
-        : "Impossible de charger cet arbre pour le moment.";
-  }
-
-  if (error) {
-    return (
-      <main className={styles.detail}>
-        <p className={styles.errorMessage} role="alert">
-          {error}
-        </p>
-        <Link href="/arbres" className={styles.backLink}>
-          ← Retour au catalogue
-        </Link>
-      </main>
-    );
+  } catch {
+    notFound();
   }
 
   if (!tree) return null;
@@ -75,23 +82,24 @@ export default async function FicheArbre({ params }: TreePageProps) {
         <div className={styles.detailsWrapper}>
           <h1 className={styles.title}>{tree.name}</h1>
           <p className={styles.subtitle}>{tree.categoryName}</p>
-          <p className={styles.price}>{tree.price}€ TTC</p>
+          <p className={styles.price}>{formatEuros(tree.price)} TTC</p>
           <p className={styles.description}>{tree.description}</p>
-
-          <p className={styles.location}>
-            <span className={styles.locationIcon} aria-hidden="true">
-              <Image
-                src="/assets/localisation.svg"
-                alt=""
-                className={styles.locationIcon}
-                width={18}
-                height={18}
-              />
-            </span>
-            <span className={styles.cardScientific}>
-              {tree.plantingLocation}
-            </span>
-          </p>
+          {tree.plantingLocation && (
+            <p className={styles.location}>
+              <span className={styles.locationIcon} aria-hidden="true">
+                <Image
+                  src="/assets/localisation.svg"
+                  alt=""
+                  className={styles.locationIcon}
+                  width={18}
+                  height={18}
+                />
+              </span>
+              <span className={styles.cardScientific}>
+                {tree.plantingLocation}
+              </span>
+            </p>
+          )}
 
           <div className={styles.actions}>
             <button
