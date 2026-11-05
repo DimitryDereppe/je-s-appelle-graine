@@ -125,3 +125,51 @@ Shanna et moi continuons de produire le html des pages et nous les intégrons à
     <li> Achèvement des pages layout, acceuil et catalogue</li>
     <li> Liaison entre le front et le back sur la page d'acceuil avec un appel API pour hydrater le front </li>
 </ul>
+
+## 30/10/2026 - Sprint 1
+
+### Contexte :
+
+Les tâches du sprint 1 sont termninées par les memebres du groupe ou en voie d'achèvement. Le déploiement du projet sur VPS a été mis en place par Dimitry.
+
+<ul>
+    <li> Optimisation de la performance des pages en passant d'un rendu CLS à SSR pour l'acceuil et le catalogue</li>
+    <li> Correction du nommage et typage des données front pour correspondre au contrat</li>
+    <li> Validation d'une checklist de vérification de la performance et de l'accessibilité </li>
+    <li> Revue de la procédure de déploiement sur VPS avec Dimitry et Shanna </li>
+    <li> Préparation du front pour la présentation </li>
+</ul>
+
+## 02/11/2026 - Sprint 2
+
+### Contexte :
+
+Kick-off du sprint 2. Je continue de travailler sur le backlog de la première feature qui fait aussi intervenir des features de la deuxièeme feature.
+
+<ul>
+    <li>Déploiement du vps sur ma machine en suivant la procédure écrite de Dimitry</li>
+    <li>Mise en place d'un appel API globalisé </li>
+    <li>Développement d'un composant carte arbre</li>
+</ul>
+
+## 03/11/2026 - Sprint 2
+
+### Contexte :
+
+Mahamadou travaille avec moi sur le sprint 2 pour des features relatives au catalogue et à la recherche. Son arrivée était l'occasion de faire un tour de présentation des fonctionnalités du front.
+
+<ul>
+    <li>Mise en place du composant Arbre</li>
+    <li>Intégration du cookie dans l'appel api</li>
+</ul>
+
+
+## 04/11/2026 - Sprint 2
+
+### Contexte :
+
+<ul>
+    <li>Développement de la page d'erreur</li>
+    <li>Intégration de messages de chargement et d'erreur de chargement sur la page d'acceuil</li>
+    <li>En cours : développement de la fiche arbre</li>
+</ul>
