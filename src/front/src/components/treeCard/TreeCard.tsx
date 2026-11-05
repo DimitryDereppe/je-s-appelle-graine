@@ -53,11 +53,7 @@ export default function TreeCard({ tree }: FeaturedTreeProps) {
         </div>
 
         <div className={styles.cardActions}>
-          {tree.availabilityName && (
-            <p className={styles.availibityLocation}>
-              {isSoldOut ? "épuisé" : tree.availabilityName}
-            </p>
-          )}
+          <p>{tree.availabilityName}</p>
 
           <div className={styles.cardFooter}>
             <p className={styles.cardPrice}>{formatEuros(tree.price)} TTC</p>

@@ -4,6 +4,7 @@ import Image from "next/image";
 import type { ITree } from "../../../@types";
 import { api } from "../../utils/apiCall";
 import { notFound } from "next/navigation";
+import { formatEuros } from "@/app/utils/format";
 
 interface TreePageProps {
   params: Promise<{ id: string }>;
@@ -62,7 +63,9 @@ export default async function FicheArbre({ params }: TreePageProps) {
           <h1 className={styles.title}>{tree.name}</h1>
           <p className={styles.subtitle}>{tree.categoryName}</p>
           <p className={styles.price}>
-            {isOutOfStock ? `${tree.price}€ TTC - Épuisé` : ""}
+            {isOutOfStock
+              ? `${formatEuros(tree.price)} TTC - ${tree.availabilityName}`
+              : `${formatEuros(tree.price)} TTC`}
           </p>
           <p className={styles.description}>{tree.description}</p>
 

@@ -23,28 +23,25 @@
 
 /* --- Texte justifié dans .welcomeContent --- */
 .welcomeTagline {
-  font-size: 14px;
-  font-weight: 600;
-  letter-spacing: 0.08em;
+  font-size: 3.5vw;
   text-transform: uppercase;
   color: #245a46;
-  margin: 0 0 16px;
-  text-align: justify;
+  text-align: center;
+  text-wrap: nowrap;
+  margin-bottom: 4%;
 }
 
 .welcomeTitle {
-  font-size: 24px;
-  font-weight: 700;
+  font-size: 7vw;
   font-family: "Lora", Georgia, serif;
   color: #18352e;
-  margin: 0 0 16px;
-  line-height: 1.3;
-  text-align: justify;
+  text-align: left;
   width: 100%;
+  margin-bottom: 4%;
 }
 
 .welcomeSubtitle {
-  font-size: 16px;
+  font-size: 4.5vw;
   line-height: 1.5;
   color: #53615b;
   margin: 0 0 24px;
@@ -359,11 +356,13 @@
   }
 
   .welcomeTagline {
-    margin: 0 0 16px;
+    font-size: 2vw;
+    text-wrap: wrap;
+    text-align: left;
   }
 
   .welcomeTitle {
-    font-size: 30px;
+    font-size: 3.5vw;
   }
 
   .welcomeSubtitle {
@@ -378,7 +377,8 @@
 
   .heroImage {
     width: 65%;
-    height: 290px;
+    height: 65vh;
+    max-height: 390px;
   }
 
   .homepage {
