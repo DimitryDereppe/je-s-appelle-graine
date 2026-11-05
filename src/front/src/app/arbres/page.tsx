@@ -1,10 +1,10 @@
-import Image from "next/image";
 import Link from "next/link";
 import styles from "./page.module.css";
-import type { IFeaturedTree } from "../../@types";
+import type { ICatalogueTree } from "../../@types";
 import { TreesFilters } from "./TreesFilters";
-import { AddToCartButton } from "./AddToCartButton";
+// import { AddToCartButton } from "./AddToCartButton";
 import { api } from "../utils/apiCall";
+import TreeCard from "@/components/treeCard/TreeCard";
 
 const categories = [
   { id: 0, name: "Tous nos arbres" },
@@ -25,7 +25,7 @@ export default async function TreesPage({ searchParams }: TreesPageProps) {
   // Le texte cherché, sans les espaces au début et à la fin ("" si rien)
   const searchText = typeof recherche === "string" ? recherche.trim() : "";
 
-  let trees: IFeaturedTree[] = [];
+  let trees: ICatalogueTree[] = [];
   let error: string | null = null;
 
   // On prépare les paramètres à envoyer à l'API (vide pour l'instant)
@@ -48,9 +48,11 @@ export default async function TreesPage({ searchParams }: TreesPageProps) {
   const endpoint = query ? `trees?${query}` : "trees";
 
   try {
-    const response: IFeaturedTree[] = await api<IFeaturedTree, IFeaturedTree[]>(
-      endpoint,
-    );
+    const response: ICatalogueTree[] = await api<
+      ICatalogueTree,
+      ICatalogueTree[]
+    >(endpoint);
+
     if (!response) {
       throw new Error("Impossible de charger les arbres pour le moment.");
     }
@@ -67,7 +69,6 @@ export default async function TreesPage({ searchParams }: TreesPageProps) {
     <main className={styles.catalogue}>
       <div className={styles.pageHeader}>
         <p className={styles.desktopFilterTitle}>Filtrer</p>
-
         <div className={styles.contentHeading}>
           <nav className={styles.breadcrumb} aria-label="Fil d’Ariane">
             <ol>
@@ -117,57 +118,7 @@ export default async function TreesPage({ searchParams }: TreesPageProps) {
           {!error && trees.length > 0 && (
             <ul className={styles.treeGrid}>
               {trees.map((tree) => (
-                <li className={styles.treeCard} key={tree.id}>
-                  <div className={styles.treeImage}>
-                    <Link
-                      href={`/arbres/${tree.id}`}
-                      className={styles.treeImageLink}
-                      aria-label={`Voir la fiche de ${tree.name}`}
-                    >
-                      {tree.photoUrl && (
-                        <Image
-                          src={tree.photoUrl}
-                          alt={tree.name}
-                          fill
-                          sizes="(max-width: 699px) 100vw, (max-width: 999px) 50vw, 30vw"
-                        />
-                      )}
-                    </Link>
-                  </div>
-
-                  <div className={styles.treeInfo}>
-                    <h2 className={styles.treeName}>
-                      <Link
-                        href={`/arbres/${tree.id}`}
-                        className={styles.treeNameLink}
-                      >
-                        {tree.name}
-                      </Link>
-                    </h2>
-
-                    <p className={styles.treeCategory}>{tree.categoryName}</p>
-
-                    <p className={styles.treeLocation}>
-                      <Image
-                        src="/assets/localisation.svg"
-                        alt=""
-                        width={22}
-                        height={22}
-                      />{" "}
-                      <span
-                        aria-hidden="true"
-                        className={styles.locationIcon}
-                      />
-                      {tree.plantingLocation}
-                    </p>
-
-                    <div className={styles.priceAndCart}>
-                      <p className={styles.treePrice}>{tree.price}€ TTC</p>
-
-                      <AddToCartButton treeId={tree.id} treeName={tree.name} />
-                    </div>
-                  </div>
-                </li>
+                <TreeCard key={tree.id} tree={tree} />
               ))}
             </ul>
           )}

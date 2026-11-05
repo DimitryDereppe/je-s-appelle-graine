@@ -1,21 +1,83 @@
 import Image from "next/image";
 import styles from "./page.module.css";
-import type { IFeaturedTree } from "../@types";
+import type { ICatalogueTree } from "../@types";
 import Commitments from "@/components/commitments/Commitments";
 import { api } from "./utils/apiCall";
-
+import Link from "next/link";
 import TreeCard from "@/components/treeCard/TreeCard";
+import { Suspense } from "react";
 
 export const dynamic = "force-dynamic";
 
-export default async function Home() {
-  const trees: IFeaturedTree[] = await api<IFeaturedTree, IFeaturedTree[]>(
-    "trees/featured/",
-  );
+async function FeaturedTrees() {
+  let trees: ICatalogueTree[] = [];
+  let hasError = false;
+
+  try {
+    trees = await api<ICatalogueTree, ICatalogueTree[]>("trees/featured/");
+  } catch (error) {
+    console.error("Échec du chargement des arbres :", error);
+    hasError = true;
+  }
+
+  if (hasError) {
+    return (
+      <div className={styles.errorContainer}>
+        <p className={styles.errorMessage}>
+          Impossible de charger les arbres pour le moment.
+          <br />
+           Chercher votre bonheur dans notre           <Link href="/arbres" passHref>
+            <button type="button" className={styles.buttonError}>
+              catalogue
+            </button>
+          </Link> !
+        </p>
+      </div>
+    );
+  }
+
+  if (trees.length === 0) {
+    return (
+      <div className={styles.emptyContainer}>
+        <p className={styles.emptyMessage}>
+          Aucun arbre n&apos;est disponible pour le moment.
+          <br />
+         Chercher votre bonheur dans notre           <Link href="/arbres" passHref>
+            <button className={styles.ctaButton} type="button">
+              catalogue <span className={styles.arrow}>→</span>
+            </button>
+          </Link> !
+        </p>
+      </div>
+    );
+  }
 
   return (
+    <div className={styles.cardsGrid}>
+      {trees.map((tree) => (
+        <TreeCard key={tree.id} tree={tree} />
+      ))}
+    </div>
+  );
+}
+
+function CardsSkeleton() {
+  return (
+    <div className={styles.cardsGrid} aria-busy="true">
+      {[1, 2, 3].map((i) => (
+        <div key={i} className={styles.treeCardSkeleton}>
+          <div className={styles.skeletonImage} />
+          <p>Chargement en cours</p>
+          <div className={`${styles.skeletonLine} ${styles.skeletonShort}`} />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+export default async function Home() {
+  return (
     <main className={styles.main}>
-      {/* Section de présentation */}
       <section className={styles.welcome}>
         <div className={styles.welcomeContent}>
           <p className={styles.welcomeTagline}>
@@ -31,12 +93,12 @@ export default async function Home() {
           <p className={styles.welcomeSubtitle}>
             Choisissez les arbres qui contribuent aux projets de reforestation.
           </p>
-
-          <button className={styles.ctaButton} type="button">
-            Voir nos arbres <span className={styles.arrow}>→</span>
-          </button>
+          <Link href="/arbres" passHref>
+            <button className={styles.ctaButton} type="button">
+              Voir nos arbres <span className={styles.arrow}>→</span>
+            </button>
+          </Link>
         </div>
-
         <div className={styles.heroImage}>
           <Image
             src="/assets/acceuil.png"
@@ -54,13 +116,10 @@ export default async function Home() {
         <h2 className={styles.sectionTitle}>
           <span className={styles.underline}>Les</span> arbres du moment
         </h2>
-        <div className={styles.cardsGrid}>
-          {trees.map((tree) => (
-            <TreeCard key={tree.id} tree={tree} />
-          ))}
-        </div>
+        <Suspense fallback={<CardsSkeleton />}>
+          <FeaturedTrees />
+        </Suspense>
       </section>
-      {/* Bandeau affiché juste avant le footer sur écran mobile */}
       <div className={styles.commitmentsMobile}>
         <Commitments />
       </div>

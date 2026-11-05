@@ -26,6 +26,10 @@
   color: inherit;
   text-decoration: none;
 }
+.badgeIcon {
+  position: relative;
+  bottom: 8px;
+}
 
 .brandName {
   font-family: var(--font-lora, Georgia), Georgia, serif;

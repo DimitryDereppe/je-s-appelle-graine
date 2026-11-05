@@ -34,7 +34,7 @@ export default function Header() {
             className={styles.badgeIcon}
             width={34}
             height={34}
-          />{" "}
+          />
           <span className={styles.brandName}>Je s’appelle Graine</span>
         </Link>
 

@@ -1,6 +1,7 @@
+import { cookies } from "next/headers";
 import type { IFeaturedTree } from "../../@types";
-export const dynamic = "force-dynamic";
 
+export const dynamic = "force-dynamic";
 
 export async function api<
   TBody extends IFeaturedTree = IFeaturedTree,
@@ -10,18 +11,31 @@ export async function api<
   method: "GET" | "POST" | "PATCH" | "PUT" | "DELETE" = "GET",
   body?: TBody,
 ): Promise<TResponse> {
-  const response = await fetch(`${process.env.API_URL}/api/${endpoint}`, {
+  const cookieStore = await cookies();
+  const token = cookieStore.get("jwt")?.value;
+
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
+
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  }
+
+  const options: RequestInit = {
     method,
-    headers: {
-      "Content-Type": "application/json",
-      // Authorization: `Bearer ${localStorage.getItem("token")}`,
-    },
-    ...(body !== undefined && { body: JSON.stringify(body) }),
-  });
+    headers,
+  };
+
+  if (body !== undefined) {
+    options.body = JSON.stringify(body);
+  }
+
+  const response = await fetch(`${process.env.API_URL}/api/${endpoint}`, options);
 
   if (!response.ok) {
-    throw new Error(`Failed to fetch ${endpoint}: ${response.statusText}`);
+    throw new Error(`Nous n'avons pas pu atteindre ${endpoint}: ${response.statusText}`);
   }
 
   return (await response.json()) as TResponse;
-}
+}   

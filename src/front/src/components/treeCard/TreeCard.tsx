@@ -1,14 +1,20 @@
 import styles from "./TreeCard.module.css";
 import Image from "next/image";
-import type { IFeaturedTree } from "../../@types";
+import type { ICatalogueTree } from "../../@types";
+import Link from "next/link";
 
 interface FeaturedTreeProps {
-  tree: IFeaturedTree;
+  tree: ICatalogueTree;
 }
 export default async function TreeCard({ tree }: FeaturedTreeProps) {
+  console.log(tree);
   return (
     <article key={tree.id} className={styles.card}>
-      <div className={styles.cardImage}>
+      <Link
+        href={`/trees/${tree.id}`}
+        className={styles.cardImage}
+        aria-label={`Voir le détail de ${tree.name}`}
+      >
         {tree.photoUrl && (
           <Image
             src={tree.photoUrl}
@@ -18,15 +24,11 @@ export default async function TreeCard({ tree }: FeaturedTreeProps) {
             sizes="(min-width: 600px) 30vw, 90vw"
           />
         )}
-      </div>
+      </Link>
       <div className={styles.cardBody}>
         <div className={styles.cardInfo}>
-          <h3 className={styles.cardTitle}>
-            {tree.name} -{" "}
-            <span className={styles.cardScientific}>
-              {tree.availabilityName}
-            </span>
-          </h3>
+          <h3 className={styles.cardTitle}>{tree.name} </h3>{" "}
+          {tree.availabilityName ? <span>{tree.availabilityName}</span> : <></>}
           <p className={styles.cardScientific}>{tree.categoryName}</p>
           <p className={styles.cardLocation}>
             <span className={styles.locationIcon}>
