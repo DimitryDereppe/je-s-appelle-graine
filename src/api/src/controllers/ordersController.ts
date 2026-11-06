@@ -4,7 +4,7 @@ import type {
   IAuthenticatedRequest,
   PaymentMethod,
 } from "../@types/index.d.ts";
-import { getAuthenticatedUser } from "./utils.ts";
+import { getAuthenticatedUser, billingAddressSchema } from "./utils.ts";
 import {
   BadRequestError,
   ConflictError,
@@ -53,13 +53,8 @@ export async function createOrder(req: IAuthenticatedRequest, res: Response) {
       error: "Vous devez vous engager à payer sous 10 jours.",
     }),
     // adresse de facturation saisie par le client : elle figure sur la facture
-    // trim retire les espaces au début et à la fin, avant de vérifier la longueur
-    // max(255) : la taille de la colonne purchase.buyer_address
-    billingAddress: z
-      .string({ error: "L'adresse de facturation est obligatoire." })
-      .trim()
-      .min(1, { error: "L'adresse de facturation est obligatoire." })
-      .max(255, { error: "L'adresse de facturation est trop longue." }),
+    // schéma défini dans utils.ts
+    billingAddress: billingAddressSchema,
   });
   // parse lève une erreur si le body ne respecte pas le schéma :
   // le gestionnaire d'erreurs la transforme en réponse 400

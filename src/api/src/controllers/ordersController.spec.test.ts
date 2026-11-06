@@ -6,9 +6,10 @@ import { pool } from "../data/db-client.ts";
 // --------------------------------
 // prépare un client connecté avec un panier : 3 chênes à 16,90 € et 1 hêtre à 12,50 €
 // retourne ce dont les tests ont besoin
+// par défaut le client est ALICE ; on peut passer un autre compte (ex. SHERLOCK.account)
 // --------------------------------
-async function createCustomerWithCart() {
-  const aliceId = await libTests.createAccount(libTests.ALICE);
+async function createCustomerWithCart(account = libTests.ALICE) {
+  const aliceId = await libTests.createAccount(account);
   const oakId = await libTests.createTree({
     name: "Chêne pédonculé",
     price: 16.9,
@@ -17,7 +18,7 @@ async function createCustomerWithCart() {
   const beechId = await libTests.createTree({ name: "Hêtre", price: 12.5 });
   await libTests.addCartItem(aliceId, oakId, 3);
   await libTests.addCartItem(aliceId, beechId, 1);
-  const cookie = await libTests.loginAs(libTests.ALICE);
+  const cookie = await libTests.loginAs(account);
   return { aliceId, oakId, cookie };
 }
 
@@ -351,6 +352,82 @@ describe("ordersController", () => {
       // Assert : l'adresse de facturation est celle saisie, prête pour la facture
       assert.strictEqual(response.status, 200);
       assert.strictEqual(response.data.billingAddress, otherAddress);
+    });
+
+    // un client par pays : chacun commande avec son adresse de facturation
+    // (lettres accentuées, ß, code postal britannique : la chaîne doit revenir intacte)
+    const europeanCustomers = [
+      libTests.SHERLOCK, // Royaume-Uni
+      libTests.POIROT, // Belgique
+      libTests.EINSTEIN, // Allemagne
+      libTests.QUICHOTTE, // Espagne
+    ];
+    for (const customer of europeanCustomers) {
+      const { account, billingAddress: customerAddress } = customer;
+
+      it(`should return the billing address of ${account.firstname} ${account.lastname}`, async () => {
+        // Arrange : le client commande avec son adresse de facturation
+        const { cookie } = await createCustomerWithCart(account);
+        const order = await libTests.requester.post(
+          "/orders",
+          { ...validBody, billingAddress: customerAddress },
+          { headers: { Cookie: cookie } },
+        );
+
+        // Act : relecture de la commande, comme sur la page de confirmation
+        const response = await libTests.requester.get(
+          `/orders/${order.data.id}`,
+          { headers: { Cookie: cookie } },
+        );
+
+        // Assert : l'adresse est celle saisie, sans modification
+        assert.strictEqual(order.status, 201);
+        assert.strictEqual(response.status, 200);
+        assert.strictEqual(response.data.billingAddress, customerAddress);
+      });
+    }
+
+    it("should remove the spaces around the billing address", async () => {
+      // Arrange
+      const { cookie } = await createCustomerWithCart(
+        libTests.SHERLOCK.account,
+      );
+
+      // Act : adresse entourée d'espaces (copier-coller maladroit)
+      const response = await libTests.requester.post(
+        "/orders",
+        {
+          ...validBody,
+          billingAddress: `   ${libTests.SHERLOCK.billingAddress}   `,
+        },
+        { headers: { Cookie: cookie } },
+      );
+
+      // Assert : trim (schéma Zod) a retiré les espaces avant l'enregistrement
+      assert.strictEqual(response.status, 201);
+      assert.strictEqual(
+        response.data.billingAddress,
+        libTests.SHERLOCK.billingAddress,
+      );
+    });
+
+    it("should respond 400 if the billing address is longer than 255 characters", async () => {
+      // Arrange
+      const { cookie } = await createCustomerWithCart();
+
+      // Act : 256 caractères, un de trop pour la colonne buyer_address
+      const response = await libTests.requester.post(
+        "/orders",
+        { ...validBody, billingAddress: "a".repeat(256) },
+        { headers: { Cookie: cookie } },
+      );
+
+      // Assert
+      assert.strictEqual(response.status, 400);
+      assert.strictEqual(
+        response.data.error,
+        "L'adresse de facturation est trop longue.",
+      );
     });
 
     it("should respond 404 for the order of another customer", async () => {

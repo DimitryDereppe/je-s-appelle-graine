@@ -32,7 +32,9 @@ INSERT INTO availability (name) VALUES
   ('retiré');
 
 -- -----------------------------------------------------------------------------
--- Comptes : id 1 à 5 = administrateurs (l'équipe), id 6 à 10 = clients de test
+-- Comptes : id 1 à 5 = administrateurs (l'équipe), id 6 à 14 = clients de test
+-- id 11 à 14 : clients européens (adresse de facturation hors de France),
+-- mot de passe Client12345! (les mêmes comptes que dans test/index.ts)
 -- Les 3 types de compte sont représentés ; id 7 et 9 sont désactivés
 -- (is_active = FALSE : la connexion doit répondre 403).
 -- -----------------------------------------------------------------------------
@@ -57,7 +59,15 @@ INSERT INTO account (email, password, firstname, lastname, address, account_type
   -- id 9 : client, entreprise, DÉSACTIVÉ
   ('david@test.fr', '$argon2id$v=19$m=65536,p=4,t=3$9rhyWfsoMqtV9b3r95uusw$+cwEcM1DiE4jhIhS8UalX7nvB+Tv4dfa+MbnTKZ6MT4', 'David', 'Dubois', '48 avenue Jean Jaurès, 11000 Carcassonne', 'entreprise', 'Dubois Menuiserie SARL', FALSE, 1),
   -- id 10 : client, entreprise
-  ('eve@test.fr', '$argon2id$v=19$m=65536,p=4,t=3$ZWmv5owU/GH5oNfYeurCMA$eycuUb6MFyC68CU3VAqQCCae0n72+ueIJBytoiurhFg', 'Eve', 'Benali', NULL, 'entreprise', 'Verdure & Co', TRUE, 1);
+  ('eve@test.fr', '$argon2id$v=19$m=65536,p=4,t=3$ZWmv5owU/GH5oNfYeurCMA$eycuUb6MFyC68CU3VAqQCCae0n72+ueIJBytoiurhFg', 'Eve', 'Benali', NULL, 'entreprise', 'Verdure & Co', TRUE, 1),
+  -- id 11 : client, particulier, Royaume-Uni
+  ('sherlock@test.fr', '$argon2id$v=19$m=65536,p=4,t=3$V0UhUv/KbU2ypWLuf5T2Cg$JaoudmOwQwNEjmkmi42psq5A0ZHaXbfQu6KSazrUvhk', 'Sherlock', 'Holmes', '221B Baker Street, London NW1 6XE, Royaume-Uni', 'particulier', NULL, TRUE, 1),
+  -- id 12 : client, particulier, Belgique (adresse inventée)
+  ('poirot@test.fr', '$argon2id$v=19$m=65536,p=4,t=3$ihtE3hJLMRBG7kuRocjBag$fXvtOKQUW2rGV/Zn5MuBA59u6VWJB8avEpGNJi1k6Ps', 'Hercule', 'Poirot', 'Rue des Petites Cellules Grises 3, 7890 Ellezelles, Belgique', 'particulier', NULL, TRUE, 1),
+  -- id 13 : client, particulier, Allemagne
+  ('einstein@test.fr', '$argon2id$v=19$m=65536,p=4,t=3$FsknWuUmF+LkCAdYgMennA$9WGMy0+1hnMMK9IvRqunKFaz2B5pPekhVXLp9yFkWI0', 'Albert', 'Einstein', 'Haberlandstraße 5, 10779 Berlin, Allemagne', 'particulier', NULL, TRUE, 1),
+  -- id 14 : client, particulier, Espagne
+  ('quichotte@test.fr', '$argon2id$v=19$m=65536,p=4,t=3$9nOCRN1Rk3m7OwXu9noCJQ$uYBDeI6qIGwZnA1e5V3Cgg2vLXLj9mBYNwA+XR/TKD4', 'Don', 'Quichotte', 'Calle de los Molinos 1, 13610 Campo de Criptana, Espagne', 'particulier', NULL, TRUE, 1);
 
 -- -----------------------------------------------------------------------------
 -- Arbres : 13 disponibles, 5 en rupture de stock (id 7, 10, 11, 18, 21), 3 retirés (id 4, 6, 17)
