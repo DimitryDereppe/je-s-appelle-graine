@@ -1,5 +1,9 @@
 import { pool } from "../data/db-client.ts";
-import type { IAdminTree, ITreeInput } from "../@types/index.d.ts";
+import type {
+  IAdminTree,
+  IAvailability,
+  ITreeInput,
+} from "../@types/index.d.ts";
 
 export const adminTreeDatamapper = {
   // Récupère tous les arbres, y compris ceux dont la disponibilité est « retiré ».
@@ -126,6 +130,7 @@ export const adminTreeDatamapper = {
     // Sinon, on renvoie l'id de l'arbre modifié.
     return updatedTree.id as number;
   },
+  // Supprime un arbre par son Id
 
   async deleteById(id: number): Promise<number | undefined> {
     const sqlQuery = `
@@ -133,15 +138,72 @@ export const adminTreeDatamapper = {
             WHERE id = $1
             RETURNING id;
 `;
-    const result = await pool.query(sqlQuery, [id]);
     // Envoie la requête à la base avec l'id de l'arbre à supprimer.
-    const deletedTree = result.rows[0];
+    const result = await pool.query(sqlQuery, [id]);
+
     // Si la base n'a supprimé aucun arbre, cet id n'existe pas.
+    const deletedTree = result.rows[0];
 
     if (!deletedTree) {
       return undefined;
     }
     // Sinon, renvoie l'id de l'arbre supprimé.
     return deletedTree.id as number;
+  },
+  // Vérifie si l'arbre a déjà été commandé.
+  async hasOrders(id: number): Promise<boolean> {
+    const sqlQuery = `
+      SELECT EXISTS (
+      SELECT 1 
+      FROM purchase_line
+      WHERE tree_id =$1)
+      AS "hasOrders";
+      `;
+    // Exécute la requête en lui transmettant l'id de l'arbre à vérifier.
+    const result = await pool.query(sqlQuery, [id]);
+    return result.rows[0].hasOrders as boolean;
+  },
+
+  // Vérifie si la catégorie existe dans la base.
+
+  async categoryExists(id: number): Promise<boolean> {
+    const sqlQuery = `
+      SELECT EXISTS (
+      SELECT 1 
+      FROM category
+      WHERE id =$1)
+      AS "categoryExists";
+      `;
+    // Exécute la requête en lui transmettant l'id de la catégorie à vérifier.
+    const result = await pool.query(sqlQuery, [id]);
+    return result.rows[0].categoryExists as boolean;
+  },
+  // Vérifie si la disponibilité existe dans la base.
+  async availabilityExists(id: number): Promise<boolean> {
+    const sqlQuery = `
+    SELECT EXISTS (
+      SELECT 1
+      FROM availability
+      WHERE id = $1
+    ) AS "availabilityExists";
+  `;
+
+    // Envoie l'id de la disponibilité à vérifier.
+    const result = await pool.query(sqlQuery, [id]);
+
+    // Renvoie true si la disponibilité existe, sinon false.
+    return result.rows[0].availabilityExists as boolean;
+  },
+
+  async findAllAvailabilities(): Promise<IAvailability[]> {
+    const sqlQuery = `
+        SELECT
+        id,
+        name
+        FROM availability
+        ORDER BY id
+      `;
+    const result = await pool.query(sqlQuery);
+    return result.rows as IAvailability[];
   },
 };
