@@ -288,7 +288,7 @@ describe("userController", () => {
   });
 
   // ==================
-  // PATCH /users/me (modifier son compte, contrat #159)
+  // PATCH /users/me (modifier son compte)
   // ==================
   describe("[PATCH] /api/users/me", () => {
     // un body valide : le front envoie toujours tous les champs
@@ -313,6 +313,10 @@ describe("userController", () => {
 
       // Assert : mêmes champs que GET /api/users/me
       assert.strictEqual(response.status, 200);
+      // Object.keys : le tableau des noms de champs ; sort : les trie, car leur ordre dans le JSON ne compte pas
+      // deepStrictEqual : compare le contenu des tableaux, case par case
+      // strictEqual échouerait toujours ici : il vérifie que c'est le même tableau en mémoire, pas le même contenu
+      // un champ en trop, comme password, ferait échouer le test
       assert.deepStrictEqual(Object.keys(response.data).sort(), [
         "accountType",
         "address",
@@ -327,7 +331,8 @@ describe("userController", () => {
       assert.strictEqual(response.data.organizationName, "Les Graines");
       assert.strictEqual(response.data.role, "customer");
 
-      // Assert : la modification est bien en BDD
+      // Assert : GET relit le compte, comme le client qui recharge la page
+      // response.data vient déjà de RETURNING : cette relecture protège le test si le PATCH change un jour
       const me = await libTests.requester.get("/users/me", {
         headers: { Cookie: cookie },
       });
@@ -475,7 +480,7 @@ describe("userController", () => {
         { headers: { Cookie: cookie } },
       );
 
-      // Assert : réponse vide
+      // Assert : réponse vide (axios donne "" quand le corps est vide)
       assert.strictEqual(response.status, 204);
       assert.strictEqual(response.data, "");
 
@@ -509,7 +514,10 @@ describe("userController", () => {
         "SELECT password FROM account WHERE id = $1",
         [aliceId],
       );
+      // notStrictEqual : les deux valeurs doivent être différentes
       assert.notStrictEqual(result.rows[0].password, newPassword);
+      // assert.ok : le test échoue si la valeur est fausse
+      // argon2.verify renvoie true si le mot de passe correspond au hash
       assert.ok(await argon2.verify(result.rows[0].password, newPassword));
     });
 
@@ -576,6 +584,8 @@ describe("userController", () => {
   // ==================
   describe("[DELETE] /api/users/me", () => {
     // deux comptes administrateurs de test
+    // ... recopie les champs d'ALICE, et les lignes suivantes remplacent ceux qu'on change
+    // as const : TypeScript garde le type "admin", et pas n'importe quel texte
     const ADMIN = {
       ...libTests.ALICE,
       email: "admin@test.fr",
@@ -595,11 +605,14 @@ describe("userController", () => {
 
       // Assert : cookie vidé et déjà expiré
       assert.strictEqual(response.status, 204);
+      // findCookieFromResponse : le texte du cookie envoyé par l'API dans l'en-tête set-cookie
       const clearedCookie = libTests.findCookieFromResponse(
         response,
         "accessToken",
       );
+      // startsWith : le texte commence par… ; ici, le cookie n'a plus de valeur
       assert.ok(clearedCookie.startsWith("accessToken=;"));
+      // includes : le texte contient… ; une date passée demande au navigateur de l'effacer
       assert.ok(clearedCookie.includes("Expires=Thu, 01 Jan 1970"));
 
       // Assert : le compte n'est plus en BDD
@@ -765,13 +778,15 @@ describe("userController", () => {
       await libTests.createAccount(ADMIN);
       const cookie = await libTests.loginAs(ADMIN);
 
-      // Act
-      const response = await libTests.requester.get("/admin/trees", {
-        headers: { Cookie: cookie },
-      });
+      // Act : une adresse qui n'existera jamais, pour que le test reste valable avec les routes admin à venir
+      const response = await libTests.requester.get(
+        "/admin/route-inexistante",
+        {
+          headers: { Cookie: cookie },
+        },
+      );
 
-      // Assert : ni 401 ni 403. Aucune route admin n'existe encore (F7) :
-      // la requête passe les middlewares et arrive au 404 « Ressource introuvable »
+      // Assert : ni 401 ni 403 : la requête passe les middlewares et arrive au 404 « Ressource introuvable »
       assert.strictEqual(response.status, 404);
     });
   });
