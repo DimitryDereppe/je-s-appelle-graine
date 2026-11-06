@@ -10,6 +10,7 @@ import { isConnected } from "../middlewares/isConnectedMiddleware.ts";
 
 export const router = Router();
 
+// POST /api/users → créer le compte
 router.post("/users", register);
 // GET /api/users/me → qui est connecté (l'en-tête du front l'appelle après un rechargement)
 router.get("/users/me", isConnected, getMe);
