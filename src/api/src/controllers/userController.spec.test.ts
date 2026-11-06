@@ -156,6 +156,45 @@ describe("userController", () => {
       assert.strictEqual(response.data.error, "Email invalide.");
     });
 
+    // un test par champ trop long : au-delà de la taille de la colonne en BDD
+    const tooLongFields = [
+      {
+        field: "firstname",
+        value: "a".repeat(101),
+        error: "Le prénom est trop long.",
+      },
+      {
+        field: "lastname",
+        value: "a".repeat(101),
+        error: "Le nom est trop long.",
+      },
+      {
+        field: "email",
+        value: `${"a".repeat(250)}@test.fr`,
+        error: "L'email est trop long.",
+      },
+      {
+        field: "organizationName",
+        value: "a".repeat(151),
+        error: "Le nom de la structure est trop long.",
+      },
+    ];
+
+    for (const { field, value, error } of tooLongFields) {
+      it(`should respond 400 if ${field} is too long`, async () => {
+        // Act : [field] utilise le nom du champ contenu dans la variable
+        const response = await libTests.requester.post("/users", {
+          ...newUser,
+          accountType: "association",
+          [field]: value,
+        });
+
+        // Assert
+        assert.strictEqual(response.status, 400);
+        assert.strictEqual(response.data.error, error);
+      });
+    }
+
     it("should store the password hashed with argon2", async () => {
       // Arrange : le rôle "customer" doit exister (voir le test 201)
       await pool.query("INSERT INTO role (name) VALUES ('customer')");
@@ -433,6 +472,76 @@ describe("userController", () => {
       // Assert : un oubli du front ne change pas le type du compte
       assert.strictEqual(response.status, 400);
       assert.strictEqual(response.data.error, "Type de compte invalide.");
+    });
+
+    // un test par champ trop long : au-delà de la taille de la colonne en BDD
+    const tooLongFields = [
+      {
+        field: "firstname",
+        value: "a".repeat(101),
+        error: "Le prénom est trop long.",
+      },
+      {
+        field: "lastname",
+        value: "a".repeat(101),
+        error: "Le nom est trop long.",
+      },
+      {
+        field: "email",
+        value: `${"a".repeat(250)}@test.fr`,
+        error: "L'email est trop long.",
+      },
+      {
+        field: "address",
+        value: "a".repeat(256),
+        error: "L'adresse est trop longue.",
+      },
+      {
+        field: "organizationName",
+        value: "a".repeat(151),
+        error: "Le nom de la structure est trop long.",
+      },
+    ];
+
+    for (const { field, value, error } of tooLongFields) {
+      it(`should respond 400 if ${field} is too long`, async () => {
+        // Arrange
+        await libTests.createAccount(libTests.ALICE);
+        const cookie = await libTests.loginAs(libTests.ALICE);
+
+        // Act : [field] utilise le nom du champ contenu dans la variable
+        const response = await libTests.requester.patch(
+          "/users/me",
+          { ...validBody, [field]: value },
+          { headers: { Cookie: cookie } },
+        );
+
+        // Assert
+        assert.strictEqual(response.status, 400);
+        assert.strictEqual(response.data.error, error);
+      });
+    }
+
+    it("should respond 200 if the fields have exactly the maximum length", async () => {
+      // Arrange
+      await libTests.createAccount(libTests.ALICE);
+      const cookie = await libTests.loginAs(libTests.ALICE);
+
+      // Act : la taille exacte des colonnes de la BDD
+      const response = await libTests.requester.patch(
+        "/users/me",
+        {
+          ...validBody,
+          firstname: "a".repeat(100),
+          lastname: "a".repeat(100),
+          address: "a".repeat(255),
+          organizationName: "a".repeat(150),
+        },
+        { headers: { Cookie: cookie } },
+      );
+
+      // Assert
+      assert.strictEqual(response.status, 200);
     });
 
     it("should respond 400 if firstname only contains spaces", async () => {

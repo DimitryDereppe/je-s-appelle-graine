@@ -13,16 +13,21 @@ import { clearAccessCookie } from "../lib/token.ts";
 
 export async function register(req: Request, res: Response) {
   // schéma attendu du body (contrat carte #83)
+  // max : les tailles des colonnes de la table account, sinon la BDD répondrait une erreur 500
   const registerBodySchema = z.object({
     firstname: z
       .string({ error: "Prénom obligatoire." })
       .trim()
-      .min(1, { error: "Prénom obligatoire." }),
+      .min(1, { error: "Prénom obligatoire." })
+      .max(100, { error: "Le prénom est trop long." }),
     lastname: z
       .string({ error: "Nom obligatoire." })
       .trim()
-      .min(1, { error: "Nom obligatoire." }),
-    email: z.email({ error: "Email invalide." }),
+      .min(1, { error: "Nom obligatoire." })
+      .max(100, { error: "Le nom est trop long." }),
+    email: z
+      .email({ error: "Email invalide." })
+      .max(255, { error: "L'email est trop long." }),
     password: z.string({ error: "Mot de passe obligatoire." }).min(12, {
       error: "Le mot de passe doit contenir au moins 12 caractères.",
     }),
@@ -33,7 +38,12 @@ export async function register(req: Request, res: Response) {
       })
       .default("particulier"),
     // facultatif : peut être absent (optional) ou valoir null (nullable)
-    organizationName: z.string().trim().optional().nullable(),
+    organizationName: z
+      .string()
+      .trim()
+      .max(150, { error: "Le nom de la structure est trop long." })
+      .optional()
+      .nullable(),
   });
 
   // validation du body par Zod : si invalide, erreur → 400 (errorMiddleware)
@@ -94,25 +104,39 @@ export async function getMe(req: IAuthenticatedRequest, res: Response) {
 // --------------------------------
 export async function updateMe(req: IAuthenticatedRequest, res: Response) {
   // schéma attendu du body
+  // max : les tailles des colonnes de la table account, sinon la BDD répondrait une erreur 500
   const updateBodySchema = z.object({
     firstname: z
       .string({ error: "Prénom obligatoire." })
       .trim()
-      .min(1, { error: "Prénom obligatoire." }),
+      .min(1, { error: "Prénom obligatoire." })
+      .max(100, { error: "Le prénom est trop long." }),
     lastname: z
       .string({ error: "Nom obligatoire." })
       .trim()
-      .min(1, { error: "Nom obligatoire." }),
-    email: z.email({ error: "Email invalide." }),
+      .min(1, { error: "Nom obligatoire." })
+      .max(100, { error: "Le nom est trop long." }),
+    email: z
+      .email({ error: "Email invalide." })
+      .max(255, { error: "L'email est trop long." }),
     // trim retire les espaces autour ; null accepté si le client n'a pas d'adresse
-    address: z.string({ error: "Adresse invalide." }).trim().nullable(),
+    address: z
+      .string({ error: "Adresse invalide." })
+      .trim()
+      .max(255, { error: "L'adresse est trop longue." })
+      .nullable(),
     // mêmes valeurs que le CHECK de la table account
     // pas de .default ici : un oubli du front ne doit pas changer le type du compte
     accountType: z.enum(["particulier", "association", "entreprise"], {
       error: "Type de compte invalide.",
     }),
     // facultatif : peut être absent (optional) ou valoir null (nullable)
-    organizationName: z.string().trim().optional().nullable(),
+    organizationName: z
+      .string()
+      .trim()
+      .max(150, { error: "Le nom de la structure est trop long." })
+      .optional()
+      .nullable(),
   });
 
   // validation du body par Zod : si invalide, erreur → 400 (errorMiddleware)

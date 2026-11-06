@@ -269,7 +269,7 @@ Même fichier. Les 2 cas passent. En test, `SMTP_HOST` est absent : l'email est 
 
 ## F6 · Espace client (US26 à US30)
 
-Contrat d'API : carte #159. Tests de la carte #162, partie compte, vérifiés sur `feat/f6-compte-back` le 06/11/2026. La partie commandes reste à faire.
+Contrat d'API : carte #159. Tests de la carte #162 (compte), vérifiés sur `feat/f6-compte-back` le 06/11/2026. Les commandes ont leur carte : #199.
 
 ### Tests d'intégration — modifier son compte `PATCH /api/users/me`
 
@@ -311,6 +311,16 @@ Même fichier. Les 7 cas passent.
 | F6-INT-18 | Autre admin désactivé                | Intégration | `403` : un compte désactivé ne compte pas                         | ✅     |
 | F6-INT-19 | Un autre admin actif reste           | Intégration | `204`                                                             | ✅     |
 | F6-INT-20 | Sans connexion                       | Intégration | `401` « Vous devez être connecté. »                               | ✅     |
+
+### Tests d'intégration — textes trop longs (inscription et modification du compte)
+
+Même fichier. Les 10 cas passent. Les limites sont les tailles des colonnes de la table `account`.
+
+| N°        | Cas                                                                             | Type        | Attendu                        | Obtenu |
+| --------- | ------------------------------------------------------------------------------- | ----------- | ------------------------------ | ------ |
+| F6-INT-21 | `POST /api/users` : prénom, nom, email ou structure trop longs (4)              | Intégration | `400` avec le message du champ | ✅     |
+| F6-INT-22 | `PATCH /api/users/me` : prénom, nom, email, adresse ou structure trop longs (5) | Intégration | `400` avec le message du champ | ✅     |
+| F6-INT-23 | `PATCH /api/users/me` : champs à la taille maximale                             | Intégration | `200`                          | ✅     |
 
 ## F7 à F9
 
