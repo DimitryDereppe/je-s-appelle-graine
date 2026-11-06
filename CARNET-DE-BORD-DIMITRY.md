@@ -2,6 +2,35 @@
 
 Suivi de mon travail sur Je s’appelle Graine. Les décisions notées ici ont été prises avec l'équipe sur Discord ; le suivi de l'équipe est dans le [[Apothéose/apo-jesappellegraine/CARNET-DE-BORD-JE-S-APPELLE-GRAINE|carnet de bord Je s’appelle Graine]].
 
+## 2026-11-06 — Commande (#104) : adresse de facturation en une seule chaîne, clients européens
+
+Branche `fix/back-f5`. Le matin : `a43db34` — adresse de facturation saisie à la commande, routes `/orders` regroupées dans `indexRouter`.
+
+### Adresse découpée en 4 colonnes : abandonnée
+
+- Essai (non commité) : `buyer_street`, `buyer_postal_code`, `buyer_city`, `buyer_country` + format du code postal vérifié par pays (`lib/countries.ts`).
+- **Décision** : retour à **une seule colonne `buyer_address`** (chaîne), plus simple pour la table et l'affichage sur la facture. Le pays et le code postal ne sont plus vérifiés.
+- Le travail est mis de côté dans `stash@{0}` (« adresse découpée en 4 colonnes »), récupérable fichier par fichier.
+
+### Travail réalisé (non commité)
+
+- Schéma Zod `billingAddressSchema` déplacé dans `controllers/utils.ts` (exporté), importé par `ordersController.ts` : `string` → `trim` → `min(1)` → `max(255)` (taille de la colonne).
+- **Clients européens** remis dans `02-seed.sql` (id 11 à 14, mot de passe `Client12345!`) et `test/index.ts` : `SHERLOCK` (GB), `POIROT` (BE), `EINSTEIN` (DE), `QUICHOTTE` (ES), avec une `billingAddress` en chaîne.
+- Tests de `POST /api/orders` :
+  - `createCustomerWithCart(account = ALICE)` accepte un autre compte ;
+  - boucle sur les 4 clients : l'adresse relue par `GET /orders/:id` est identique (accents, `ß`, code postal britannique) ;
+  - espaces autour de l'adresse retirés (`trim`) ;
+  - 256 caractères → `400` « L'adresse de facturation est trop longue. ».
+- Test `/health` : attend `"je s'appelle Graine 🌲"`, comme la route.
+- `tsc` sans erreur, **83/83 tests d'API** et 3/3 tests unitaires.
+
+### Reste à faire
+
+- Commiter le travail sur `fix/back-f5`.
+- Rejouer le seed sur la base de dev (comptes 11 à 14 pas encore vérifiés en base).
+- `buyer_address` est encore `NULL` autorisé dans `01-schema.sql` alors que Zod l'exige : décider d'un `NOT NULL`.
+- Supprimer `stash@{0}` quand il n'est plus utile.
+
 ## 2026-11-05 — Suite du Header, clôture
 
 - `fix/header` était déjà poussée et fusionnée dans `main` (PR #150, 04/11) : le « reste à faire » du 04/11 sur ce point est caduc.
