@@ -11,13 +11,9 @@
 /* --- Hero 404 --- */
 .hero {
   width: 100%;
-
   display: flex;
   flex-direction: column;
-  
   text-align: center;
-  padding: 56px 16px 40px;
- 
 }
 
 .tagline {
@@ -88,7 +84,9 @@
   font-weight: 600;
   font-family: "Lora", Georgia, serif;
   cursor: pointer;
-  transition: background-color 0.3s ease, color 0.3s ease;
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
 }
 
 .secondaryButton:hover {
@@ -113,14 +111,16 @@
   position: relative;
   overflow: hidden;
   border-radius: 12px;
-  margin-top: 24px;
+
   background-color: #e3e9df;
 }
 
-.heroImg {
-  /* object-fit: cover; */
+.backLink {
+  display: inline-block;
+  margin-top: 1rem;
+  color: inherit;
+  text-decoration: underline;
 }
-
 /* ===== Desktop (≥ 600px) ===== */
 @media (min-width: 600px) {
   .hero {
@@ -146,9 +146,7 @@
     padding: 12px 32px;
   }
 
-.heroImage {
-
-  min-height: 70vh;
-
-}
+  .heroImage {
+    min-height: 70vh;
+  }
 }
