@@ -26,7 +26,7 @@
 
 - Dimitry : corrections de F5 (texte de l'email pour un chèque, test de l'email en mode chèque, commentaires sur la facture à préciser, `PAYMENT_*` dans `.env.example`, correction des photos à récupérer dans `DEV`), puis front de la commande (#107).
 - Loïc : back et front du panier (#100, #101, #102), avec `isConnected` en haut de `cartRouter.ts`.
-- Fabrice : PR de la partie compte de F6 et relecture. Ensuite, les commandes du client avec leurs tests, et le front (#161).
+- Fabrice : PR de la partie compte de F6 et relecture. Ensuite, les commandes du client (#198, #199) et les pages compte et commandes (#161, #200).
 - Mahamadou : tests du filtre par catégorie (#90, #94), et F9 selon le contrat #163.
 - Shanna : continuer F7 sur sa branche, puis la relire avec Mahamadou.
 

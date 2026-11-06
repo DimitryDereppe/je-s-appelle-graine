@@ -11,7 +11,7 @@ Suivi de mon travail sur Je s’appelle Graine. Les décisions notées ici ont �
   - `PATCH /api/users/me/password` : vérification du mot de passe actuel avec `argon2.verify`, puis enregistrement du nouveau hash, réponse 204 ;
   - `DELETE /api/users/me` : blocage du dernier admin actif (403), cookie effacé ;
   - `clearAccessCookie` dans `lib/token.ts`, utilisée aussi par `logout` ;
-  - `.trim()` sur le prénom, le nom et la structure, à l'inscription et à la modification ;
+  - `.trim()` sur le prénom, le nom et la structure, et `.max()` selon la taille des colonnes, à l'inscription et à la modification ;
   - essais des routes à la main sur l'API locale.
   - Tests de la partie compte (#162), dont le dernier admin et la conservation des commandes après suppression.
 - **Relecture de F5 par rapport au cahier des charges :** conforme sur le parcours de commande. Corrections notées dans le challenge de Dimitry, dont un `n°` en trop dans l'email pour un chèque.
@@ -33,7 +33,7 @@ Suivi de mon travail sur Je s’appelle Graine. Les décisions notées ici ont �
 ### À poursuivre
 
 - Ouvrir ensuite la PR de `feat/f6-compte-back` vers `DEV`, relue par Shanna.
-- F6, commandes du client : `GET /api/orders` et l'annulation d'une commande en attente, avec leurs tests, puis front (#161).
+- F6, commandes du client (#198, #199) : `GET /api/orders` et l'annulation d'une commande en attente, avec leurs tests, puis pages compte et commandes (#161, #200).
 - Relire F9, et aider Loïc et Shanna sur le back.
 
 ## 2026-11-05 — Fin de F2, outils communs et organisation du sprint 3
