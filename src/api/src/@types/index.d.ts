@@ -96,6 +96,44 @@ export interface ICartItem {
 }
 
 // --------------------------------
+// Panier complet renvoyé au client (résumé + total)
+// --------------------------------
+export interface ICartSummary {
+  cartId: number;
+  items: ICartItem[];
+  total: number;
+}
+
+// --------------------------------
+// Corps de la requête POST /api/carts/items
+// --------------------------------
+export interface IAddItemBody {
+  treeId: number;
+  quantity: number;
+}
+
+// --------------------------------
+// Corps de la requête PATCH /api/carts/items/:treeId
+// --------------------------------
+export interface IUpdateQuantityBody {
+  quantity: number;
+}
+
+// --------------------------------
+// Requête enrichie par le middleware loadCart :
+// req.cart est garanti présent dans tous les contrôleurs du panier
+// --------------------------------
+export interface ICartRequest extends Request {
+  cart: ICart; // renseigné par loadCart, jamais undefined derrière ce middleware
+}
+
+// Panier côté serveur (stockage interne, jamais renvoyé tel quel)
+export interface ICart {
+  id: number;
+  items: ICartItem[];
+}
+
+// --------------------------------
 // Commandes (F5, contrat carte #103) — table purchase ("order" est réservé en SQL)
 // --------------------------------
 export type PaymentMethod = "virement" | "chèque";
