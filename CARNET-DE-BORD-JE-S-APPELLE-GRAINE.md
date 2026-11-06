@@ -1,5 +1,35 @@
 # Carnet de bord — Je s’appelle Graine
 
+## 2026-11-06 — Commande et email dans `DEV`, photos corrigées en ligne, début des features du sprint 3
+
+### Travail réalisé
+
+- **Commande (F5)** par Dimitry :
+  - adresse de facturation demandée à la commande, routes `/orders` regroupées dans `indexRouter.ts` (PR #194) ;
+  - email de confirmation avec Nodemailer, affiché dans la console sans `SMTP_HOST`, sans annuler la commande en cas d'échec d'envoi (PR #196, #105) ;
+  - plan de tests de F2, F4 et F5, et cas manquants de F3 (PR #196, #108).
+- **Fiche arbre et page 404** par Loïc : titre de l'onglet selon l'arbre (PR #195). La carte #93 est terminée.
+- **Photos des arbres en ligne** par Dimitry (PR #197, dans `main`) : `API_URL` est maintenant fourni à la compilation du front, car les relais de `next.config.ts` sont figés à ce moment-là.
+- **Features du sprint 3 commencées en avance :**
+  - F4 Panier par Loïc ;
+  - F6 Espace client par Fabrice : `PATCH /api/users/me`, changement de mot de passe et suppression du compte, sur `feat/f6-compte-back` ;
+  - F9 Admin comptes par Mahamadou, sur `feat/9/admin/compte`.
+  - F7 Admin catalogue par Shanna, en cours sur sa branche.
+
+### Décisions
+
+- **Email de confirmation :** il ne vaut pas facture. Générer une vraie facture en PDF après réception du paiement pourrait être une évolution du projet.
+- **`deleteById` et `countActiveAdmins` :** écrites dans F6 (Fabrice) et réutilisées par F9 (Mahamadou), car le contrat #163 couvre tous les comptes, admins compris.
+- **Suivi :** les consignes de chacun sont mises à jour dans le document des challenges, chaque soir pour le lendemain.
+
+### À poursuivre
+
+- Dimitry : corrections de F5 (texte de l'email pour un chèque, test de l'email en mode chèque, commentaires sur la facture à préciser, `PAYMENT_*` dans `.env.example`, correction des photos à récupérer dans `DEV`), puis front de la commande (#107).
+- Loïc : back et front du panier (#100, #101, #102), avec `isConnected` en haut de `cartRouter.ts`.
+- Fabrice : PR de la partie compte de F6 et relecture. Ensuite, les commandes du client (#198, #199) et les pages compte et commandes (#161, #200).
+- Mahamadou : tests du filtre par catégorie (#90, #94), et F9 selon le contrat #163.
+- Shanna : continuer F7 sur sa branche, puis la relire avec Mahamadou.
+
 ## 2026-11-05 — F2 dans `main`, branche `DEV` et organisation du sprint 3
 
 ### Travail réalisé
