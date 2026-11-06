@@ -82,3 +82,56 @@ export async function getMe(req: IAuthenticatedRequest, res: Response) {
     role: account.role,
   });
 }
+
+export async function updateMe(req: IAuthenticatedRequest, res: Response) {
+  // schéma attendu du body (contrat carte #83)
+  const updateBodySchema = z.object({
+    firstname: z
+      .string({ error: "Prénom obligatoire." })
+      .min(1, { error: "Prénom obligatoire." }),
+    lastname: z
+      .string({ error: "Nom obligatoire." })
+      .min(1, { error: "Nom obligatoire." }),
+    email: z.email({ error: "Email invalide." }),
+    address: z.string({ error: "Adresse invalide." }).trim().nullable(),
+    // mêmes valeurs que le CHECK de la table account
+    accountType: z.enum(["particulier", "association", "entreprise"], {
+      error: "Type de compte invalide.",
+    }),
+    // facultatif : peut être absent (optional) ou valoir null (nullable)
+    organizationName: z.string().optional().nullable(),
+  });
+
+  const updateBody = await updateBodySchema.parseAsync(req.body);
+
+  const account = await getAuthenticatedUser(req);
+
+  // vérification si email n'est pas déja utilisé dans son compte
+  const sameEmailAccount = await accountDatamapper.findByEmail(
+    updateBody.email,
+  );
+  if (sameEmailAccount && sameEmailAccount.id !== account.id) {
+    throw new ConflictError("Cet email est déjà utilisé.");
+  }
+
+  const updated = await accountDatamapper.updateProfile(account.id, {
+    ...updateBody,
+    // champ vide → null ; un particulier n'a pas de structure
+    address: updateBody.address || null,
+    organizationName:
+      updateBody.accountType === "particulier"
+        ? null
+        : updateBody.organizationName || null,
+  });
+
+  res.status(200).json({
+    id: updated.id,
+    firstname: updated.firstname,
+    lastname: updated.lastname,
+    email: updated.email,
+    address: updated.address,
+    accountType: updated.accountType,
+    organizationName: updated.organizationName,
+    role: updated.role,
+  });
+}
