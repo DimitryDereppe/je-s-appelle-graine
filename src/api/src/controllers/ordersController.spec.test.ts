@@ -1,4 +1,4 @@
-import { describe, it } from "node:test";
+import { describe, it, mock } from "node:test";
 import assert from "node:assert";
 import * as libTests from "../../test/index.ts";
 import { pool } from "../data/db-client.ts";
@@ -297,6 +297,72 @@ describe("ordersController", () => {
         // on le supprime, réussite ou échec, pour ne pas casser les tests suivants
         await pool.query("DROP TRIGGER fail_purchase_line ON purchase_line");
         await pool.query("DROP FUNCTION fail_purchase_line");
+      }
+    });
+
+    // --- email de confirmation (carte #105) ---
+    // en test, SMTP_HOST est absent : emailService affiche l'email avec console.log au lieu de l'envoyer.
+    // mock.method remplace console.log le temps du test : on récupère ce qui aurait été affiché.
+
+    it("should prepare the confirmation email with the order information", async () => {
+      // Arrange : ALICE a un panier ; on espionne console.log (sans rien afficher)
+      const { cookie } = await createCustomerWithCart();
+      const consoleLog = mock.method(console, "log", () => {});
+
+      try {
+        // Act
+        const response = await libTests.requester.post("/orders", validBody, {
+          headers: { Cookie: cookie },
+        });
+
+        // Assert : un seul affichage, l'email, avec les informations de la confirmation
+        assert.strictEqual(response.status, 201);
+        assert.strictEqual(consoleLog.mock.callCount(), 1);
+        // arguments[0] : le premier argument passé à console.log (le texte de l'email)
+        const email = consoleLog.mock.calls[0].arguments[0];
+        assert.ok(email.includes(`À : ${libTests.ALICE.email}`));
+        assert.ok(
+          email.includes(`Objet : Commande n° ${response.data.id} confirmée`),
+        );
+        assert.ok(email.includes("Montant TTC : 63,20 €")); // 3 × 16,90 + 12,50
+        assert.ok(email.includes(billingAddress));
+        assert.ok(email.includes("IBAN : "));
+        assert.ok(
+          email.includes(`Indiquez « Commande n° ${response.data.id} »`),
+        );
+      } finally {
+        // on remet le vrai console.log, réussite ou échec
+        consoleLog.mock.restore();
+      }
+    });
+
+    it("should keep the order if the confirmation email fails", async () => {
+      // Arrange : on simule un échec d'envoi : console.log (l'« envoi » en test) lève une erreur ;
+      // console.error est espionné pour vérifier la trace laissée par le catch du contrôleur
+      const { cookie } = await createCustomerWithCart();
+      const consoleLog = mock.method(console, "log", () => {
+        throw new Error("échec d'envoi simulé");
+      });
+      const consoleError = mock.method(console, "error", () => {});
+
+      try {
+        // Act
+        const response = await libTests.requester.post("/orders", validBody, {
+          headers: { Cookie: cookie },
+        });
+
+        // Assert : 201, commande gardée, panier vidé, et l'échec est noté dans les logs
+        assert.strictEqual(response.status, 201);
+        assert.strictEqual(await countRows("purchase"), 1);
+        assert.strictEqual(await countRows("cart_item"), 0);
+        assert.strictEqual(consoleError.mock.callCount(), 1);
+        assert.strictEqual(
+          consoleError.mock.calls[0].arguments[0],
+          "Email de confirmation non envoyé",
+        );
+      } finally {
+        consoleLog.mock.restore();
+        consoleError.mock.restore();
       }
     });
 
