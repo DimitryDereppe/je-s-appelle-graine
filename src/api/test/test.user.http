@@ -146,3 +146,13 @@ content-type: application/json
   "email": "anakin@test.fr",
   "password": "IwantToBeAMasterJed1!"
 }
+
+
+### GET   all user
+GET http://localhost:4000/api/admin/users
+content-type: application/json
+
+{
+  "email": "dimitry@graine.fr",
+  "password": "Admin123456!"
+}
