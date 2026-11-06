@@ -2,6 +2,40 @@
 
 Suivi de mon travail sur Je s’appelle Graine. Les décisions notées ici ont été prises avec l'équipe ; le suivi de l'équipe est dans le [carnet de bord Je s’appelle Graine](CARNET-DE-BORD-JE-S-APPELLE-GRAINE.md), que je tiens à jour.
 
+## 2026-11-06 — F6 : compte du client, relecture de F5 et test du site en ligne
+
+### Travail réalisé
+
+- **F6, partie compte** (#160), sur `feat/f6-compte-back` :
+  - `PATCH /api/users/me` : modification du compte, email déjà pris par un autre compte → 409, `RETURNING` pour renvoyer le compte à jour;
+  - `PATCH /api/users/me/password` : vérification du mot de passe actuel avec `argon2.verify`, puis enregistrement du nouveau hash, réponse 204 ;
+  - `DELETE /api/users/me` : blocage du dernier admin actif (403), cookie effacé ;
+  - `clearAccessCookie` dans `lib/token.ts`, utilisée aussi par `logout` ;
+  - `.trim()` sur le prénom, le nom et la structure, à l'inscription et à la modification ;
+  - essais des routes à la main sur l'API locale.
+  - Tests de la partie compte (#162), dont le dernier admin et la conservation des commandes après suppression.
+- **Relecture de F5 par rapport au cahier des charges :** conforme sur le parcours de commande. Corrections notées dans le challenge de Dimitry, dont un `n°` en trop dans l'email pour un chèque.
+- **Test du site en ligne :** pages, catalogue, recherche, accès protégés et formulaires invalides. Photos des arbres cassées : cause trouvée et confirmée par une compilation de production, corrigée par Dimitry (PR #197).
+- **Organisation :** challenge et Kanban mis à jour, documents de l'équipe du sprint 3.
+
+### Ce que j'ai appris
+
+- `RETURNING` renvoie la ligne modifiée dans la même requête. Il n'accepte pas de `JOIN` : une sous-requête permet de lire le nom du rôle.
+- `COUNT(*)` arrive en texte dans Node, d'où le `CAST(... AS INTEGER)`.
+- `??` ne remplace que `null` et `undefined`, alors que `||` remplace aussi une chaîne vide.
+- Les relais de `next.config.ts` sont figés à la compilation : `env_file` ne sert qu'au lancement du conteneur.
+
+### Décisions (prises avec l'équipe)
+
+- `deleteById` et `countActiveAdmins` sont écrites dans F6 (Fabrice) et réutilisées par F9(Mahamadou).
+- L'email de confirmation ne vaut pas facture ; une facture en PDF pourrait être une évolution du projet.
+
+### À poursuivre
+
+- Ouvrir ensuite la PR de `feat/f6-compte-back` vers `DEV`, relue par Shanna.
+- F6, commandes du client : `GET /api/orders` et l'annulation d'une commande en attente, avec leurs tests, puis front (#161).
+- Relire F9, et aider Loïc et Shanna sur le back.
+
 ## 2026-11-05 — Fin de F2, outils communs et organisation du sprint 3
 
 ### Travail réalisé
