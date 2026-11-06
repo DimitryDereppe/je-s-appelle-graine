@@ -2,6 +2,18 @@
 
 Suivi de mon travail sur Je s’appelle Graine. Les décisions notées ici ont été prises avec l'équipe sur Discord ; le suivi de l'équipe est dans le [[Apothéose/apo-jesappellegraine/CARNET-DE-BORD-JE-S-APPELLE-GRAINE|carnet de bord Je s’appelle Graine]].
 
+## 2026-11-06 — Déploiement : photos des arbres invisibles en production
+
+- **Symptôme** : sur le VPS, `/images/trees/pin-maritime.webp` répond `200`, mais `/_next/image?url=/images/trees/…` répond `500` (`"url" parameter is valid but internal response is invalid`) : aucune photo d'arbre ne s'affiche.
+- **Cause** : `<Image>` passe par l'optimiseur de Next.js, qui va chercher la photo **lui-même** en suivant les `rewrites` de `next.config.ts`. Ces `rewrites` sont **figés au `next build`**, alors que `API_URL` n'arrive qu'au démarrage du conteneur (`env_file`) : Next avait enregistré `http://localhost:4050`, qui ne répond pas dans le conteneur front.
+- **Correction** (branche `fix/deploiement-images`, commit `99936ed`) : `front/Dockerfile.prod` → `ARG API_URL=http://api:4000` + `ENV API_URL=$API_URL` avant `RUN npm run build` (sans `/` final : `next.config.ts` ajoute `/images/...`). Build testé en local : `routes-manifest.json` contient bien `http://api:4000/images/trees/:path*`.
+- Doc : [[Apothéose/apo-jesappellegraine/DEPLOIEMENT|DEPLOIEMENT.md]] (vérification n° 5 + ligne dans « Pièges rencontrés ») et commentaire dans `.env.prod.example`.
+
+### Reste à faire
+
+- Pousser `fix/deploiement-images`, PR vers `DEV` puis `main`, puis sur la VM : `git pull origin main` + `docker compose -f docker-compose.prod.yml up -d --build` (ou attendre le redémarrage de la VM).
+- Vérifier : `curl` de la section 4 de DEPLOIEMENT.md → `200 image/webp`.
+
 ## 2026-11-06 — Commande (#104) : adresse de facturation en une seule chaîne, clients européens
 
 Branche `fix/back-f5`. Le matin : `a43db34` — adresse de facturation saisie à la commande, routes `/orders` regroupées dans `indexRouter`.
