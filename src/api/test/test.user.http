@@ -147,7 +147,16 @@ content-type: application/json
   "password": "IwantToBeAMasterJed1!"
 }
 
-### F6 · à lancer après une connexion : le cookie est gardé par l'extension REST Client
+# F6 · à lancer dans l'ordre, à partir de « email neuf » : le cookie de la connexion est gardé par l'extension REST Client
+### 200 · connexion anakin
+POST http://localhost:4000/api/auth HTTP/1.1
+content-type: application/json
+
+{
+  "email": "anakin@test.fr",
+  "password": "IwantToBeAMasterJed1!"
+}
+
 ### 200 · modifier mon compte
 PATCH http://localhost:4000/api/users/me HTTP/1.1
 content-type: application/json
