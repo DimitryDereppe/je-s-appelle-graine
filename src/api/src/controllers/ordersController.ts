@@ -12,6 +12,7 @@ import {
 } from "../lib/errors.ts";
 import { cartDatamapper } from "../datamappers/cartDatamapper.ts";
 import { ordersDatamapper } from "../datamappers/ordersDatamapper.ts";
+import { sendOrderConfirmation } from "../services/emailService.ts";
 import { config } from "../../config.ts";
 
 // --------------------------------
@@ -96,13 +97,34 @@ export async function createOrder(req: IAuthenticatedRequest, res: Response) {
     orderId,
     account.id,
   );
+  // le type dit IOrder | null (null = commande introuvable, utile pour getOrder) ;
+  // ici la commande vient d'être créée : si elle manque, c'est une vraie panne → 500
+  // (après ce if, TypeScript sait que order n'est plus null)
+  if (!order) {
+    throw new Error("Commande introuvable juste après sa création.");
+  }
+
+  // 7. instructions de paiement calculées une seule fois : pour l'email et pour la réponse
+  const paymentInstructions = getPaymentInstructions(paymentMethod);
+
+  // 8. email de confirmation (carte #105), seulement après le COMMIT (fait dans le datamapper)
+  // try…catch : un échec d'envoi ne doit pas annuler la commande, déjà enregistrée ;
+  // l'erreur s'arrête dans le catch, on la note dans les logs et on répond 201 quand même
+  try {
+    await sendOrderConfirmation(account, order, paymentInstructions);
+  } catch (error) {
+    console.error("Email de confirmation non envoyé", {
+      orderId: order.id,
+      error,
+    });
+  }
 
   // 201 Created : une nouvelle ressource (la commande) a été créée
   res.status(201).json({
     // ...order recopie toutes les propriétés de la commande dans la réponse,
     // à côté desquelles on ajoute les instructions de paiement
     ...order,
-    paymentInstructions: getPaymentInstructions(paymentMethod),
+    paymentInstructions,
   });
 }
 

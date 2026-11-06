@@ -249,12 +249,14 @@ Même fichier. Les 10 cas passent.
 | F5-INT-20 | Id qui n'est pas un entier positif                            | Intégration | `400`                                                                 | ✅     |
 | F5-INT-21 | Sans être connecté                                            | Intégration | `401`                                                                 | ✅     |
 
-### Email de confirmation (US25)
+### Tests d'intégration — email de confirmation (US25)
 
-| N°        | Cas                                       | Type        | Attendu                                                                                         | Obtenu                   |
-| --------- | ----------------------------------------- | ----------- | ----------------------------------------------------------------------------------------------- | ------------------------ |
-| F5-INT-22 | Email envoyé à la création de la commande | Intégration | mêmes informations que la confirmation (référence, montant, date limite, instructions, adresse) | ⏳ à écrire (carte #105) |
-| F5-INT-23 | Échec de l'envoi de l'email               | Intégration | `201`, la commande est gardée                                                                   | ⏳ à écrire (carte #105) |
+Même fichier. Les 2 cas passent. En test, `SMTP_HOST` est absent : l'email est affiché avec `console.log` au lieu d'être envoyé ; le test remplace `console.log` (`mock.method`) pour lire son contenu, ou pour simuler un échec d'envoi.
+
+| N°        | Cas                                        | Type        | Attendu                                                                                                       | Obtenu |
+| --------- | ------------------------------------------ | ----------- | ------------------------------------------------------------------------------------------------------------- | ------ |
+| F5-INT-22 | Email préparé à la création de la commande | Intégration | destinataire, n° de commande, montant TTC, adresse de facturation, IBAN et référence à mettre dans le libellé | ✅     |
+| F5-INT-23 | Échec de l'envoi de l'email                | Intégration | `201`, commande gardée, panier vidé, échec noté dans les logs (`console.error`)                               | ✅     |
 
 ### Tests manuels — pages `/commandes/nouvelle`, `/commandes/nouvelle/paiement`, `/commandes/[id]/confirmation`
 
