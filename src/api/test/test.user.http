@@ -147,7 +147,8 @@ content-type: application/json
   "password": "IwantToBeAMasterJed1!"
 }
 
-# F6 · à lancer dans l'ordre, à partir de « email neuf » : le cookie de la connexion est gardé par l'extension REST Client
+# Pour tester F6 · à lancer dans l'ordre, à partir de « email neuf » :
+# le cookie de la connexion est gardé par l'extension REST Client
 ### 200 · connexion anakin
 POST http://localhost:4000/api/auth HTTP/1.1
 content-type: application/json
@@ -199,5 +200,5 @@ content-type: application/json
   "newPassword": "NouveauSecret123!"
 }
 
-### 204 · supprimer mon compte, 403 si je suis le dernier admin actif
+### 204 · supprimer mon compte (403 si je suis le dernier admin actif)
 DELETE http://localhost:4000/api/users/me HTTP/1.1
