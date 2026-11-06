@@ -14,7 +14,7 @@ describe("app", () => {
 
       // Assert : La route répond et renvoie le message défini dans index.router.ts
       assert.strictEqual(httpResponse.status, 200);
-      assert.strictEqual(body.message, "je s'appelle Graine");
+      assert.strictEqual(body.message, "je s'appelle Graine 🌲");
     });
   });
 
