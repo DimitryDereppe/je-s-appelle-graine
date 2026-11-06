@@ -2,6 +2,42 @@
 
 Suivi de mon travail sur Je s’appelle Graine. Les décisions notées ici ont été prises avec l'équipe ; le suivi de l'équipe est dans le [carnet de bord Je s’appelle Graine](CARNET-DE-BORD-JE-S-APPELLE-GRAINE.md), que je tiens à jour.
 
+## 2026-11-05 — Fin de F2, outils communs et organisation du sprint 3
+
+### Travail réalisé
+
+- **Catalogue** (#92), PR #185 vers `front-F2` :
+  - fusion de `main` dans `front-F2` et résolution du conflit de `test/index.ts` ;
+  - reprise de `feat/front-catalogue` de Mahamadou, conflits de `Header.tsx` et `AddToCartButton.tsx` résolus ;
+  - catégories lues depuis `GET /api/categories`, avec « Tous nos arbres » ajouté côté front ;
+  - `TreeCard` : arbres en rupture de stock sans bouton panier, prix formaté, lieu affiché seulement s'il existe ;
+  - page : `metadata`, `<li>` dans la liste, `h2` masqué, message d'erreur simple pour le visiteur.
+- **`formatEuros` et `formatDate`** (PR #184), pour écrire les prix et les dates de la même façon partout.
+- **Préparation de la fusion de F2** (PR #187) : `api()` simplifiée pour les lectures des pages serveur, `clientApi()` pour les composants clients, retrait de `jwt` et `Bearer`, `--color-green` à la place de `--color-primary-green`, test et plan de tests alignés sur « Ce compte existe déjà. ».
+- **Organisation en mode challenge du sprint 3 :** objectifs par personne (routes, données, dépendances entre nous, conflits à éviter), relectures réparties, routine de branches à partir de `DEV`.
+- **Kanban :** cartes de F6, F8, F9 et du sprint 3 créées (#159 à #182).
+- **Relecture en équipe de la PR #191** de Dimitry, et ajustements à faire notés dans son challenge.
+- **Vérification de `main` et de `DEV`** : tests de l'API, build du front et parcours dans le navigateur.
+
+### Ce que j'ai appris
+
+- Une page serveur et un composant client n'appellent pas l'API de la même façon : la page serveur s'exécute hors du navigateur, avec `API_URL` et sans le cookie ; le composant client passe par `/api` et le navigateur envoie le cookie.
+- Une même date peut tomber sur deux jours différents selon le fuseau horaire, d'où `timeZone: "Europe/Paris"` dans `formatDate`.
+- `git fetch --prune` retire les copies des branches supprimées sur GitHub, sans toucher aux branches locales.
+
+### Décisions (prises avec l'équipe)
+
+- Une feature entière par personne au sprint 3 ; pour moi, F6 Espace client. Relectures à égalité : je relis F9.
+- Branche commune `DEV`, noms de branches au format `type/fN-partie`.
+- Adresse du client demandée à la commande, et présente dans l'email de confirmation.
+- Arbres indisponibles affichés « en rupture de stock ».
+
+### À poursuivre
+
+- F6, partie compte : `PATCH /api/users/me`, mot de passe et suppression du compte, sur `feat/f6-compte-back`.
+- F6, partie commandes, après les ajustements de Dimitry.
+- Relire F9, et aider Shanna sur le back de F7.
+
 ## 2026-11-04 — F3 dans `main`, relecture de F2 et priorités de fin de sprint
 
 ### Travail réalisé
