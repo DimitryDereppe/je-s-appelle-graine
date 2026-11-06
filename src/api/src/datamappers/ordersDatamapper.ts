@@ -9,7 +9,7 @@ import type {
 export const ordersDatamapper = {
   // --------------------------------
   // crée la commande à partir du panier, dans UNE transaction :
-  // 1. la commande (purchase) avec l'identité de l'acheteur figée
+  // 1. la commande (purchase) avec l'identité de l'acheteur et son adresse de facturation figées
   // 2. une ligne (purchase_line) par ligne du panier, avec nom, prix et lieu figés
   // 3. le panier vidé
   // si une étape échoue, ROLLBACK annule tout : rien n'est enregistré
@@ -20,6 +20,7 @@ export const ordersDatamapper = {
     cart: ICartItem[],
     paymentMethod: PaymentMethod,
     totalAmount: number,
+    billingAddress: string,
   ): Promise<number> {
     // pool.query peut envoyer chaque requête sur une connexion différente ;
     // BEGIN ne vaut que pour SA connexion : on en emprunte UNE au pool pour toute la transaction
@@ -29,7 +30,8 @@ export const ordersDatamapper = {
       // à partir d'ici, rien n'est définitif tant qu'on n'a pas fait COMMIT
       await client.query("BEGIN");
 
-      // 1. la commande : identité de l'acheteur copiée depuis son compte
+      // 1. la commande : identité de l'acheteur copiée depuis son compte,
+      // adresse de facturation saisie par le client au moment de commander
       // (si le client change d'adresse plus tard, la commande garde celle du jour)
       const purchaseResult = await client.query(
         `INSERT INTO purchase (total_amount, payment_method, buyer_firstname, buyer_lastname,
@@ -43,7 +45,7 @@ export const ordersDatamapper = {
           account.lastname,
           account.email,
           account.organizationName,
-          account.address,
+          billingAddress,
           account.id,
         ],
       );
@@ -105,7 +107,9 @@ export const ordersDatamapper = {
               status,
               payment_method AS "paymentMethod",
               -- NUMERIC arrive en texte dans Node : CAST le change en nombre
-              CAST(total_amount AS FLOAT) AS "totalAmount"
+              CAST(total_amount AS FLOAT) AS "totalAmount",
+              -- adresse de facturation, à faire figurer sur la facture
+              buyer_address AS "billingAddress"
        FROM purchase
        WHERE id = $1 AND account_id = $2`,
       [orderId, accountId],

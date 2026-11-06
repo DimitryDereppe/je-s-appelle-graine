@@ -116,6 +116,7 @@ export interface IOrder {
   status: string;
   paymentMethod: PaymentMethod;
   totalAmount: number;
+  billingAddress: string; // adresse de facturation saisie par le client
   lines: IOrderLine[];
 }
 

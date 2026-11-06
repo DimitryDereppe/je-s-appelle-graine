@@ -27,7 +27,12 @@ async function countRows(table: "purchase" | "purchase_line" | "cart_item") {
   return Number(result.rows[0].count);
 }
 
-const validBody = { paymentMethod: "virement", paymentCommitment: true };
+const billingAddress = "12 rue des Chênes, 35380 Paimpont";
+const validBody = {
+  paymentMethod: "virement",
+  paymentCommitment: true,
+  billingAddress,
+};
 
 // Test d'intégration : requête HTTP et BDD de test
 describe("ordersController", () => {
@@ -47,6 +52,7 @@ describe("ordersController", () => {
       // Assert : champs du contrat #103
       assert.strictEqual(response.status, 201);
       assert.deepStrictEqual(Object.keys(response.data).sort(), [
+        "billingAddress",
         "dueDate",
         "id",
         "lines",
@@ -58,6 +64,7 @@ describe("ordersController", () => {
       ]);
       assert.strictEqual(response.data.status, "en attente");
       assert.strictEqual(response.data.paymentMethod, "virement");
+      assert.strictEqual(response.data.billingAddress, billingAddress);
       // total recalculé par l'API : 3 × 16,90 + 1 × 12,50 = 63,20 (arrondi au centime)
       assert.strictEqual(response.data.totalAmount, 63.2);
       // date limite = date de commande + 10 jours
@@ -100,7 +107,7 @@ describe("ordersController", () => {
       // Act
       const response = await libTests.requester.post(
         "/orders",
-        { paymentMethod: "chèque", paymentCommitment: true },
+        { ...validBody, paymentMethod: "chèque" },
         { headers: { Cookie: cookie } },
       );
 
@@ -123,10 +130,11 @@ describe("ordersController", () => {
 
       // Assert : identité figée dans la commande, panier vidé
       const purchase = await pool.query(
-        "SELECT buyer_email, account_id FROM purchase WHERE id = $1",
+        "SELECT buyer_email, buyer_address, account_id FROM purchase WHERE id = $1",
         [response.data.id],
       );
       assert.strictEqual(purchase.rows[0].buyer_email, libTests.ALICE.email);
+      assert.strictEqual(purchase.rows[0].buyer_address, billingAddress);
       assert.strictEqual(purchase.rows[0].account_id, aliceId);
       assert.strictEqual(await countRows("purchase_line"), 2);
       assert.strictEqual(await countRows("cart_item"), 0);
@@ -158,7 +166,7 @@ describe("ordersController", () => {
       // Act
       const response = await libTests.requester.post(
         "/orders",
-        { paymentMethod: "carte", paymentCommitment: true },
+        { ...validBody, paymentMethod: "carte" },
         { headers: { Cookie: cookie } },
       );
 
@@ -174,7 +182,7 @@ describe("ordersController", () => {
       // Act : case non cochée
       const response = await libTests.requester.post(
         "/orders",
-        { paymentMethod: "virement", paymentCommitment: false },
+        { ...validBody, paymentCommitment: false },
         { headers: { Cookie: cookie } },
       );
 
@@ -183,6 +191,39 @@ describe("ordersController", () => {
       assert.strictEqual(
         response.data.error,
         "Vous devez vous engager à payer sous 10 jours.",
+      );
+    });
+
+    it("should respond 400 if the billing address is missing or blank", async () => {
+      // Arrange
+      const { cookie } = await createCustomerWithCart();
+      const bodyWithoutAddress = {
+        paymentMethod: "virement",
+        paymentCommitment: true,
+      };
+
+      // Act : adresse absente, puis adresse faite seulement d'espaces
+      const missing = await libTests.requester.post(
+        "/orders",
+        bodyWithoutAddress,
+        { headers: { Cookie: cookie } },
+      );
+      const blank = await libTests.requester.post(
+        "/orders",
+        { ...validBody, billingAddress: "   " },
+        { headers: { Cookie: cookie } },
+      );
+
+      // Assert
+      assert.strictEqual(missing.status, 400);
+      assert.strictEqual(
+        missing.data.error,
+        "L'adresse de facturation est obligatoire.",
+      );
+      assert.strictEqual(blank.status, 400);
+      assert.strictEqual(
+        blank.data.error,
+        "L'adresse de facturation est obligatoire.",
       );
     });
 
@@ -288,6 +329,28 @@ describe("ordersController", () => {
       // Assert : même contenu que la réponse du POST (la page reste correcte si on la recharge)
       assert.strictEqual(response.status, 200);
       assert.deepStrictEqual(response.data, order.data);
+    });
+
+    it("should return the billing address given when ordering", async () => {
+      // Arrange : ALICE commande avec une adresse de facturation
+      // (différente de celle de son compte : c'est bien l'adresse saisie qui est gardée)
+      const { cookie } = await createCustomerWithCart();
+      const otherAddress = "221B Baker Street, London NW1 6XE";
+      const order = await libTests.requester.post(
+        "/orders",
+        { ...validBody, billingAddress: otherAddress },
+        { headers: { Cookie: cookie } },
+      );
+
+      // Act : relecture de la commande, comme sur la page de confirmation
+      const response = await libTests.requester.get(
+        `/orders/${order.data.id}`,
+        { headers: { Cookie: cookie } },
+      );
+
+      // Assert : l'adresse de facturation est celle saisie, prête pour la facture
+      assert.strictEqual(response.status, 200);
+      assert.strictEqual(response.data.billingAddress, otherAddress);
     });
 
     it("should respond 404 for the order of another customer", async () => {
