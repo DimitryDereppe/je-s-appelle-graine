@@ -134,12 +134,14 @@ export const adminTreeDatamapper = {
             RETURNING id;
 `;
     const result = await pool.query(sqlQuery, [id]);
+    // Envoie la requête à la base avec l'id de l'arbre à supprimer.
     const deletedTree = result.rows[0];
+    // Si la base n'a supprimé aucun arbre, cet id n'existe pas.
 
     if (!deletedTree) {
       return undefined;
     }
-
+    // Sinon, renvoie l'id de l'arbre supprimé.
     return deletedTree.id as number;
   },
 };
