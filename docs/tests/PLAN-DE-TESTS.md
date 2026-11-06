@@ -267,6 +267,51 @@ Même fichier. Les 2 cas passent. En test, `SMTP_HOST` est absent : l'email est 
 | F5-MAN-3 | Page de confirmation                                      | Manuel | référence (n° de commande), montant TTC, date limite, IBAN ou adresse du chèque | ⏳ pages à faire (carte #107) |
 | F5-MAN-4 | Formulaires au clavier et en mobile (375 px)              | Manuel | labels, focus visible, champs obligatoires indiqués en texte                    | ⏳ pages à faire (carte #107) |
 
-## F6 à F9
+## F6 · Espace client (US26 à US30)
+
+Contrat d'API : carte #159. Tests de la carte #162, partie compte, vérifiés sur `feat/f6-compte-back` le 06/11/2026. La partie commandes reste à faire.
+
+### Tests d'intégration — modifier son compte `PATCH /api/users/me`
+
+Fichier : `src/api/src/controllers/userController.spec.test.ts`. Les 8 cas passent.
+
+| N°       | Cas                                    | Type        | Attendu                                                         | Obtenu |
+| -------- | -------------------------------------- | ----------- | --------------------------------------------------------------- | ------ |
+| F6-INT-1 | Modification valide                    | Intégration | `200`, champs de `GET /api/users/me`, sans mot de passe, en BDD | ✅     |
+| F6-INT-2 | Particulier avec une structure envoyée | Intégration | `200`, `organizationName` à `null`                              | ✅     |
+| F6-INT-3 | `role` et `isActive` envoyés           | Intégration | `200`, rôle et état du compte inchangés en BDD                  | ✅     |
+| F6-INT-4 | Email d'un autre compte                | Intégration | `409` « Cet email est déjà utilisé. »                           | ✅     |
+| F6-INT-5 | Garder son propre email                | Intégration | `200`                                                           | ✅     |
+| F6-INT-6 | `accountType` absent                   | Intégration | `400` « Type de compte invalide. »                              | ✅     |
+| F6-INT-7 | Prénom composé d'espaces               | Intégration | `400` « Prénom obligatoire. »                                   | ✅     |
+| F6-INT-8 | Sans connexion                         | Intégration | `401` « Vous devez être connecté. »                             | ✅     |
+
+### Tests d'intégration — changer son mot de passe `PATCH /api/users/me/password`
+
+Même fichier. Les 5 cas passent.
+
+| N°        | Cas                      | Type        | Attendu                                                   | Obtenu |
+| --------- | ------------------------ | ----------- | --------------------------------------------------------- | ------ |
+| F6-INT-9  | Changement valide        | Intégration | `204`, ancien mot de passe refusé, nouveau accepté        | ✅     |
+| F6-INT-10 | Stockage du nouveau      | Intégration | hash argon2 en BDD, jamais le mot de passe en clair       | ✅     |
+| F6-INT-11 | Mot de passe actuel faux | Intégration | `400` « Le mot de passe actuel est incorrect. », inchangé | ✅     |
+| F6-INT-12 | Nouveau trop court       | Intégration | `400`, 12 caractères minimum                              | ✅     |
+| F6-INT-13 | Sans connexion           | Intégration | `401` « Vous devez être connecté. »                       | ✅     |
+
+### Tests d'intégration — supprimer son compte `DELETE /api/users/me`
+
+Même fichier. Les 7 cas passent.
+
+| N°        | Cas                                  | Type        | Attendu                                                           | Obtenu |
+| --------- | ------------------------------------ | ----------- | ----------------------------------------------------------------- | ------ |
+| F6-INT-14 | Suppression d'un client              | Intégration | `204`, cookie effacé, compte retiré de la BDD                     | ✅     |
+| F6-INT-15 | Jeton réutilisé après la suppression | Intégration | `401` « Vous devez être connecté. »                               | ✅     |
+| F6-INT-16 | Client avec une commande             | Intégration | `204`, commande conservée, identité gardée, `account_id` à `NULL` | ✅     |
+| F6-INT-17 | Dernier admin actif                  | Intégration | `403` « Impossible de supprimer le dernier administrateur. »      | ✅     |
+| F6-INT-18 | Autre admin désactivé                | Intégration | `403` : un compte désactivé ne compte pas                         | ✅     |
+| F6-INT-19 | Un autre admin actif reste           | Intégration | `204`                                                             | ✅     |
+| F6-INT-20 | Sans connexion                       | Intégration | `401` « Vous devez être connecté. »                               | ✅     |
+
+## F7 à F9
 
 À compléter au fil des sprints.
