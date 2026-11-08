@@ -1,59 +1,41 @@
-import type { ICart, ICartItem, ICatalogueTree } from "../@types/index.d.ts";
+import type { ICart, ICartItem } from "../@types/index.d.ts";
 import { NotFoundError } from "../lib/errors.ts";
 import { treeDatamapper } from "../datamappers/treeDatamapper.ts";
 
-// ─── Catalogue (délégué au datamapper) ───────────────────────────────────────
-
-export const catalogue = {
-  // Remplace l'ancien findAll() : accepte des filtres optionnels
-  findAll: async (
-    categoryId?: number,
-    name?: string,
-  ): Promise<ICatalogueTree[]> =>
-    treeDatamapper.findAllCatalog(categoryId, name),
-
-  // Recherche par ID (pour addItem)
-  findById: async (treeId: number): Promise<ICatalogueTree | undefined> =>
-    treeDatamapper.findById(treeId),
-};
-
-// ─── Panier ──────────────────────────────────────────────────────────────────
-
-const carts = new Map<number, ICart>();
-let nextCartId = 1;
+const carts = new Map<number, ICart>(); // accountId -> panier du compte
 let nextItemId = 1;
 
 export const cartStore = {
-  create: (): ICart => {
-    const cart: ICart = { id: nextCartId++, items: [] };
-    carts.set(cart.id, cart);
+  // charge le panier du compte connecté, ou le crée vide au premier accès
+  // (en BDD : SELECT ... WHERE account_id = ? ou INSERT d'une première ligne)
+  findByUser: (userId: number): ICart => {
+    let cart = carts.get(userId);
+    if (!cart) {
+      cart = { id: userId, items: [] };
+      carts.set(userId, cart);
+    }
     return cart;
   },
 
-  findById: (cartId: number): ICart | undefined => carts.get(cartId),
-
-  // ⚠️ Maintenant async : appelle catalogue.findById qui fait un SELECT
+  // ajoute ou cumule la quantité, renvoie l'item mis à jour
+  // async : l'arbre est relu en BDD via treeDatamapper pour figer nom et prix
   addItem: async (
     cart: ICart,
     treeId: number,
     quantity: number,
   ): Promise<ICartItem> => {
-    // Si déjà présent → on cumule (pas besoin de requête)
     const existing = cart.items.find((i) => i.treeId === treeId);
     if (existing) {
       existing.quantity += quantity;
       return existing;
     }
-
-    // Sinon → on va chercher l'arbre en base
-    const tree = await catalogue.findById(treeId);
-    if (!tree) {
+    const tree = await treeDatamapper.findById(treeId);
+    if (!tree || tree.availabilityName === "retiré") {
       throw new NotFoundError("Arbre introuvable");
     }
-
     const item: ICartItem = {
       id: nextItemId++,
-      accountId: 0,
+      accountId: cart.id, // id du panier = accountId du compte connecté
       treeId,
       quantity,
       name: tree.name,
