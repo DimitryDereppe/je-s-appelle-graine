@@ -75,7 +75,7 @@ export const accountDatamapper = {
   },
 
   //selectionne tous les compte dont le role est customer
-  async findAllCustomers(): Promise<IAccountProfile[]> {
+  async findAllForAdmin(): Promise<IAccountProfile[]> {
     const sqlQuery = `
             SELECT account.id, account.firstname, account.lastname, account.email,
                    account.address,
@@ -86,40 +86,32 @@ export const accountDatamapper = {
             FROM account
             -- à chaque compte, on colle son rôle (pour lire son nom)
             JOIN role ON account.role_id = role.id
-            WHERE role.name =  'customer'
-            ORDER BY account.id DESC
-            `;
+            ORDER BY account.lastname ASC,
+                      account.firstname asc,n
+                             `;
 
     const result = await pool.query(sqlQuery);
     return result.rows;
   },
 
+  // active / désactive n'importe quel compte, renvoie son vrai rôle (admin)
   async updateIsActive(
     id: number,
     isActive: boolean,
-  ): Promise<IAccountProfile> {
+  ): Promise<IAccountProfile | undefined> {
     const sqlQuery = `
-  UPDATE account 
-  SET is_active = $2 
-  WHERE id = $1
-  AND role_id = (SELECT id FROM role WHERE name = 'customer')
-    RETURNING id, firstname, lastname, email,
-                      address,
+            UPDATE account
+            SET is_active = $2
+            WHERE id = $1
+            RETURNING id, firstname, lastname, email, address,
                       account_type AS "accountType",
                       organization_name AS "organizationName",
                       is_active AS "isActive",
-                      'customer' AS "role"`;
-
+                      -- le vrai nom du rôle, lu dans la table role
+                      (SELECT name FROM role WHERE role.id = account.role_id) AS "role"`;
+    // $1 = id, $2 = isActive
     const result = await pool.query(sqlQuery, [id, isActive]);
+    // aucun compte avec cet id : rows[0] vaut undefined
     return result.rows[0];
-  },
-
-  async deleteById(id: number): Promise<boolean> {
-    const sqlQuery = ` DELETE FROM account
-                    WHERE id = $1
-                    AND role_id = (SELECT id FROM role WHERE name = 'customer')`;
-
-    const result = await pool.query(sqlQuery, [id]);
-    return (result.rowCount ?? 0) > 0;
   },
 };

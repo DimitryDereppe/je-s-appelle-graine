@@ -4,7 +4,7 @@ import { NotFoundError } from "../lib/errors.ts";
 
 //obtien la liste de tous les customer
 export async function getAllUsers(_req: Request, res: Response) {
-  const trees = await accountDatamapper.findAllCustomers();
+  const trees = await accountDatamapper.findAllForAdmin();
   res.status(200).json(trees);
 }
 
