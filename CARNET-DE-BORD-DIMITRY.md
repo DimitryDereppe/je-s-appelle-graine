@@ -2,6 +2,40 @@
 
 Suivi de mon travail sur Je s’appelle Graine. Les décisions notées ici ont été prises avec l'équipe sur Discord ; le suivi de l'équipe est dans le [[Apothéose/apo-jesappellegraine/CARNET-DE-BORD-JE-S-APPELLE-GRAINE|carnet de bord Je s’appelle Graine]].
 
+## 2026-11-09 — Commande (F5) : corrections de l'étape 0, plan de tests (#108), début du front (#107)
+
+### Étape 0 « Corriger F5 » (PR #204, fusionnée dans `DEV`)
+
+- `emailService.ts` : « Paiement par chèque : » sans le `n°` en trop ; « Bonjour prénom nom ».
+- Nouveau test de l'email en mode chèque ; le test du virement vérifie aussi le prénom et le nom.
+- Commentaires « facture pour plus tard » (`ordersController.ts`, `ordersDatamapper.ts`) ; variables `PAYMENT_*` dans `src/api/.env.example`.
+
+### Panier : une seule source, la base (décision avec Loïc, à l'oral)
+
+- **Problème** : les routes du panier (`cartController.ts`) passaient par `cartStore` (panier en mémoire, un `Map`), alors que la commande lit `cart_item` avec `cartDatamapper` → panier vu vide à la commande.
+- **Décision** : option A, tout passe par la base. Le panier survit à un redémarrage, et le `ROLLBACK` de la transaction de commande remet le panier si elle échoue (un `ROLLBACK` ne peut rien annuler dans un `Map` JavaScript).
+- Loïc remet `cartDatamapper` dans `cartController.ts` (il lui manque `updateCartItem` et `deleteCartItem`). La commande ne change pas.
+
+### Carte #108 — tests (PR #205, branche `tests/f5-#108`)
+
+- Les cas de la carte étaient déjà couverts : F5-INT-1, 4, 6, 7, 12, 14.
+- [[Apothéose/apo-jesappellegraine/docs/tests/PLAN-DE-TESTS|PLAN-DE-TESTS.md]] : F5-INT-22 vérifie aussi « Bonjour prénom nom », nouvelle ligne F5-INT-24 (email du chèque), section email à 3 cas.
+- Tests de l'API : 114/116, les 2 échecs (`GET /api/cart`) existaient déjà sur `DEV`.
+
+### Carte #107 — front de la commande (branche `feat/front-f5-#107`, non commité)
+
+- Types front (`@types/index.d.ts`) : `PaymentMethod`, `IOrderLine`, `IOrder`, plus `PaymentInstructions` (virement **ou** chèque, avec `|`) et `IOrderWithInstructions extends IOrder` (réponse de `POST /api/orders` et `GET /api/orders/:id`).
+- Page `/commandes/nouvelle/paiement` : `page.tsx` + `PaymentForm.tsx` (modèle `LoginForm`) + `page.module.css`.
+  - radios `paymentMethod` dans un `<fieldset>`/`<legend>`, `<textarea>` adresse (`maxLength` 255), case d'engagement (`=== "on"` → booléen) ;
+  - `clientApi("orders", "POST", …)` : 401 → `/connexion?next=…`, 400/409 → message `error` de l'API dans `role="alert"`, 201 → `/commandes/${order.id}/confirmation`.
+- `tsc`, ESLint et Prettier OK ; pas encore testée dans le navigateur.
+
+### Reste à faire
+
+- Tester la page paiement (URL directe : aucun lien n'y mène tant que `/panier` et le récapitulatif n'existent pas).
+- Page `/commandes/[id]/confirmation` (`GET /api/orders/:id`, `"iban" in paymentInstructions`), puis récapitulatif `/commandes/nouvelle` (`GET /api/cart`, réponse bientôt `{ items, total }`).
+- Commiter #107 ; passer #108 en « En revue » ; approbation d'un autre groupe pour la PR #205.
+
 ## 2026-11-06 — Déploiement : photos des arbres invisibles en production
 
 - **Symptôme** : sur le VPS, `/images/trees/pin-maritime.webp` répond `200`, mais `/_next/image?url=/images/trees/…` répond `500` (`"url" parameter is valid but internal response is invalid`) : aucune photo d'arbre ne s'affiche.
