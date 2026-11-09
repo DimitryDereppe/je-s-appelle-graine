@@ -1,0 +1,148 @@
+@host = http://localhost:4000
+@email = alice@test.fr
+@password = Client12345!
+
+# Prérequis : base remise à zéro (npm run db:reset), API lancée (npm run dev)
+# Le cas « commande déjà payée » (409) demande l'admin : il est couvert par les tests automatiques
+
+### --------------------------------
+### 0. LOGIN : pose le cookie accessToken (JWT)
+### attendu : 200 + le compte
+# @name login
+POST {{host}}/api/auth/
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "password": "{{password}}"
+}
+
+###
+@cookie = {{login.response.headers.set-cookie}}
+
+### --------------------------------
+### 1. Préparer une commande : un arbre dans le panier
+### attendu : 201
+POST {{host}}/api/cart/items
+Content-Type: application/json
+Cookie: {{cookie}}
+
+{
+  "treeId": 1,
+  "quantity": 2
+}
+
+### --------------------------------
+### 2. Passer commande
+### attendu : 201 + la commande "en attente"
+# @name createOrder
+POST {{host}}/api/orders
+Content-Type: application/json
+Cookie: {{cookie}}
+
+{
+  "paymentMethod": "virement",
+  "paymentCommitment": true,
+  "billingAddress": "12 rue des Tilleuls, 35000 Rennes"
+}
+
+###
+@orderId = {{createOrder.response.body.id}}
+
+### --------------------------------
+### 3. Historique : GET /api/orders
+### attendu : 200 + [{ id, purchaseDate, status, totalAmount }], la plus récente d'abord
+GET {{host}}/api/orders
+Cookie: {{cookie}}
+
+### --------------------------------
+### 4. Annuler avec un autre statut
+### attendu : 400 "Statut invalide."
+PATCH {{host}}/api/orders/{{orderId}}/status
+Content-Type: application/json
+Cookie: {{cookie}}
+
+{
+  "status": "payée"
+}
+
+### --------------------------------
+### 5. Annuler la commande
+### attendu : 200 + la commande avec "status": "annulée"
+PATCH {{host}}/api/orders/{{orderId}}/status
+Content-Type: application/json
+Cookie: {{cookie}}
+
+{
+  "status": "annulée"
+}
+
+### --------------------------------
+### 6. Annuler une deuxième fois
+### attendu : 409 "Seule une commande en attente de paiement peut être annulée."
+PATCH {{host}}/api/orders/{{orderId}}/status
+Content-Type: application/json
+Cookie: {{cookie}}
+
+{
+  "status": "annulée"
+}
+
+### --------------------------------
+### 7. Commande inconnue
+### attendu : 404 "Commande introuvable."
+PATCH {{host}}/api/orders/999999/status
+Content-Type: application/json
+Cookie: {{cookie}}
+
+{
+  "status": "annulée"
+}
+
+### --------------------------------
+### 8. Id invalide
+### attendu : 400
+PATCH {{host}}/api/orders/abc/status
+Content-Type: application/json
+Cookie: {{cookie}}
+
+{
+  "status": "annulée"
+}
+
+### --------------------------------
+### 9. Sans connexion
+### attendu : 401
+GET {{host}}/api/orders
+
+### --------------------------------
+### 10. Commande d'un autre client : se connecter avec Sherlock
+### attendu : 200
+# @name loginOther
+POST {{host}}/api/auth/
+Content-Type: application/json
+
+{
+  "email": "sherlock@test.fr",
+  "password": "Client12345!"
+}
+
+###
+@otherCookie = {{loginOther.response.headers.set-cookie}}
+
+### --------------------------------
+### 11. Sherlock voit son historique, sans la commande d'Alice
+### attendu : 200 + []
+GET {{host}}/api/orders
+Cookie: {{otherCookie}}
+
+### --------------------------------
+### 12. Sherlock essaie d'annuler la commande d'Alice
+### attendu : 404 "Commande introuvable." (on ne révèle pas qu'elle existe)
+PATCH {{host}}/api/orders/{{orderId}}/status
+Content-Type: application/json
+Cookie: {{otherCookie}}
+
+{
+  "status": "annulée"
+}

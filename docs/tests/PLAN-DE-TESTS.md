@@ -269,7 +269,7 @@ Même fichier. Les 2 cas passent. En test, `SMTP_HOST` est absent : l'email est 
 
 ## F6 · Espace client (US26 à US30)
 
-Contrat d'API : carte #159. Tests de la carte #162 (compte), vérifiés sur `feat/f6-compte-back` le 06/11/2026. Les commandes ont leur carte : #199.
+Contrat d'API : carte #159. Tests de la carte #162 (compte), vérifiés sur `feat/f6-compte-back` le 06/11/2026. Tests de la carte #199 (commandes), vérifiés sur `feat/f6-commandes-back` le 09/11/2026.
 
 ### Tests d'intégration — modifier son compte `PATCH /api/users/me`
 
@@ -321,6 +321,30 @@ Même fichier. Les 10 cas passent. Les limites sont les tailles des colonnes de 
 | F6-INT-21 | `POST /api/users` : prénom, nom, email ou structure trop longs (4)              | Intégration | `400` avec le message du champ | ✅     |
 | F6-INT-22 | `PATCH /api/users/me` : prénom, nom, email, adresse ou structure trop longs (5) | Intégration | `400` avec le message du champ | ✅     |
 | F6-INT-23 | `PATCH /api/users/me` : champs à la taille maximale                             | Intégration | `200`                          | ✅     |
+
+### Tests d'intégration — historique des commandes `GET /api/orders`
+
+Fichier : `src/api/src/controllers/ordersController.spec.test.ts`. Les 3 cas passent.
+
+| N°        | Cas                         | Type        | Attendu                                                                       | Obtenu |
+| --------- | --------------------------- | ----------- | ----------------------------------------------------------------------------- | ------ |
+| F6-INT-24 | Client avec deux commandes  | Intégration | `200`, la plus récente d'abord, `id`, `purchaseDate`, `status`, `totalAmount` | ✅     |
+| F6-INT-25 | Commandes d'un autre client | Intégration | `200`, liste vide : jamais les commandes d'un autre                           | ✅     |
+| F6-INT-26 | Sans connexion              | Intégration | `401`                                                                         | ✅     |
+
+### Tests d'intégration — annuler une commande `PATCH /api/orders/:id/status`
+
+Même fichier. Les 7 cas passent.
+
+| N°        | Cas                            | Type        | Attendu                                                                           | Obtenu |
+| --------- | ------------------------------ | ----------- | --------------------------------------------------------------------------------- | ------ |
+| F6-INT-27 | Commande en attente            | Intégration | `200`, la commande avec le statut `annulée`, date enregistrée dans `cancelled_at` | ✅     |
+| F6-INT-28 | Commande déjà payée            | Intégration | `409` « Seule une commande en attente de paiement peut être annulée. », inchangée | ✅     |
+| F6-INT-29 | Commande déjà annulée          | Intégration | `409`                                                                             | ✅     |
+| F6-INT-30 | Statut autre que `annulée`     | Intégration | `400` « Statut invalide. », commande toujours en attente                          | ✅     |
+| F6-INT-31 | Commande d'un autre client     | Intégration | `404` « Commande introuvable. », commande inchangée                               | ✅     |
+| F6-INT-32 | Id qui n'est pas un entier > 0 | Intégration | `400`                                                                             | ✅     |
+| F6-INT-33 | Sans connexion                 | Intégration | `401`                                                                             | ✅     |
 
 ## F7 à F9
 

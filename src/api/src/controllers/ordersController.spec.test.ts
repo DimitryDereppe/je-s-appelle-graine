@@ -587,4 +587,226 @@ describe("ordersController", () => {
       assert.strictEqual(response.status, 401);
     });
   });
+  // ==================
+  // GET /orders (historique du client)
+  // ==================
+  describe("[GET] /api/orders", () => {
+    it("should respond 200 with the customer orders, the most recent first", async () => {
+      // Arrange : ALICE passe deux commandes (le panier est rempli à nouveau entre les deux)
+      const { aliceId, oakId, cookie } = await createCustomerWithCart();
+      const first = await libTests.requester.post("/orders", validBody, {
+        headers: { Cookie: cookie },
+      });
+      await libTests.addCartItem(aliceId, oakId, 1);
+      const second = await libTests.requester.post("/orders", validBody, {
+        headers: { Cookie: cookie },
+      });
+
+      // Act
+      const response = await libTests.requester.get("/orders", {
+        headers: { Cookie: cookie },
+      });
+
+      // Assert : la plus récente d'abord, seulement les champs du résumé (contrat #159)
+      assert.strictEqual(response.status, 200);
+      assert.deepStrictEqual(
+        response.data.map((order: { id: number }) => order.id),
+        [second.data.id, first.data.id],
+      );
+      assert.deepStrictEqual(Object.keys(response.data[0]).sort(), [
+        "id",
+        "purchaseDate",
+        "status",
+        "totalAmount",
+      ]);
+      assert.strictEqual(response.data[1].status, "en attente");
+      // 3 × 16,90 + 1 × 12,50 = 63,20 : un nombre, pas le texte "63.20"
+      assert.strictEqual(response.data[1].totalAmount, 63.2);
+    });
+
+    it("should not return the orders of another customer", async () => {
+      // Arrange : ALICE passe commande, un autre client n'a rien commandé
+      const { cookie } = await createCustomerWithCart();
+      await libTests.requester.post("/orders", validBody, {
+        headers: { Cookie: cookie },
+      });
+      const other = { ...libTests.ALICE, email: "autre@test.fr" };
+      await libTests.createAccount(other);
+      const otherCookie = await libTests.loginAs(other);
+
+      // Act
+      const response = await libTests.requester.get("/orders", {
+        headers: { Cookie: otherCookie },
+      });
+
+      // Assert : liste vide, jamais la commande d'ALICE
+      assert.strictEqual(response.status, 200);
+      assert.deepStrictEqual(response.data, []);
+    });
+
+    it("should respond 401 if not connected", async () => {
+      // Act
+      const response = await libTests.requester.get("/orders");
+
+      // Assert
+      assert.strictEqual(response.status, 401);
+    });
+  });
+
+  // ==================
+  // PATCH /orders/:id/status (annulation par le client)
+  // ==================
+  describe("[PATCH] /api/orders/:id/status", () => {
+    // ALICE passe une commande (en attente) : retourne son id et le cookie
+    async function createPendingOrder() {
+      const { cookie } = await createCustomerWithCart();
+      const order = await libTests.requester.post("/orders", validBody, {
+        headers: { Cookie: cookie },
+      });
+      return { orderId: order.data.id, cookie };
+    }
+
+    it("should respond 200 and cancel an order waiting for payment", async () => {
+      // Arrange
+      const { orderId, cookie } = await createPendingOrder();
+
+      // Act
+      const response = await libTests.requester.patch(
+        `/orders/${orderId}/status`,
+        { status: "annulée" },
+        { headers: { Cookie: cookie } },
+      );
+
+      // Assert : la commande avec son nouveau statut, comme GET /api/orders/:id
+      assert.strictEqual(response.status, 200);
+      assert.strictEqual(response.data.id, orderId);
+      assert.strictEqual(response.data.status, "annulée");
+      assert.strictEqual(response.data.lines.length, 2);
+      // en BDD : statut changé et date d'annulation enregistrée
+      const purchase = await pool.query(
+        "SELECT status, cancelled_at FROM purchase WHERE id = $1",
+        [orderId],
+      );
+      assert.strictEqual(purchase.rows[0].status, "annulée");
+      assert.notStrictEqual(purchase.rows[0].cancelled_at, null);
+    });
+
+    it("should respond 409 if the order is already paid", async () => {
+      // Arrange : l'admin a enregistré le paiement
+      const { orderId, cookie } = await createPendingOrder();
+      await pool.query("UPDATE purchase SET status = 'payée' WHERE id = $1", [
+        orderId,
+      ]);
+
+      // Act
+      const response = await libTests.requester.patch(
+        `/orders/${orderId}/status`,
+        { status: "annulée" },
+        { headers: { Cookie: cookie } },
+      );
+
+      // Assert : refusé, la commande reste payée
+      assert.strictEqual(response.status, 409);
+      assert.strictEqual(
+        response.data.error,
+        "Seule une commande en attente de paiement peut être annulée.",
+      );
+      const purchase = await pool.query(
+        "SELECT status FROM purchase WHERE id = $1",
+        [orderId],
+      );
+      assert.strictEqual(purchase.rows[0].status, "payée");
+    });
+
+    it("should respond 409 if the order is already cancelled", async () => {
+      // Arrange : première annulation
+      const { orderId, cookie } = await createPendingOrder();
+      await libTests.requester.patch(
+        `/orders/${orderId}/status`,
+        { status: "annulée" },
+        { headers: { Cookie: cookie } },
+      );
+
+      // Act : deuxième annulation
+      const response = await libTests.requester.patch(
+        `/orders/${orderId}/status`,
+        { status: "annulée" },
+        { headers: { Cookie: cookie } },
+      );
+
+      // Assert
+      assert.strictEqual(response.status, 409);
+    });
+
+    it("should respond 400 if the status is not annulée", async () => {
+      // Arrange
+      const { orderId, cookie } = await createPendingOrder();
+
+      // Act : le client essaie de marquer sa commande comme payée
+      const response = await libTests.requester.patch(
+        `/orders/${orderId}/status`,
+        { status: "payée" },
+        { headers: { Cookie: cookie } },
+      );
+
+      // Assert : refusé par Zod, la commande reste en attente
+      assert.strictEqual(response.status, 400);
+      assert.strictEqual(response.data.error, "Statut invalide.");
+      const purchase = await pool.query(
+        "SELECT status FROM purchase WHERE id = $1",
+        [orderId],
+      );
+      assert.strictEqual(purchase.rows[0].status, "en attente");
+    });
+
+    it("should respond 404 for the order of another customer", async () => {
+      // Arrange : ALICE passe commande, un autre client se connecte
+      const { orderId } = await createPendingOrder();
+      const other = { ...libTests.ALICE, email: "autre@test.fr" };
+      await libTests.createAccount(other);
+      const otherCookie = await libTests.loginAs(other);
+
+      // Act : l'autre client essaie d'annuler la commande d'ALICE
+      const response = await libTests.requester.patch(
+        `/orders/${orderId}/status`,
+        { status: "annulée" },
+        { headers: { Cookie: otherCookie } },
+      );
+
+      // Assert : 404 et la commande d'ALICE n'a pas changé
+      assert.strictEqual(response.status, 404);
+      assert.strictEqual(response.data.error, "Commande introuvable.");
+      const purchase = await pool.query(
+        "SELECT status FROM purchase WHERE id = $1",
+        [orderId],
+      );
+      assert.strictEqual(purchase.rows[0].status, "en attente");
+    });
+
+    it("should respond 400 if the id is not a positive integer", async () => {
+      // Arrange
+      await libTests.createAccount(libTests.ALICE);
+      const cookie = await libTests.loginAs(libTests.ALICE);
+
+      // Act
+      const response = await libTests.requester.patch(
+        "/orders/abc/status",
+        { status: "annulée" },
+        { headers: { Cookie: cookie } },
+      );
+
+      // Assert : refusé par validateId
+      assert.strictEqual(response.status, 400);
+    });
+
+    it("should respond 401 if not connected", async () => {
+      // Act
+      const response = await libTests.requester.patch("/orders/1/status", {
+        status: "annulée",
+      });
+
+      // Assert
+      assert.strictEqual(response.status, 401);
+    });
+  });
 });
