@@ -330,15 +330,10 @@
 }
 
 .cartMessage {
-  position: relative;
-  color: #361010;
-  font-size: 0.65rem;
-  font-weight: 700;
-  line-height: 1;
-  min-width: 18px;
-  height: 18px;
-  padding: 0 4px;
-  border-radius: 9999px;
+  min-height: 1.5rem;
+  margin: 0.75rem 0 0;
+  color: var(--color-deep-green, #18352e);
+  font-size: 0.9375rem;
 }
 
 @media (max-width: 699px) {
