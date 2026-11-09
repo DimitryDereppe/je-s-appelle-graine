@@ -6,6 +6,7 @@ import { api } from "../../utils/apiCall";
 import { notFound } from "next/navigation";
 import { formatEuros } from "@/app/utils/format";
 import type { Metadata } from "next";
+import { AddToCartButton } from "@/components/cartButton/AddToCartButton";
 
 interface TreePageProps {
   params: Promise<{ id: string }>;
@@ -112,14 +113,12 @@ export default async function FicheArbre({ params }: TreePageProps) {
           )}
 
           <div className={styles.actions}>
-            <button
-              className={styles.basketButton}
-              type="button"
-              disabled={isOutOfStock}
-              aria-label={`Ajouter ${tree.name} au panier`}
-            >
-              <p>Ajouter au panier</p>
-            </button>
+            <AddToCartButton
+              treeId={tree.id}
+              treeName={tree.name}
+              isOutOfStock={isOutOfStock}
+              iconOn={false}
+            />
           </div>
         </div>
       </section>

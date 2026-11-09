@@ -3,6 +3,7 @@ import Image from "next/image";
 import type { ICatalogueTree } from "../../@types";
 import Link from "next/link";
 import { formatEuros } from "../../app/utils/format";
+import { AddToCartButton } from "../cartButton/AddToCartButton";
 
 interface FeaturedTreeProps {
   tree: ICatalogueTree;
@@ -59,19 +60,11 @@ export default function TreeCard({ tree }: FeaturedTreeProps) {
             <p className={styles.cardPrice}>{formatEuros(tree.price)} TTC</p>
 
             {!isSoldOut && (
-              <button
-                className={styles.basketButton}
-                type="button"
-                aria-label={`Ajouter ${tree.name} au panier`}
-              >
-                <Image
-                  src="/assets/panier.svg"
-                  alt=""
-                  className={styles.badgeIcon}
-                  width={24}
-                  height={24}
-                />
-              </button>
+              <AddToCartButton
+                treeId={tree.id}
+                treeName={tree.name}
+                iconOn={true}
+              />
             )}
           </div>
         </div>

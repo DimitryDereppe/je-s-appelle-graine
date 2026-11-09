@@ -3,19 +3,28 @@
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import styles from "./page.module.css";
+import styles from "./addToCartButton.module.css";
 
 interface AddToCartButtonProps {
   treeId: number;
   treeName: string;
+  isOutOfStock?: boolean;
+  iconOn?: boolean;
 }
 
-export function AddToCartButton({ treeId, treeName }: AddToCartButtonProps) {
+export function AddToCartButton({
+  treeId,
+  treeName,
+  isOutOfStock = false,
+  iconOn = false,
+}: AddToCartButtonProps) {
   const router = useRouter();
   const [isAdding, setIsAdding] = useState(false);
   const [cartMessage, setCartMessage] = useState("");
 
   async function handleAddToCart() {
+    if (isOutOfStock) return;
+
     setIsAdding(true);
     setCartMessage("");
 
@@ -27,17 +36,16 @@ export function AddToCartButton({ treeId, treeName }: AddToCartButtonProps) {
       });
 
       if (response.status === 401 || response.status === 403) {
-        // Page actuelle, filtres compris (ex. "/arbres?categorie=1")
         const currentPage = window.location.pathname + window.location.search;
         router.push(`/connexion?next=${encodeURIComponent(currentPage)}`);
         return;
       }
 
       if (!response.ok) {
-        throw new Error("L’ajout au panier n’a pas fonctionné.");
+        throw new Error("L'ajout au panier n'a pas fonctionné.");
       }
 
-      setCartMessage("L’arbre a été ajouté au panier.");
+      setCartMessage("L'arbre a été ajouté au panier.");
     } catch (addError) {
       setCartMessage(
         addError instanceof Error
@@ -52,13 +60,17 @@ export function AddToCartButton({ treeId, treeName }: AddToCartButtonProps) {
   return (
     <>
       <button
-        className={styles.addToCart}
+        className={iconOn ? styles.iconOn : styles.basketButton}
         type="button"
         aria-label={`Ajouter ${treeName} au panier`}
-        disabled={isAdding}
+        disabled={isAdding || isOutOfStock}
         onClick={handleAddToCart}
       >
-        <Image src="/assets/panier.svg" alt="" width={22} height={22} />
+        {iconOn ? (
+          <Image src="/assets/panier.svg" alt="" width={22} height={22} />
+        ) : (
+          <p>Ajouter au panier</p>
+        )}
       </button>
       {cartMessage && (
         <p className={styles.cartMessage} role="status" aria-live="polite">
