@@ -36,6 +36,21 @@ export interface ICategory {
 }
 
 // --------------------------------
+// Panier : une ligne renvoyée par GET /api/cart (même forme que côté API)
+// --------------------------------
+export interface ICartItem {
+  id: number;
+  accountId: number;
+  treeId: number;
+  quantity: number;
+  name: string;
+  price: number;
+  photoUrl: string | null;
+  plantingLocation: string | null;
+  availabilityName: string;
+}
+
+// --------------------------------
 // Commandes (F5, contrat carte #103) — table purchase ("order" est réservé en SQL)
 // --------------------------------
 export type PaymentMethod = "virement" | "chèque";
