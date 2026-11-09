@@ -51,6 +51,8 @@ export function OrdersList() {
   // ----------------------------------------------------------------------
   // un seul affichage à la fois : erreur, chargement, liste vide ou liste
   // ----------------------------------------------------------------------
+
+  // erreur
   if (errorMessage) {
     return (
       <p className={styles.error} role="alert">
@@ -59,6 +61,7 @@ export function OrdersList() {
     );
   }
 
+  // Chargement
   if (!orders) {
     // null : la réponse de l'API n'est pas encore arrivée
     return <p className={styles.subtitle}>Chargement de vos commandes…</p>;
@@ -74,7 +77,7 @@ export function OrdersList() {
     );
   }
 
-  // une carte par commande, entièrement cliquable vers le détail
+  // Liste : une carte par commande, entièrement cliquable vers le détail
   return (
     <ul className={styles.list}>
       {orders.map((order) => (

@@ -83,3 +83,9 @@ export interface IOrderSummary {
   status: OrderStatus;
   totalAmount: number;
 }
+
+// une commande en détail (GET /api/orders/:id et réponse de l'annulation)
+// extends + status : avec le statut limité aux 4 valeurs
+export interface IOrderDetail extends IOrderWithInstructions {
+  status: OrderStatus;
+}
