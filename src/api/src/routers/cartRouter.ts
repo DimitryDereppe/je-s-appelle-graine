@@ -4,6 +4,7 @@ import {
   addCartItem,
   updateCartItem,
   deleteCartItem,
+  clearCart,
 } from "../controllers/cartController.ts";
 
 export const router = Router();
@@ -24,7 +25,10 @@ router.get("/", getCart);
 router.post("/items", addCartItem);
 
 // PATCH /api/cart/items/:id → change la quantité d'une ligne du panier (contrôleur à écrire)
-router.patch("/items/:id", updateCartItem);
+router.patch("/items/:treeId", updateCartItem);
 
 // DELETE /api/cart/items/:id → retire une ligne du panier (contrôleur à écrire)
-router.delete("/items/:id", deleteCartItem);
+router.delete("/items/:treeId", deleteCartItem);
+
+// DELETE /api/cart/items/:id → retire une ligne du panier (contrôleur à écrire)
+router.delete("/items", clearCart);

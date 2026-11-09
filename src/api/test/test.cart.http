@@ -82,25 +82,42 @@ Cookie: {{cookie}}
   "quantity": 10
 }
 
+###6bis
+PATCH {{host}}/api/cart/items/2
+Content-Type: application/json
+Cookie: {{cookie}}
+
+{
+  "quantity": 5
+}
+
 ### --------------------------------
 ### 7. DELETE : retirer la ligne
 ### attendu : 204, corps vide
 DELETE {{host}}/api/cart/items/{{itemId}}
 Cookie: {{cookie}}
 
+### clearCart : vider tout le panier du compte
+DELETE {{host}}/api/cart/items
+Cookie: {{cookie}}
+
+### Vérification : le panier est bien vide
+GET {{host}}/api/cart/
+Cookie: {{cookie}}
+
 ### --------------------------------
 ### 8. READ : panier vide ou ligne restante
-GET {{host}}/api/cart
+GET {{host}}/api/cart/
 Cookie: {{cookie}}
 
 ### --------------------------------
 ### Cas d'erreur : non authentifié
-### attendu : 401 { "error": "Connexion requise." }
+### attendu : 401 { "error":"Vous devez être connecté." }
 GET {{host}}/api/cart
 
 ### --------------------------------
 ### Cas d'erreur : body invalide (Zod arrête avant le store)
-### attendu : 400 erreur de validation
+### attendu : 400 message personalisé zod
 POST {{host}}/api/cart/items
 Content-Type: application/json
 Cookie: {{cookie}}
@@ -112,8 +129,8 @@ Cookie: {{cookie}}
 
 ### --------------------------------
 ### Cas d'erreur : treeId inexistant
-### attendu : 404 { "error": "Arbre introuvable" }
-POST {{host}}/api/cart/items
+### attendu : 404 { "error": "Ressource introuvable" }
+POST {{host}}/api/cart/items/9999
 Content-Type: application/json
 Cookie: {{cookie}}
 
@@ -124,7 +141,7 @@ Cookie: {{cookie}}
 
 ### --------------------------------
 ### Cas d'erreur : ligne d'un autre compte
-### attendu : 404 { "error": "Ligne de panier introuvable" }
+### attendu : 404 { "error": "Ressource introuvable" }
 PATCH {{host}}/api/cart/items/9999
 Content-Type: application/json
 Cookie: {{cookie}}

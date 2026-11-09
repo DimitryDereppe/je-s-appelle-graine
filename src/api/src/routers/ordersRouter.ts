@@ -1,6 +1,11 @@
 import { Router } from "express";
 import { validateId } from "../middlewares/commonMiddleware.ts";
-import { createOrder, getOrder } from "../controllers/ordersController.ts";
+import {
+  createOrder,
+  getOneOrder,
+  getMyOrders,
+  cancelOrder,
+} from "../controllers/ordersController.ts";
 
 export const router = Router();
 
@@ -13,14 +18,13 @@ router.post("/", createOrder);
 
 // GET /api/orders/:id → détail d'une commande, pour la page de confirmation (carte #104, réutilisée par F6)
 // 404 si la commande n'existe pas ou appartient à un autre client
-router.get("/:id", validateId, getOrder);
+router.get("/:id", validateId, getOneOrder);
 
-// --- Routes d'autres cartes, à écrire plus tard ---
+// GET /api/orders → historique des commandes du client
+router.get("/", getMyOrders);
 
-// GET /api/orders → historique des commandes du client (F6, carte #160)
-// router.get("/");
-
-// PATCH /api/orders/:id/status → changement de statut d'une commande (à préciser : F6 ou F8)
-// router.patch("/:id/status", validateId);
+// PATCH /api/orders/:id/status → annulation par le client (seulement "annulée", si la commande est en attente)
+// l'admin change les autres statuts par sa propre route (F8)
+router.patch("/:id/status", validateId, cancelOrder);
 
 // Les routes admin des commandes (F8) sont en commentaire dans adminRouter.ts

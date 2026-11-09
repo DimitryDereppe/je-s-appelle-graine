@@ -18,7 +18,6 @@ router.get("/health", (_req, res) => {
 router.use(treeRouter);
 router.use(authRouter);
 router.use(userRouter);
-router.use(cartRouter);
 
 // /api/admin/... : connecté (sinon 401) ET administrateur (sinon 403), pour toutes les routes du routeur
 router.use("/admin", isConnected, checkRoles(["admin"]), adminRouter);

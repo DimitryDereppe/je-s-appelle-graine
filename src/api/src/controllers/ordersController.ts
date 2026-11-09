@@ -53,7 +53,8 @@ export async function createOrder(req: IAuthenticatedRequest, res: Response) {
     paymentCommitment: z.literal(true, {
       error: "Vous devez vous engager à payer sous 10 jours.",
     }),
-    // adresse de facturation saisie par le client : elle figure sur la facture
+    // adresse de facturation saisie par le client : elle servira si on édite des factures plus tard
+    // (l'email de confirmation ne vaut pas facture : il n'a pas les mentions légales obligatoires)
     // schéma défini dans utils.ts
     billingAddress: billingAddressSchema,
   });
@@ -97,7 +98,7 @@ export async function createOrder(req: IAuthenticatedRequest, res: Response) {
     orderId,
     account.id,
   );
-  // le type dit IOrder | null (null = commande introuvable, utile pour getOrder) ;
+  // le type dit IOrder | null (null = commande introuvable, utile pour getOneOrder) ;
   // ici la commande vient d'être créée : si elle manque, c'est une vraie panne → 500
   // (après ce if, TypeScript sait que order n'est plus null)
   if (!order) {
@@ -131,7 +132,7 @@ export async function createOrder(req: IAuthenticatedRequest, res: Response) {
 // --------------------------------
 // GET /api/orders/:id → une commande du client connecté (page de confirmation, réutilisée par F6)
 // --------------------------------
-export async function getOrder(req: IAuthenticatedRequest, res: Response) {
+export async function getOneOrder(req: IAuthenticatedRequest, res: Response) {
   // compte du client connecté (isConnected l'a déjà vérifié)
   const account = await getAuthenticatedUser(req);
   // l'id a déjà été vérifié par validateId (entier > 0)
@@ -152,6 +153,50 @@ export async function getOrder(req: IAuthenticatedRequest, res: Response) {
 
   res.status(200).json({
     ...order,
+    paymentInstructions: getPaymentInstructions(order.paymentMethod),
+  });
+}
+
+// --------------------------------
+// GET /api/orders → l'historique des commandes du client connecté
+// --------------------------------
+export async function getMyOrders(req: IAuthenticatedRequest, res: Response) {
+  const account = await getAuthenticatedUser(req);
+  const orders = await ordersDatamapper.findAllForAccount(account.id);
+  res.status(200).json(orders);
+}
+
+// --------------------------------
+//  PATCH /api/orders/:id/status → le client annule sa commande seulement si elle est en attente
+// --------------------------------
+export async function cancelOrder(req: IAuthenticatedRequest, res: Response) {
+  // 1. body : le client ne peut demander qu'une annulation → 400 sinon
+  const cancelOrderSchema = z.object({
+    // z.literal : une seule valeur acceptée (payée et plantée sont réservées à l'admin, F8)
+    status: z.literal("annulée", { error: "Statut invalide." }),
+  });
+  cancelOrderSchema.parse(req.body);
+
+  const account = await getAuthenticatedUser(req);
+  const orderId = Number(req.params.id);
+
+  const order = await ordersDatamapper.findOrderByIdAndAccountId(
+    orderId,
+    account.id,
+  );
+  if (!order) {
+    throw new NotFoundError("Commande introuvable.");
+  }
+  if (order.status !== "en attente") {
+    throw new ConflictError(
+      "Seule une commande en attente de paiement peut être annulée.",
+    );
+  }
+
+  await ordersDatamapper.updateStatus(orderId, "annulée");
+  res.status(200).json({
+    ...order,
+    status: "annulée",
     paymentInstructions: getPaymentInstructions(order.paymentMethod),
   });
 }

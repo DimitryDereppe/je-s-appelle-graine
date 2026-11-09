@@ -157,6 +157,16 @@ export interface IOrderLine {
   plantingLocation: string | null;
 }
 
+export type OrderStatus = "en attente" | "payée" | "plantée" | "annulée";
+
+// résumé d'une commande pour l'historique du client (sans les lignes)
+export interface IOrderSummary {
+  id: number;
+  purchaseDate: string;
+  status: OrderStatus;
+  totalAmount: number;
+}
+
 // commande telle que lue en BDD (sans les instructions de paiement, qui viennent de la config)
 export interface IOrder {
   id: number;
