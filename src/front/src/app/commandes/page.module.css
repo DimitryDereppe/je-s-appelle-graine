@@ -100,6 +100,18 @@
   font-size: 14px;
 }
 
+/* lieu de plantation : intitulé, lieu et commune les uns sous les autres */
+.location {
+  display: flex;
+  flex-direction: column;
+}
+
+/* quantité × prix : toujours dans la colonne de droite, même sans lieu de plantation */
+.quantity {
+  grid-column: 2;
+  text-align: right;
+}
+
 .total {
   margin: 16px 0;
   text-align: right;

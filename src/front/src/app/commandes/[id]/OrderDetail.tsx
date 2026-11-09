@@ -182,11 +182,20 @@ export function OrderDetail({ id }: OrderDetailProps) {
             <span className={styles.amount}>
               {formatEuros(line.unitPrice * line.quantity)}
             </span>
-            <span>
+            {/* && : n'affiche le lieu que s'il est renseigné (il peut être null) */}
+            {line.plantingLocation && (
+              <span className={styles.location}>
+                Lieu de plantation :
+                {/* "Forêt … — Landiras (33)" : une ligne pour le lieu, une pour la commune */}
+                {line.plantingLocation.split(" — ").map((part) => (
+                  <span key={part}>{part}</span>
+                ))}
+              </span>
+            )}
+            {/* quantité × prix : à droite, sous le total de la ligne */}
+            <span className={styles.quantity}>
               {line.quantity} × {formatEuros(line.unitPrice)}
             </span>
-            {/* && : n'affiche le lieu que s'il est renseigné (il peut être null) */}
-            {line.plantingLocation && <span>{line.plantingLocation}</span>}
           </li>
         ))}
       </ul>
