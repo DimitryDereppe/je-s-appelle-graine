@@ -1,0 +1,134 @@
+@host = http://localhost:4000
+@email = alice@test.fr
+@password = Client12345!
+
+### --------------------------------
+### 0. LOGIN : pose le cookie accessToken (JWT)
+### réponse attendue : 200 + le compte { id, firstname, ... }
+# @name login
+POST {{host}}/api/auth/
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "password": "{{password}}"
+}
+
+###
+# Set-Cookie complet de la réponse du login ("accessToken=...; Path=/; HttpOnly...")
+# cookie-parser lit la première paire nom=valeur, les attributs restants sont ignorés
+@cookie = {{login.response.headers.set-cookie}}
+
+### --------------------------------
+### 1. READ : panier du compte connecté
+### première visite attendue : 200 + [ ]
+GET {{host}}/api/cart
+Cookie: {{cookie}}
+
+### --------------------------------
+### 2. CREATE : ajouter 2 Chêne pédonculé (treeId 1)
+### attendu : 201 + la ligne { "id": 1, "accountId": ..., "treeId": 1, "quantity": 2, ... }
+# @name createItem
+POST {{host}}/api/cart/items
+Content-Type: application/json
+Cookie: {{cookie}}
+
+{
+  "treeId": 1,
+  "quantity": 2
+}
+
+###
+# id de la ligne créée, réutilisé par PATCH et DELETE
+@itemId = {{createItem.response.body.id}}
+
+### --------------------------------
+### 3. CREATE (déjà présent) : cumul de quantité
+### attendu : 201 + la même ligne avec "quantity": 5
+POST {{host}}/api/cart/items
+Content-Type: application/json
+Cookie: {{cookie}}
+
+{
+  "treeId": 1,
+  "quantity": 3
+}
+
+### --------------------------------
+### 4. CREATE : un deuxième arbre
+### attendu : 201 + une nouvelle ligne (treeId 2)
+POST {{host}}/api/cart/items
+Content-Type: application/json
+Cookie: {{cookie}}
+
+{
+  "treeId": 2,
+  "quantity": 1
+}
+
+### --------------------------------
+### 5. READ : panier complet, 2 lignes
+GET {{host}}/api/cart
+Cookie: {{cookie}}
+
+### --------------------------------
+### 6. UPDATE : quantité de la ligne créé au test 2
+### attendu : 200 + "quantity": 10
+PATCH {{host}}/api/cart/items/{{itemId}}
+Content-Type: application/json
+Cookie: {{cookie}}
+
+{
+  "quantity": 10
+}
+
+### --------------------------------
+### 7. DELETE : retirer la ligne
+### attendu : 204, corps vide
+DELETE {{host}}/api/cart/items/{{itemId}}
+Cookie: {{cookie}}
+
+### --------------------------------
+### 8. READ : panier vide ou ligne restante
+GET {{host}}/api/cart
+Cookie: {{cookie}}
+
+### --------------------------------
+### Cas d'erreur : non authentifié
+### attendu : 401 { "error": "Connexion requise." }
+GET {{host}}/api/cart
+
+### --------------------------------
+### Cas d'erreur : body invalide (Zod arrête avant le store)
+### attendu : 400 erreur de validation
+POST {{host}}/api/cart/items
+Content-Type: application/json
+Cookie: {{cookie}}
+
+{
+  "treeId": 1,
+  "quantity": -2
+}
+
+### --------------------------------
+### Cas d'erreur : treeId inexistant
+### attendu : 404 { "error": "Arbre introuvable" }
+POST {{host}}/api/cart/items
+Content-Type: application/json
+Cookie: {{cookie}}
+
+{
+  "treeId": 9999,
+  "quantity": 1
+}
+
+### --------------------------------
+### Cas d'erreur : ligne d'un autre compte
+### attendu : 404 { "error": "Ligne de panier introuvable" }
+PATCH {{host}}/api/cart/items/9999
+Content-Type: application/json
+Cookie: {{cookie}}
+
+{
+  "quantity": 1
+}
