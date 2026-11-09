@@ -34,4 +34,28 @@ export const config = {
       process.env.PAYMENT_CHECK_ADDRESS ||
       "Je s'appelle Graine, 1 rue de la Forêt, 35380 Paimpont",
   },
+  // Envoi de l'email de confirmation de commande (carte #105), avec Nodemailer.
+  // En dev et en tests, SMTP_HOST est absent : l'email est affiché dans la console,
+  // aucun vrai email n'est envoyé. En production : le compte Gmail de l'équipe (.env du VPS).
+  mail: {
+    // serveur d'envoi (ex. smtp.gmail.com) ; pas de valeur par défaut :
+    // host vide = mode console, c'est ce qui permet de reconnaître le dev
+    host: process.env.SMTP_HOST,
+    // process.env ne contient que du texte : parseInt le change en nombre (base 10)
+    // 587 = port standard d'envoi, sans risque par défaut
+    port: parseInt(process.env.SMTP_PORT || "587", 10),
+    // === "true" change le texte "true" en booléen : true pour le port 465, false pour 587
+    secure: process.env.SMTP_SECURE === "true",
+    // identifiants du compte d'envoi : jamais de valeur par défaut, jamais commités
+    // (même forme que l'option auth de Nodemailer, le bloc pourra lui être passé tel quel)
+    auth: {
+      user: process.env.SMTP_USER,
+      // mot de passe d'application Gmail, rangé seulement dans le .env du VPS
+      pass: process.env.SMTP_PASSWORD,
+    },
+    // expéditeur affiché au client : sans risque, valeur par défaut possible
+    from:
+      process.env.SMTP_FROM ||
+      "Je s'appelle Graine <no-reply@jesappellegraine.fr>",
+  },
 };
