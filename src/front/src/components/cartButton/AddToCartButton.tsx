@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import styles from "./addToCartButton.module.css";
+import { clientApi } from "@/app/utils/clientApi";
 
 interface AddToCartButtonProps {
   treeId: number;
@@ -29,10 +30,9 @@ export function AddToCartButton({
     setCartMessage("");
 
     try {
-      const response = await fetch("/api/cart/items", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ tree_id: treeId, quantity: 1 }),
+      const response = await clientApi("cart/items", "POST", {
+        treeId,
+        quantity: 1,
       });
 
       if (response.status === 401 || response.status === 403) {
@@ -45,7 +45,7 @@ export function AddToCartButton({
         throw new Error("L'ajout au panier n'a pas fonctionné.");
       }
 
-      setCartMessage("L'arbre a été ajouté au panier.");
+      setCartMessage(iconOn ? "+ 1" : "L'arbre a été ajouté au panier.");
     } catch (addError) {
       setCartMessage(
         addError instanceof Error

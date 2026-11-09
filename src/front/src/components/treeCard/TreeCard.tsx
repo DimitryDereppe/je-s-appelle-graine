@@ -60,11 +60,13 @@ export default function TreeCard({ tree }: FeaturedTreeProps) {
             <p className={styles.cardPrice}>{formatEuros(tree.price)} TTC</p>
 
             {!isSoldOut && (
-              <AddToCartButton
-                treeId={tree.id}
-                treeName={tree.name}
-                iconOn={true}
-              />
+              <div className={styles.treeCardAction}>
+                <AddToCartButton
+                  treeId={tree.id}
+                  treeName={tree.name}
+                  iconOn={true}
+                />
+              </div>
             )}
           </div>
         </div>
