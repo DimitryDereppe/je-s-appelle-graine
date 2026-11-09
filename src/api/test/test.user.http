@@ -146,3 +146,59 @@ content-type: application/json
   "email": "anakin@test.fr",
   "password": "IwantToBeAMasterJed1!"
 }
+
+# Pour tester F6 · à lancer dans l'ordre, à partir de « email neuf » :
+# le cookie de la connexion est gardé par l'extension REST Client
+### 200 · connexion anakin
+POST http://localhost:4000/api/auth HTTP/1.1
+content-type: application/json
+
+{
+  "email": "anakin@test.fr",
+  "password": "IwantToBeAMasterJed1!"
+}
+
+### 200 · modifier mon compte
+PATCH http://localhost:4000/api/users/me HTTP/1.1
+content-type: application/json
+
+{
+  "firstname": "Anakin",
+  "lastname": "Skywalker",
+  "email": "anakin@test.fr",
+  "address": "1 rue de Tatooine, 35000 Rennes",
+  "accountType": "association",
+  "organizationName": "Les Graines"
+}
+
+### 400 · type de compte absent
+PATCH http://localhost:4000/api/users/me HTTP/1.1
+content-type: application/json
+
+{
+  "firstname": "Anakin",
+  "lastname": "Skywalker",
+  "email": "anakin@test.fr",
+  "address": null
+}
+
+### 400 · mot de passe actuel incorrect
+PATCH http://localhost:4000/api/users/me/password HTTP/1.1
+content-type: application/json
+
+{
+  "currentPassword": "mauvais-mot-de-passe",
+  "newPassword": "NouveauSecret123!"
+}
+
+### 204 · changer mon mot de passe
+PATCH http://localhost:4000/api/users/me/password HTTP/1.1
+content-type: application/json
+
+{
+  "currentPassword": "IwantToBeAMasterJed1!",
+  "newPassword": "NouveauSecret123!"
+}
+
+### 204 · supprimer mon compte (409 si je suis le dernier admin actif)
+DELETE http://localhost:4000/api/users/me HTTP/1.1

@@ -156,6 +156,45 @@ describe("userController", () => {
       assert.strictEqual(response.data.error, "Email invalide.");
     });
 
+    // un test par champ trop long : au-delà de la taille de la colonne en BDD
+    const tooLongFields = [
+      {
+        field: "firstname",
+        value: "a".repeat(101),
+        error: "Le prénom est trop long.",
+      },
+      {
+        field: "lastname",
+        value: "a".repeat(101),
+        error: "Le nom est trop long.",
+      },
+      {
+        field: "email",
+        value: `${"a".repeat(250)}@test.fr`,
+        error: "L'email est trop long.",
+      },
+      {
+        field: "organizationName",
+        value: "a".repeat(151),
+        error: "Le nom de la structure est trop long.",
+      },
+    ];
+
+    for (const { field, value, error } of tooLongFields) {
+      it(`should respond 400 if ${field} is too long`, async () => {
+        // Act : [field] utilise le nom du champ contenu dans la variable
+        const response = await libTests.requester.post("/users", {
+          ...newUser,
+          accountType: "association",
+          [field]: value,
+        });
+
+        // Assert
+        assert.strictEqual(response.status, 400);
+        assert.strictEqual(response.data.error, error);
+      });
+    }
+
     it("should store the password hashed with argon2", async () => {
       // Arrange : le rôle "customer" doit exister (voir le test 201)
       await pool.query("INSERT INTO role (name) VALUES ('customer')");
@@ -288,6 +327,524 @@ describe("userController", () => {
   });
 
   // ==================
+  // PATCH /users/me (modifier son compte)
+  // ==================
+  describe("[PATCH] /api/users/me", () => {
+    // un body valide : le front envoie toujours tous les champs
+    const validBody = {
+      firstname: "Alicia",
+      lastname: "NOUVEAU",
+      email: "alicia@test.fr",
+      address: "12 rue des Chênes, 35380 Paimpont",
+      accountType: "association",
+      organizationName: "Les Graines",
+    };
+
+    it("should respond 200 with the updated account, without password", async () => {
+      // Arrange
+      await libTests.createAccount(libTests.ALICE);
+      const cookie = await libTests.loginAs(libTests.ALICE);
+
+      // Act
+      const response = await libTests.requester.patch("/users/me", validBody, {
+        headers: { Cookie: cookie },
+      });
+
+      // Assert : mêmes champs que GET /api/users/me
+      assert.strictEqual(response.status, 200);
+      // Object.keys : le tableau des noms de champs ; sort : les trie, car leur ordre dans le JSON ne compte pas
+      // deepStrictEqual : compare le contenu des tableaux, case par case
+      // strictEqual échouerait toujours ici : il vérifie que c'est le même tableau en mémoire, pas le même contenu
+      // un champ en trop, comme password, ferait échouer le test
+      assert.deepStrictEqual(Object.keys(response.data).sort(), [
+        "accountType",
+        "address",
+        "email",
+        "firstname",
+        "id",
+        "lastname",
+        "organizationName",
+        "role",
+      ]);
+      assert.strictEqual(response.data.firstname, "Alicia");
+      assert.strictEqual(response.data.organizationName, "Les Graines");
+      assert.strictEqual(response.data.role, "customer");
+
+      // Assert : GET relit le compte, comme le client qui recharge la page
+      // response.data vient déjà de RETURNING : cette relecture protège le test si le PATCH change un jour
+      const me = await libTests.requester.get("/users/me", {
+        headers: { Cookie: cookie },
+      });
+      assert.strictEqual(me.data.email, "alicia@test.fr");
+      assert.strictEqual(me.data.address, validBody.address);
+    });
+
+    it("should save no organization name for a 'particulier'", async () => {
+      // Arrange
+      await libTests.createAccount(libTests.ALICE);
+      const cookie = await libTests.loginAs(libTests.ALICE);
+
+      // Act : le champ masqué du front peut rester rempli
+      const response = await libTests.requester.patch(
+        "/users/me",
+        { ...validBody, accountType: "particulier" },
+        { headers: { Cookie: cookie } },
+      );
+
+      // Assert
+      assert.strictEqual(response.status, 200);
+      assert.strictEqual(response.data.organizationName, null);
+    });
+
+    it("should not change the role sent in the body", async () => {
+      // Arrange
+      const aliceId = await libTests.createAccount(libTests.ALICE);
+      const cookie = await libTests.loginAs(libTests.ALICE);
+
+      // Act : un client essaie de devenir administrateur
+      const response = await libTests.requester.patch(
+        "/users/me",
+        { ...validBody, role: "admin", isActive: false },
+        { headers: { Cookie: cookie } },
+      );
+
+      // Assert : la réponse et la BDD gardent le rôle et l'état du compte
+      assert.strictEqual(response.status, 200);
+      assert.strictEqual(response.data.role, "customer");
+      const result = await pool.query(
+        `SELECT role.name, account.is_active
+         FROM account
+         JOIN role ON account.role_id = role.id
+         WHERE account.id = $1`,
+        [aliceId],
+      );
+      assert.strictEqual(result.rows[0].name, "customer");
+      assert.strictEqual(result.rows[0].is_active, true);
+    });
+
+    it("should respond 409 if the email belongs to another account", async () => {
+      // Arrange : l'email de SHERLOCK est déjà pris
+      await libTests.createAccount(libTests.ALICE);
+      await libTests.createAccount(libTests.SHERLOCK.account);
+      const cookie = await libTests.loginAs(libTests.ALICE);
+
+      // Act
+      const response = await libTests.requester.patch(
+        "/users/me",
+        { ...validBody, email: libTests.SHERLOCK.account.email },
+        { headers: { Cookie: cookie } },
+      );
+
+      // Assert
+      assert.strictEqual(response.status, 409);
+      assert.strictEqual(response.data.error, "Cet email est déjà utilisé.");
+    });
+
+    it("should respond 200 if the client keeps their own email", async () => {
+      // Arrange
+      await libTests.createAccount(libTests.ALICE);
+      const cookie = await libTests.loginAs(libTests.ALICE);
+
+      // Act
+      const response = await libTests.requester.patch(
+        "/users/me",
+        { ...validBody, email: libTests.ALICE.email },
+        { headers: { Cookie: cookie } },
+      );
+
+      // Assert
+      assert.strictEqual(response.status, 200);
+      assert.strictEqual(response.data.email, libTests.ALICE.email);
+    });
+
+    it("should respond 400 if accountType is missing", async () => {
+      // Arrange
+      await libTests.createAccount(libTests.ALICE);
+      const cookie = await libTests.loginAs(libTests.ALICE);
+
+      // Act : undefined n'est pas envoyé dans le JSON
+      const response = await libTests.requester.patch(
+        "/users/me",
+        { ...validBody, accountType: undefined },
+        { headers: { Cookie: cookie } },
+      );
+
+      // Assert : un oubli du front ne change pas le type du compte
+      assert.strictEqual(response.status, 400);
+      assert.strictEqual(response.data.error, "Type de compte invalide.");
+    });
+
+    // un test par champ trop long : au-delà de la taille de la colonne en BDD
+    const tooLongFields = [
+      {
+        field: "firstname",
+        value: "a".repeat(101),
+        error: "Le prénom est trop long.",
+      },
+      {
+        field: "lastname",
+        value: "a".repeat(101),
+        error: "Le nom est trop long.",
+      },
+      {
+        field: "email",
+        value: `${"a".repeat(250)}@test.fr`,
+        error: "L'email est trop long.",
+      },
+      {
+        field: "address",
+        value: "a".repeat(256),
+        error: "L'adresse est trop longue.",
+      },
+      {
+        field: "organizationName",
+        value: "a".repeat(151),
+        error: "Le nom de la structure est trop long.",
+      },
+    ];
+
+    for (const { field, value, error } of tooLongFields) {
+      it(`should respond 400 if ${field} is too long`, async () => {
+        // Arrange
+        await libTests.createAccount(libTests.ALICE);
+        const cookie = await libTests.loginAs(libTests.ALICE);
+
+        // Act : [field] utilise le nom du champ contenu dans la variable
+        const response = await libTests.requester.patch(
+          "/users/me",
+          { ...validBody, [field]: value },
+          { headers: { Cookie: cookie } },
+        );
+
+        // Assert
+        assert.strictEqual(response.status, 400);
+        assert.strictEqual(response.data.error, error);
+      });
+    }
+
+    it("should respond 200 if the fields have exactly the maximum length", async () => {
+      // Arrange
+      await libTests.createAccount(libTests.ALICE);
+      const cookie = await libTests.loginAs(libTests.ALICE);
+
+      // Act : la taille exacte des colonnes de la BDD
+      const response = await libTests.requester.patch(
+        "/users/me",
+        {
+          ...validBody,
+          firstname: "a".repeat(100),
+          lastname: "a".repeat(100),
+          address: "a".repeat(255),
+          organizationName: "a".repeat(150),
+        },
+        { headers: { Cookie: cookie } },
+      );
+
+      // Assert
+      assert.strictEqual(response.status, 200);
+    });
+
+    it("should respond 400 if firstname only contains spaces", async () => {
+      // Arrange
+      await libTests.createAccount(libTests.ALICE);
+      const cookie = await libTests.loginAs(libTests.ALICE);
+
+      // Act
+      const response = await libTests.requester.patch(
+        "/users/me",
+        { ...validBody, firstname: "   " },
+        { headers: { Cookie: cookie } },
+      );
+
+      // Assert
+      assert.strictEqual(response.status, 400);
+      assert.strictEqual(response.data.error, "Prénom obligatoire.");
+    });
+
+    it("should respond 401 if not connected", async () => {
+      // Act : sans cookie
+      const response = await libTests.requester.patch("/users/me", validBody);
+
+      // Assert
+      assert.strictEqual(response.status, 401);
+      assert.strictEqual(response.data.error, "Vous devez être connecté.");
+    });
+  });
+
+  // ==================
+  // PATCH /users/me/password (changer son mot de passe, contrat #159)
+  // ==================
+  describe("[PATCH] /api/users/me/password", () => {
+    const newPassword = "NouveauSecret123!";
+
+    it("should respond 204 and only accept the new password afterwards", async () => {
+      // Arrange
+      await libTests.createAccount(libTests.ALICE);
+      const cookie = await libTests.loginAs(libTests.ALICE);
+
+      // Act
+      const response = await libTests.requester.patch(
+        "/users/me/password",
+        { currentPassword: libTests.ALICE.password, newPassword },
+        { headers: { Cookie: cookie } },
+      );
+
+      // Assert : réponse vide (axios donne "" quand le corps est vide)
+      assert.strictEqual(response.status, 204);
+      assert.strictEqual(response.data, "");
+
+      // Assert : l'ancien mot de passe est refusé, le nouveau est accepté
+      const oldLogin = await libTests.requester.post("/auth", {
+        email: libTests.ALICE.email,
+        password: libTests.ALICE.password,
+      });
+      assert.strictEqual(oldLogin.status, 401);
+      const newLogin = await libTests.requester.post("/auth", {
+        email: libTests.ALICE.email,
+        password: newPassword,
+      });
+      assert.strictEqual(newLogin.status, 200);
+    });
+
+    it("should store the new password hashed with argon2", async () => {
+      // Arrange
+      const aliceId = await libTests.createAccount(libTests.ALICE);
+      const cookie = await libTests.loginAs(libTests.ALICE);
+
+      // Act
+      await libTests.requester.patch(
+        "/users/me/password",
+        { currentPassword: libTests.ALICE.password, newPassword },
+        { headers: { Cookie: cookie } },
+      );
+
+      // Assert : jamais le mot de passe en clair en BDD
+      const result = await pool.query(
+        "SELECT password FROM account WHERE id = $1",
+        [aliceId],
+      );
+      // notStrictEqual : les deux valeurs doivent être différentes
+      assert.notStrictEqual(result.rows[0].password, newPassword);
+      // assert.ok : le test échoue si la valeur est fausse
+      // argon2.verify renvoie true si le mot de passe correspond au hash
+      assert.ok(await argon2.verify(result.rows[0].password, newPassword));
+    });
+
+    it("should respond 400 if the current password is wrong", async () => {
+      // Arrange
+      await libTests.createAccount(libTests.ALICE);
+      const cookie = await libTests.loginAs(libTests.ALICE);
+
+      // Act
+      const response = await libTests.requester.patch(
+        "/users/me/password",
+        { currentPassword: "mauvais-mot-de-passe", newPassword },
+        { headers: { Cookie: cookie } },
+      );
+
+      // Assert : le mot de passe n'a pas changé
+      assert.strictEqual(response.status, 400);
+      assert.strictEqual(
+        response.data.error,
+        "Le mot de passe actuel est incorrect.",
+      );
+      const login = await libTests.requester.post("/auth", {
+        email: libTests.ALICE.email,
+        password: libTests.ALICE.password,
+      });
+      assert.strictEqual(login.status, 200);
+    });
+
+    it("should respond 400 if the new password has less than 12 characters", async () => {
+      // Arrange
+      await libTests.createAccount(libTests.ALICE);
+      const cookie = await libTests.loginAs(libTests.ALICE);
+
+      // Act
+      const response = await libTests.requester.patch(
+        "/users/me/password",
+        { currentPassword: libTests.ALICE.password, newPassword: "court" },
+        { headers: { Cookie: cookie } },
+      );
+
+      // Assert
+      assert.strictEqual(response.status, 400);
+      assert.strictEqual(
+        response.data.error,
+        "Le mot de passe doit contenir au moins 12 caractères.",
+      );
+    });
+
+    it("should respond 401 if not connected", async () => {
+      // Act : sans cookie
+      const response = await libTests.requester.patch("/users/me/password", {
+        currentPassword: libTests.ALICE.password,
+        newPassword,
+      });
+
+      // Assert
+      assert.strictEqual(response.status, 401);
+      assert.strictEqual(response.data.error, "Vous devez être connecté.");
+    });
+  });
+
+  // ==================
+  // DELETE /users/me (supprimer son compte, contrat #159)
+  // ==================
+  describe("[DELETE] /api/users/me", () => {
+    // deux comptes administrateurs de test
+    // ... recopie les champs d'ALICE, et les lignes suivantes remplacent ceux qu'on change
+    // as const : TypeScript garde le type "admin", et pas n'importe quel texte
+    const ADMIN = {
+      ...libTests.ALICE,
+      email: "admin@test.fr",
+      role: "admin" as const,
+    };
+    const OTHER_ADMIN = { ...ADMIN, email: "admin2@test.fr" };
+
+    it("should respond 204, clear the cookie and delete the account", async () => {
+      // Arrange
+      const aliceId = await libTests.createAccount(libTests.ALICE);
+      const cookie = await libTests.loginAs(libTests.ALICE);
+
+      // Act
+      const response = await libTests.requester.delete("/users/me", {
+        headers: { Cookie: cookie },
+      });
+
+      // Assert : cookie vidé et déjà expiré
+      assert.strictEqual(response.status, 204);
+      // findCookieFromResponse : le texte du cookie envoyé par l'API dans l'en-tête set-cookie
+      const clearedCookie = libTests.findCookieFromResponse(
+        response,
+        "accessToken",
+      );
+      // startsWith : le texte commence par… ; ici, le cookie n'a plus de valeur
+      assert.ok(clearedCookie.startsWith("accessToken=;"));
+      // includes : le texte contient… ; une date passée demande au navigateur de l'effacer
+      assert.ok(clearedCookie.includes("Expires=Thu, 01 Jan 1970"));
+
+      // Assert : le compte n'est plus en BDD
+      const result = await pool.query("SELECT id FROM account WHERE id = $1", [
+        aliceId,
+      ]);
+      assert.strictEqual(result.rows.length, 0);
+    });
+
+    it("should respond 401 if the token is used again after the deletion", async () => {
+      // Arrange
+      await libTests.createAccount(libTests.ALICE);
+      const cookie = await libTests.loginAs(libTests.ALICE);
+      await libTests.requester.delete("/users/me", {
+        headers: { Cookie: cookie },
+      });
+
+      // Act : le jeton est encore valide (24 h), mais le compte n'existe plus
+      const response = await libTests.requester.get("/users/me", {
+        headers: { Cookie: cookie },
+      });
+
+      // Assert
+      assert.strictEqual(response.status, 401);
+      assert.strictEqual(response.data.error, "Vous devez être connecté.");
+    });
+
+    it("should keep the orders, with the buyer's identity and no owner", async () => {
+      // Arrange : une commande d'ALICE, avec l'identité copiée à l'achat
+      const aliceId = await libTests.createAccount(libTests.ALICE);
+      const cookie = await libTests.loginAs(libTests.ALICE);
+      const orderResult = await pool.query(
+        `INSERT INTO purchase (total_amount, payment_method, buyer_firstname,
+                               buyer_lastname, buyer_email, account_id)
+         VALUES (16.9, 'virement', $1, $2, $3, $4)
+         RETURNING id`,
+        [
+          libTests.ALICE.firstname,
+          libTests.ALICE.lastname,
+          libTests.ALICE.email,
+          aliceId,
+        ],
+      );
+
+      // Act
+      const response = await libTests.requester.delete("/users/me", {
+        headers: { Cookie: cookie },
+      });
+
+      // Assert : ON DELETE SET NULL, la commande reste sans propriétaire
+      assert.strictEqual(response.status, 204);
+      const result = await pool.query(
+        "SELECT account_id, buyer_email FROM purchase WHERE id = $1",
+        [orderResult.rows[0].id],
+      );
+      assert.strictEqual(result.rows.length, 1);
+      assert.strictEqual(result.rows[0].account_id, null);
+      assert.strictEqual(result.rows[0].buyer_email, libTests.ALICE.email);
+    });
+
+    it("should respond 409 if the account is the last active admin", async () => {
+      // Arrange : un seul admin
+      const adminId = await libTests.createAccount(ADMIN);
+      const cookie = await libTests.loginAs(ADMIN);
+
+      // Act
+      const response = await libTests.requester.delete("/users/me", {
+        headers: { Cookie: cookie },
+      });
+
+      // Assert : le compte reste en BDD
+      assert.strictEqual(response.status, 409);
+      assert.strictEqual(
+        response.data.error,
+        "Impossible de supprimer le dernier administrateur.",
+      );
+      const result = await pool.query("SELECT id FROM account WHERE id = $1", [
+        adminId,
+      ]);
+      assert.strictEqual(result.rows.length, 1);
+    });
+
+    it("should respond 409 if the other admin is deactivated", async () => {
+      // Arrange : un admin désactivé ne compte pas
+      await libTests.createAccount(ADMIN);
+      await libTests.createAccount({ ...OTHER_ADMIN, isActive: false });
+      const cookie = await libTests.loginAs(ADMIN);
+
+      // Act
+      const response = await libTests.requester.delete("/users/me", {
+        headers: { Cookie: cookie },
+      });
+
+      // Assert
+      assert.strictEqual(response.status, 409);
+    });
+
+    it("should respond 204 if another active admin remains", async () => {
+      // Arrange
+      await libTests.createAccount(ADMIN);
+      await libTests.createAccount(OTHER_ADMIN);
+      const cookie = await libTests.loginAs(ADMIN);
+
+      // Act
+      const response = await libTests.requester.delete("/users/me", {
+        headers: { Cookie: cookie },
+      });
+
+      // Assert
+      assert.strictEqual(response.status, 204);
+    });
+
+    it("should respond 401 if not connected", async () => {
+      // Act : sans cookie
+      const response = await libTests.requester.delete("/users/me");
+
+      // Assert
+      assert.strictEqual(response.status, 401);
+      assert.strictEqual(response.data.error, "Vous devez être connecté.");
+    });
+  });
+
+  // ==================
   // /api/admin/... (droits)
   // ==================
   describe("/api/admin", () => {
@@ -330,13 +887,15 @@ describe("userController", () => {
       await libTests.createAccount(ADMIN);
       const cookie = await libTests.loginAs(ADMIN);
 
-      // Act
-      const response = await libTests.requester.get("/admin/trees", {
-        headers: { Cookie: cookie },
-      });
+      // Act : une adresse qui n'existera jamais, pour que le test reste valable avec les routes admin à venir
+      const response = await libTests.requester.get(
+        "/admin/route-inexistante",
+        {
+          headers: { Cookie: cookie },
+        },
+      );
 
-      // Assert : ni 401 ni 403. Aucune route admin n'existe encore (F7) :
-      // la requête passe les middlewares et arrive au 404 « Ressource introuvable »
+      // Assert : ni 401 ni 403 : la requête passe les middlewares et arrive au 404 « Ressource introuvable »
       assert.strictEqual(response.status, 404);
     });
   });

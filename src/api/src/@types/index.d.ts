@@ -57,6 +57,15 @@ export interface INewAccount extends IAccountBase {
   password: string; // déjà haché par argon2
 }
 
+export interface IUpdateProfile {
+  firstname: string;
+  lastname: string;
+  email: string;
+  address: string | null;
+  accountType: INewAccount["accountType"]; // même type qu'à l'inscription
+  organizationName: string | null;
+}
+
 // Contenu du jeton JWT : créé par createAccessToken (lib/token.ts), relu par isConnected
 export interface IAccessToken {
   userId: number;

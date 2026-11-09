@@ -7,6 +7,7 @@ import {
   ACCESS_COOKIE_NAME,
   accessCookieOptions,
   createAccessToken,
+  clearAccessCookie,
 } from "../lib/token.ts";
 
 export async function login(req: Request, res: Response) {
@@ -62,12 +63,7 @@ export async function login(req: Request, res: Response) {
 // supprime un cookie dans une Response express
 // --------------------------------
 export function logout(_req: Request, res: Response) {
-  res.clearCookie(ACCESS_COOKIE_NAME, {
-    path: accessCookieOptions.path,
-    httpOnly: accessCookieOptions.httpOnly,
-    secure: accessCookieOptions.secure,
-    sameSite: accessCookieOptions.sameSite,
-  });
+  clearAccessCookie(res);
 
   res.status(204).end();
 }

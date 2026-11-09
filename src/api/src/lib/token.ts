@@ -1,6 +1,6 @@
 import jwt from "jsonwebtoken";
 import { config } from "../../config.ts";
-import type { CookieOptions } from "express";
+import type { CookieOptions, Response } from "express";
 import type { IAccessToken } from "../@types/index.d.ts";
 
 // --------------------------------
@@ -24,3 +24,15 @@ export const accessCookieOptions: CookieOptions = {
   secure: config.isProduction, // renvois ce cookie uniquement en HTTPS (en local --> on est en HTTP)
   path: "/", // endpoint où renvoyer le cookie "/" --> racine de l'API
 };
+
+// --------------------------------
+// supprime le cookie de connexion (déconnexion, suppression du compte)
+// --------------------------------
+export function clearAccessCookie(res: Response) {
+  res.clearCookie(ACCESS_COOKIE_NAME, {
+    path: accessCookieOptions.path,
+    httpOnly: accessCookieOptions.httpOnly,
+    secure: accessCookieOptions.secure,
+    sameSite: accessCookieOptions.sameSite,
+  });
+}
