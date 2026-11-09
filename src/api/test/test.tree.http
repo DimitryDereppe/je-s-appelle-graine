@@ -1,5 +1,5 @@
 ### GET /trees pour le catalogue
-GET http://localhost:4000/api/trees HTTP/1.1
+GET http://localhost:4050/api/trees HTTP/1.1
 
 ### GET /trees/featured pour l'accueil
 GET http://localhost:4000/api/trees/featured HTTP/1.1

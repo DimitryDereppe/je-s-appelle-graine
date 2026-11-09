@@ -1,7 +1,10 @@
 import { Router } from "express";
-import { validateId } from "../middlewares/commonMiddleware.ts";
-import { isConnected } from "../middlewares/isConnectedMiddleware.ts";
-import { getCart, addCartItem } from "../controllers/cartController.ts";
+import {
+  getCart,
+  addCartItem,
+  updateCartItem,
+  deleteCartItem,
+} from "../controllers/cartController.ts";
 
 export const router = Router();
 
@@ -14,14 +17,14 @@ export const router = Router();
 // jamais au panier d'un autre.
 
 // GET /api/cart → panier du compte connecté (id lu dans le jeton par isConnected)
-router.get("/cart", isConnected, getCart);
+router.get("/", getCart);
 
 // POST /api/cart/items → ajoute un arbre au panier ({ treeId, quantity } validé par Zod)
 // un arbre déjà présent voit sa quantité augmenter (ON CONFLICT dans cartDatamapper)
-router.post("/cart/items", isConnected, addCartItem);
+router.post("/items", addCartItem);
 
 // PATCH /api/cart/items/:id → change la quantité d'une ligne du panier (contrôleur à écrire)
-router.patch("/cart/items/:id", isConnected, validateId);
+router.patch("/items/:id", updateCartItem);
 
 // DELETE /api/cart/items/:id → retire une ligne du panier (contrôleur à écrire)
-router.delete("/cart/items/:id", isConnected, validateId);
+router.delete("/items/:id", deleteCartItem);

@@ -24,4 +24,7 @@ router.use(cartRouter);
 router.use("/admin", isConnected, checkRoles(["admin"]), adminRouter);
 
 // /api/orders/... : connecté (sinon 401) pour toutes les routes du routeur
+router.use("/cart", isConnected, cartRouter);
+
+// /api/orders/... : connecté (sinon 401) pour toutes les routes du routeur
 router.use("/orders", isConnected, ordersRouter);

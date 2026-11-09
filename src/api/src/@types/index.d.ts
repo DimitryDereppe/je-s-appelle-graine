@@ -79,8 +79,9 @@ export interface IRegister {
   email: string;
   password: string;
 }
-
-//Panier
+// --------------------------------
+// Panier (repris tel quel du projet)
+// --------------------------------
 export interface ICartItem {
   id: number;
   accountId: number;
@@ -89,9 +90,7 @@ export interface ICartItem {
   name: string;
   price: number;
   photoUrl: string | null;
-  // planting_location sans NOT NULL dans le schéma : peut valoir null
   plantingLocation: string | null;
-  // availability.name est NOT NULL : toujours une chaîne
   availabilityName: string;
 }
 
@@ -99,7 +98,7 @@ export interface ICartItem {
 // Panier complet renvoyé au client (résumé + total)
 // --------------------------------
 export interface ICartSummary {
-  cartId: number;
+  accountId: number;
   items: ICartItem[];
   total: number;
 }
@@ -120,14 +119,16 @@ export interface IUpdateQuantityBody {
 }
 
 // --------------------------------
-// Requête enrichie par le middleware loadCart :
-// req.cart est garanti présent dans tous les contrôleurs du panier
+// Requête d'un contrôleur du panier :
+// isConnected (auth.middleware.ts) ajoute userId / userRole depuis le JWT,
+// loadCart (cart.middleware.ts) ajoute le panier du compte
 // --------------------------------
-export interface ICartRequest extends Request {
+export interface ICartRequest extends IAuthenticatedRequest {
   cart: ICart; // renseigné par loadCart, jamais undefined derrière ce middleware
+  item?: ICartItem; // renseigné par itemInCart
 }
 
-// Panier côté serveur (stockage interne, jamais renvoyé tel quel)
+// Panier côté serveur : id = accountId du compte propriétaire
 export interface ICart {
   id: number;
   items: ICartItem[];
