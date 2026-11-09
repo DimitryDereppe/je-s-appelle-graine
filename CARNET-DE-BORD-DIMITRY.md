@@ -2,7 +2,7 @@
 
 Suivi de mon travail sur Je s’appelle Graine. Les décisions notées ici ont été prises avec l'équipe sur Discord ; le suivi de l'équipe est dans le [[Apothéose/apo-jesappellegraine/CARNET-DE-BORD-JE-S-APPELLE-GRAINE|carnet de bord Je s’appelle Graine]].
 
-## 2026-11-09 — Commande (F5) : corrections de l'étape 0, plan de tests (#108), début du front (#107)
+## 2026-11-09 — Commande (F5) : corrections de l'étape 0, plan de tests (#108), front de la commande (#107)
 
 ### Étape 0 « Corriger F5 » (PR #204, fusionnée dans `DEV`)
 
@@ -15,26 +15,38 @@ Suivi de mon travail sur Je s’appelle Graine. Les décisions notées ici ont �
 - **Problème** : les routes du panier (`cartController.ts`) passaient par `cartStore` (panier en mémoire, un `Map`), alors que la commande lit `cart_item` avec `cartDatamapper` → panier vu vide à la commande.
 - **Décision** : option A, tout passe par la base. Le panier survit à un redémarrage, et le `ROLLBACK` de la transaction de commande remet le panier si elle échoue (un `ROLLBACK` ne peut rien annuler dans un `Map` JavaScript).
 - Loïc remet `cartDatamapper` dans `cartController.ts` (il lui manque `updateCartItem` et `deleteCartItem`). La commande ne change pas.
+- **Fait** : PR #207 de Loïc fusionnée dans `DEV`, `cartStore` supprimé. `PATCH`/`DELETE /api/cart/items/:treeId` prennent l'id de l'**arbre**, nouveau `DELETE /api/cart/items` (vider le panier). `GET /api/cart` renvoie toujours un tableau de lignes (pas encore `{ items, total }`).
 
-### Carte #108 — tests (PR #205, branche `tests/f5-#108`)
+### Carte #108 — tests (PR #205, branche `tests/f5-#108`, fusionnée dans `DEV`)
 
 - Les cas de la carte étaient déjà couverts : F5-INT-1, 4, 6, 7, 12, 14.
 - [[Apothéose/apo-jesappellegraine/docs/tests/PLAN-DE-TESTS|PLAN-DE-TESTS.md]] : F5-INT-22 vérifie aussi « Bonjour prénom nom », nouvelle ligne F5-INT-24 (email du chèque), section email à 3 cas.
 - Tests de l'API : 114/116, les 2 échecs (`GET /api/cart`) existaient déjà sur `DEV`.
 
-### Carte #107 — front de la commande (branche `feat/front-f5-#107`, non commité)
+### Carte #107 — front de la commande (branche `feat/front-f5-#107`)
 
 - Types front (`@types/index.d.ts`) : `PaymentMethod`, `IOrderLine`, `IOrder`, plus `PaymentInstructions` (virement **ou** chèque, avec `|`) et `IOrderWithInstructions extends IOrder` (réponse de `POST /api/orders` et `GET /api/orders/:id`).
 - Page `/commandes/nouvelle/paiement` : `page.tsx` + `PaymentForm.tsx` (modèle `LoginForm`) + `page.module.css`.
   - radios `paymentMethod` dans un `<fieldset>`/`<legend>`, `<textarea>` adresse (`maxLength` 255), case d'engagement (`=== "on"` → booléen) ;
   - `clientApi("orders", "POST", …)` : 401 → `/connexion?next=…`, 400/409 → message `error` de l'API dans `role="alert"`, 201 → `/commandes/${order.id}/confirmation`.
-- `tsc`, ESLint et Prettier OK ; pas encore testée dans le navigateur.
+- `tsc`, ESLint et Prettier OK (commit `0c6abfd`).
+- Page `/commandes/[id]/confirmation` (commit `949100d`) : `page.tsx` + `OrderConfirmation.tsx` (composant client, `GET /api/orders/:id` avec le cookie) : référence, montant TTC, date limite ; `"iban" in order.paymentInstructions` choisit le bloc virement (IBAN, référence dans le libellé) ou chèque (ordre, adresse, référence au dos). 401 → `/connexion?next=…`.
+- Page récapitulatif `/commandes/nouvelle` (commit `bd99151`) : `CartSummary.tsx` lit `GET /api/cart` (type `ICartItem`), total avec `reduce`, `some` repère un arbre plus disponible (la commande serait refusée en 409). Panier vide → « Votre panier est vide. ». Lignes en commentaire pour passer à `{ items, total }` quand Loïc changera la réponse.
+- Fix `AddToCartButton` (commit `16e5ecb`, #100, avec l'accord de Loïc) : le body envoyait `tree_id`, refusé par le schéma Zod de `POST /api/cart/items` → `{ treeId, quantity: 1 }`.
+- Fusion de `DEV` (commit `aa537f5`) : conflit dans `@types/index.d.ts` résolu en gardant `ICartItem` + types F5 de la branche, et le bloc F6 de `DEV` (`OrderStatus`, `IOrderSummary`, `IOrderDetail`) sans doubler les types F5.
+
+### Tests dans le navigateur : ce qui bloquait
+
+- Le récapitulatif restait vide : **aucun bouton « Ajouter au panier » n'était branché**. Ceux de `TreeCard.tsx` et `arbres/[id]/page.tsx` n'avaient pas de `onClick`, et `AddToCartButton` n'était affiché nulle part (import en commentaire dans `arbres/page.tsx`). Contournement pour tester : `fetch("/api/cart/items", { method: "POST", … })` dans la console du navigateur (cookie envoyé, même origine).
+- La validation répondait « panier vide » : le panier ajouté allait dans `cartStore` (mémoire) alors que la commande lit `cart_item`. Réglé par la PR #207.
+- `localhost:4000/` en 404 : normal, toutes les routes de l'API commencent par `/api/`. Tester depuis `localhost:3000` (le cookie de connexion n'est envoyé qu'à ce port).
+- Loïc branche les boutons (branche `animateButton`, en cours) : `AddToCartButton` déplacé dans `components/cartButton/`, props `iconOn` (icône dans `TreeCard`, texte sur la fiche) et `isOutOfStock`. Sa branche envoie encore `tree_id` : ma correction suivra le fichier déplacé à la fusion (vérifié par une fusion à blanc), à lui signaler.
 
 ### Reste à faire
 
-- Tester la page paiement (URL directe : aucun lien n'y mène tant que `/panier` et le récapitulatif n'existent pas).
-- Page `/commandes/[id]/confirmation` (`GET /api/orders/:id`, `"iban" in paymentInstructions`), puis récapitulatif `/commandes/nouvelle` (`GET /api/cart`, réponse bientôt `{ items, total }`).
-- Commiter #107 ; passer #108 en « En revue » ; approbation d'un autre groupe pour la PR #205.
+- Tester le parcours complet : ajout au panier → récapitulatif → paiement (virement puis chèque) → confirmation → `/commandes` (F6) ; vérifier que `cart_item` est vidé ; tests manuels F5-MAN-1 à 4.
+- Pousser `feat/front-f5-#107`, PR vers `DEV` (relecteur Loïc, « Carte #107 »).
+- Kanban : #108 en « Terminé ».
 
 ## 2026-11-06 — Déploiement : photos des arbres invisibles en production
 
