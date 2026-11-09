@@ -4,6 +4,7 @@ import styles from "./page.module.css";
 
 export const metadata: Metadata = {
   title: "Mes commandes",
+  description: "L’historique de vos commandes d’arbres et leur statut.",
   // page privée : les moteurs de recherche ne l'indexent pas
   robots: { index: false },
 };

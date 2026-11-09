@@ -5,6 +5,8 @@ import styles from "../page.module.css";
 
 export const metadata: Metadata = {
   title: "Détail de la commande",
+  description:
+    "Le détail de votre commande d’arbres, son statut et son annulation.",
   // page privée : les moteurs de recherche ne l'indexent pas
   robots: { index: false },
 };
