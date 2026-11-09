@@ -5,9 +5,34 @@ import type { ITree } from "../../../@types";
 import { api } from "../../utils/apiCall";
 import { notFound } from "next/navigation";
 import { formatEuros } from "@/app/utils/format";
+import type { Metadata } from "next";
 
 interface TreePageProps {
   params: Promise<{ id: string }>;
+}
+
+export async function generateMetadata({
+  params,
+}: TreePageProps): Promise<Metadata> {
+  const { id } = await params;
+
+  try {
+    const tree: ITree = await api<ITree>(`trees/${id}`);
+
+    return {
+      title: `${tree.name} – ${tree.categoryName}`,
+      description: tree.description,
+      openGraph: {
+        title: `${tree.name} – ${tree.categoryName}`,
+        images: tree.photoUrl ? [tree.photoUrl] : [],
+      },
+    };
+  } catch {
+    return {
+      title: "Arbre introuvable",
+      description: "Cet arbre n'existe pas ou a été retiré.",
+    };
+  }
 }
 
 export default async function FicheArbre({ params }: TreePageProps) {

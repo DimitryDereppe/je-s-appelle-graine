@@ -57,6 +57,15 @@ export interface INewAccount extends IAccountBase {
   password: string; // déjà haché par argon2
 }
 
+export interface IUpdateProfile {
+  firstname: string;
+  lastname: string;
+  email: string;
+  address: string | null;
+  accountType: INewAccount["accountType"]; // même type qu'à l'inscription
+  organizationName: string | null;
+}
+
 // Contenu du jeton JWT : créé par createAccessToken (lib/token.ts), relu par isConnected
 export interface IAccessToken {
   userId: number;
@@ -79,8 +88,9 @@ export interface IRegister {
   email: string;
   password: string;
 }
-
-//Panier
+// --------------------------------
+// Panier (repris tel quel du projet)
+// --------------------------------
 export interface ICartItem {
   id: number;
   accountId: number;
@@ -89,10 +99,48 @@ export interface ICartItem {
   name: string;
   price: number;
   photoUrl: string | null;
-  // planting_location sans NOT NULL dans le schéma : peut valoir null
   plantingLocation: string | null;
-  // availability.name est NOT NULL : toujours une chaîne
   availabilityName: string;
+}
+
+// --------------------------------
+// Panier complet renvoyé au client (résumé + total)
+// --------------------------------
+export interface ICartSummary {
+  accountId: number;
+  items: ICartItem[];
+  total: number;
+}
+
+// --------------------------------
+// Corps de la requête POST /api/carts/items
+// --------------------------------
+export interface IAddItemBody {
+  treeId: number;
+  quantity: number;
+}
+
+// --------------------------------
+// Corps de la requête PATCH /api/carts/items/:treeId
+// --------------------------------
+export interface IUpdateQuantityBody {
+  quantity: number;
+}
+
+// --------------------------------
+// Requête d'un contrôleur du panier :
+// isConnected (auth.middleware.ts) ajoute userId / userRole depuis le JWT,
+// loadCart (cart.middleware.ts) ajoute le panier du compte
+// --------------------------------
+export interface ICartRequest extends IAuthenticatedRequest {
+  cart: ICart; // renseigné par loadCart, jamais undefined derrière ce middleware
+  item?: ICartItem; // renseigné par itemInCart
+}
+
+// Panier côté serveur : id = accountId du compte propriétaire
+export interface ICart {
+  id: number;
+  items: ICartItem[];
 }
 
 // --------------------------------
@@ -106,6 +154,16 @@ export interface IOrderLine {
   unitPrice: number;
   quantity: number;
   plantingLocation: string | null;
+}
+
+export type OrderStatus = "en attente" | "payée" | "plantée" | "annulée";
+
+// résumé d'une commande pour l'historique du client (sans les lignes)
+export interface IOrderSummary {
+  id: number;
+  purchaseDate: string;
+  status: OrderStatus;
+  totalAmount: number;
 }
 
 // commande telle que lue en BDD (sans les instructions de paiement, qui viennent de la config)

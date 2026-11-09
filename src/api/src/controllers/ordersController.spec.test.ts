@@ -1,4 +1,4 @@
-import { describe, it } from "node:test";
+import { describe, it, mock } from "node:test";
 import assert from "node:assert";
 import * as libTests from "../../test/index.ts";
 import { pool } from "../data/db-client.ts";
@@ -300,6 +300,106 @@ describe("ordersController", () => {
       }
     });
 
+    // --- email de confirmation (carte #105) ---
+    // en test, SMTP_HOST est absent : emailService affiche l'email avec console.log au lieu de l'envoyer.
+    // mock.method remplace console.log le temps du test : on récupère ce qui aurait été affiché.
+
+    it("should prepare the confirmation email with the order information", async () => {
+      // Arrange : ALICE a un panier ; on espionne console.log (sans rien afficher)
+      const { cookie } = await createCustomerWithCart();
+      const consoleLog = mock.method(console, "log", () => {});
+
+      try {
+        // Act
+        const response = await libTests.requester.post("/orders", validBody, {
+          headers: { Cookie: cookie },
+        });
+
+        // Assert : un seul affichage, l'email, avec les informations de la confirmation
+        assert.strictEqual(response.status, 201);
+        assert.strictEqual(consoleLog.mock.callCount(), 1);
+        // arguments[0] : le premier argument passé à console.log (le texte de l'email)
+        const email = consoleLog.mock.calls[0].arguments[0];
+        assert.ok(email.includes(`À : ${libTests.ALICE.email}`));
+        assert.ok(
+          email.includes(`Objet : Commande n° ${response.data.id} confirmée`),
+        );
+        assert.ok(email.includes("Montant TTC : 63,20 €")); // 3 × 16,90 + 12,50
+        assert.ok(email.includes(billingAddress));
+        assert.ok(email.includes("IBAN : "));
+        assert.ok(
+          email.includes(`Indiquez « Commande n° ${response.data.id} »`),
+        );
+        // prénom et nom du client
+        assert.ok(
+          email.includes(
+            `Bonjour ${libTests.ALICE.firstname} ${libTests.ALICE.lastname},`,
+          ),
+        );
+      } finally {
+        // on remet le vrai console.log, réussite ou échec
+        consoleLog.mock.restore();
+      }
+    });
+
+    it("should prepare the confirmation email for a payment by check", async () => {
+      // Arrange : ALICE a un panier et paie par chèque ; on espionne console.log
+      const { cookie } = await createCustomerWithCart();
+      const consoleLog = mock.method(console, "log", () => {});
+
+      try {
+        // Act : même body, seul le mode de paiement change (...validBody copie le reste)
+        const response = await libTests.requester.post(
+          "/orders",
+          { ...validBody, paymentMethod: "chèque" },
+          { headers: { Cookie: cookie } },
+        );
+
+        // Assert : le texte du chèque, sans le « n° » en trop, et pas celui du virement
+        assert.strictEqual(response.status, 201);
+        const email = consoleLog.mock.calls[0].arguments[0];
+        assert.ok(email.includes("Paiement par chèque :\n"));
+        assert.ok(!email.includes("Paiement par chèque : n°"));
+        assert.ok(email.includes("À l'ordre de : "));
+        assert.ok(
+          email.includes(`Écrivez « Commande n° ${response.data.id} »`),
+        );
+        assert.ok(!email.includes("IBAN : "));
+      } finally {
+        consoleLog.mock.restore();
+      }
+    });
+
+    it("should keep the order if the confirmation email fails", async () => {
+      // Arrange : on simule un échec d'envoi : console.log (l'« envoi » en test) lève une erreur ;
+      // console.error est espionné pour vérifier la trace laissée par le catch du contrôleur
+      const { cookie } = await createCustomerWithCart();
+      const consoleLog = mock.method(console, "log", () => {
+        throw new Error("échec d'envoi simulé");
+      });
+      const consoleError = mock.method(console, "error", () => {});
+
+      try {
+        // Act
+        const response = await libTests.requester.post("/orders", validBody, {
+          headers: { Cookie: cookie },
+        });
+
+        // Assert : 201, commande gardée, panier vidé, et l'échec est noté dans les logs
+        assert.strictEqual(response.status, 201);
+        assert.strictEqual(await countRows("purchase"), 1);
+        assert.strictEqual(await countRows("cart_item"), 0);
+        assert.strictEqual(consoleError.mock.callCount(), 1);
+        assert.strictEqual(
+          consoleError.mock.calls[0].arguments[0],
+          "Email de confirmation non envoyé",
+        );
+      } finally {
+        consoleLog.mock.restore();
+        consoleError.mock.restore();
+      }
+    });
+
     it("should respond 401 if not connected", async () => {
       // Act : sans cookie
       const response = await libTests.requester.post("/orders", validBody);
@@ -482,6 +582,228 @@ describe("ordersController", () => {
     it("should respond 401 if not connected", async () => {
       // Act
       const response = await libTests.requester.get("/orders/1");
+
+      // Assert
+      assert.strictEqual(response.status, 401);
+    });
+  });
+  // ==================
+  // GET /orders (historique du client)
+  // ==================
+  describe("[GET] /api/orders", () => {
+    it("should respond 200 with the customer orders, the most recent first", async () => {
+      // Arrange : ALICE passe deux commandes (le panier est rempli à nouveau entre les deux)
+      const { aliceId, oakId, cookie } = await createCustomerWithCart();
+      const first = await libTests.requester.post("/orders", validBody, {
+        headers: { Cookie: cookie },
+      });
+      await libTests.addCartItem(aliceId, oakId, 1);
+      const second = await libTests.requester.post("/orders", validBody, {
+        headers: { Cookie: cookie },
+      });
+
+      // Act
+      const response = await libTests.requester.get("/orders", {
+        headers: { Cookie: cookie },
+      });
+
+      // Assert : la plus récente d'abord, seulement les champs du résumé (contrat #159)
+      assert.strictEqual(response.status, 200);
+      assert.deepStrictEqual(
+        response.data.map((order: { id: number }) => order.id),
+        [second.data.id, first.data.id],
+      );
+      assert.deepStrictEqual(Object.keys(response.data[0]).sort(), [
+        "id",
+        "purchaseDate",
+        "status",
+        "totalAmount",
+      ]);
+      assert.strictEqual(response.data[1].status, "en attente");
+      // 3 × 16,90 + 1 × 12,50 = 63,20 : un nombre, pas le texte "63.20"
+      assert.strictEqual(response.data[1].totalAmount, 63.2);
+    });
+
+    it("should not return the orders of another customer", async () => {
+      // Arrange : ALICE passe commande, un autre client n'a rien commandé
+      const { cookie } = await createCustomerWithCart();
+      await libTests.requester.post("/orders", validBody, {
+        headers: { Cookie: cookie },
+      });
+      const other = { ...libTests.ALICE, email: "autre@test.fr" };
+      await libTests.createAccount(other);
+      const otherCookie = await libTests.loginAs(other);
+
+      // Act
+      const response = await libTests.requester.get("/orders", {
+        headers: { Cookie: otherCookie },
+      });
+
+      // Assert : liste vide, jamais la commande d'ALICE
+      assert.strictEqual(response.status, 200);
+      assert.deepStrictEqual(response.data, []);
+    });
+
+    it("should respond 401 if not connected", async () => {
+      // Act
+      const response = await libTests.requester.get("/orders");
+
+      // Assert
+      assert.strictEqual(response.status, 401);
+    });
+  });
+
+  // ==================
+  // PATCH /orders/:id/status (annulation par le client)
+  // ==================
+  describe("[PATCH] /api/orders/:id/status", () => {
+    // ALICE passe une commande (en attente) : retourne son id et le cookie
+    async function createPendingOrder() {
+      const { cookie } = await createCustomerWithCart();
+      const order = await libTests.requester.post("/orders", validBody, {
+        headers: { Cookie: cookie },
+      });
+      return { orderId: order.data.id, cookie };
+    }
+
+    it("should respond 200 and cancel an order waiting for payment", async () => {
+      // Arrange
+      const { orderId, cookie } = await createPendingOrder();
+
+      // Act
+      const response = await libTests.requester.patch(
+        `/orders/${orderId}/status`,
+        { status: "annulée" },
+        { headers: { Cookie: cookie } },
+      );
+
+      // Assert : la commande avec son nouveau statut, comme GET /api/orders/:id
+      assert.strictEqual(response.status, 200);
+      assert.strictEqual(response.data.id, orderId);
+      assert.strictEqual(response.data.status, "annulée");
+      assert.strictEqual(response.data.lines.length, 2);
+      // en BDD : statut changé et date d'annulation enregistrée
+      const purchase = await pool.query(
+        "SELECT status, cancelled_at FROM purchase WHERE id = $1",
+        [orderId],
+      );
+      assert.strictEqual(purchase.rows[0].status, "annulée");
+      assert.notStrictEqual(purchase.rows[0].cancelled_at, null);
+    });
+
+    it("should respond 409 if the order is already paid", async () => {
+      // Arrange : l'admin a enregistré le paiement
+      const { orderId, cookie } = await createPendingOrder();
+      await pool.query("UPDATE purchase SET status = 'payée' WHERE id = $1", [
+        orderId,
+      ]);
+
+      // Act
+      const response = await libTests.requester.patch(
+        `/orders/${orderId}/status`,
+        { status: "annulée" },
+        { headers: { Cookie: cookie } },
+      );
+
+      // Assert : refusé, la commande reste payée
+      assert.strictEqual(response.status, 409);
+      assert.strictEqual(
+        response.data.error,
+        "Seule une commande en attente de paiement peut être annulée.",
+      );
+      const purchase = await pool.query(
+        "SELECT status FROM purchase WHERE id = $1",
+        [orderId],
+      );
+      assert.strictEqual(purchase.rows[0].status, "payée");
+    });
+
+    it("should respond 409 if the order is already cancelled", async () => {
+      // Arrange : première annulation
+      const { orderId, cookie } = await createPendingOrder();
+      await libTests.requester.patch(
+        `/orders/${orderId}/status`,
+        { status: "annulée" },
+        { headers: { Cookie: cookie } },
+      );
+
+      // Act : deuxième annulation
+      const response = await libTests.requester.patch(
+        `/orders/${orderId}/status`,
+        { status: "annulée" },
+        { headers: { Cookie: cookie } },
+      );
+
+      // Assert
+      assert.strictEqual(response.status, 409);
+    });
+
+    it("should respond 400 if the status is not annulée", async () => {
+      // Arrange
+      const { orderId, cookie } = await createPendingOrder();
+
+      // Act : le client essaie de marquer sa commande comme payée
+      const response = await libTests.requester.patch(
+        `/orders/${orderId}/status`,
+        { status: "payée" },
+        { headers: { Cookie: cookie } },
+      );
+
+      // Assert : refusé par Zod, la commande reste en attente
+      assert.strictEqual(response.status, 400);
+      assert.strictEqual(response.data.error, "Statut invalide.");
+      const purchase = await pool.query(
+        "SELECT status FROM purchase WHERE id = $1",
+        [orderId],
+      );
+      assert.strictEqual(purchase.rows[0].status, "en attente");
+    });
+
+    it("should respond 404 for the order of another customer", async () => {
+      // Arrange : ALICE passe commande, un autre client se connecte
+      const { orderId } = await createPendingOrder();
+      const other = { ...libTests.ALICE, email: "autre@test.fr" };
+      await libTests.createAccount(other);
+      const otherCookie = await libTests.loginAs(other);
+
+      // Act : l'autre client essaie d'annuler la commande d'ALICE
+      const response = await libTests.requester.patch(
+        `/orders/${orderId}/status`,
+        { status: "annulée" },
+        { headers: { Cookie: otherCookie } },
+      );
+
+      // Assert : 404 et la commande d'ALICE n'a pas changé
+      assert.strictEqual(response.status, 404);
+      assert.strictEqual(response.data.error, "Commande introuvable.");
+      const purchase = await pool.query(
+        "SELECT status FROM purchase WHERE id = $1",
+        [orderId],
+      );
+      assert.strictEqual(purchase.rows[0].status, "en attente");
+    });
+
+    it("should respond 400 if the id is not a positive integer", async () => {
+      // Arrange
+      await libTests.createAccount(libTests.ALICE);
+      const cookie = await libTests.loginAs(libTests.ALICE);
+
+      // Act
+      const response = await libTests.requester.patch(
+        "/orders/abc/status",
+        { status: "annulée" },
+        { headers: { Cookie: cookie } },
+      );
+
+      // Assert : refusé par validateId
+      assert.strictEqual(response.status, 400);
+    });
+
+    it("should respond 401 if not connected", async () => {
+      // Act
+      const response = await libTests.requester.patch("/orders/1/status", {
+        status: "annulée",
+      });
 
       // Assert
       assert.strictEqual(response.status, 401);

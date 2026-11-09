@@ -3,6 +3,8 @@ import type {
   IAccountProfile,
   ICartItem,
   IOrder,
+  IOrderSummary,
+  OrderStatus,
   PaymentMethod,
 } from "../@types/index.d.ts";
 
@@ -108,7 +110,8 @@ export const ordersDatamapper = {
               payment_method AS "paymentMethod",
               -- NUMERIC arrive en texte dans Node : CAST le change en nombre
               CAST(total_amount AS FLOAT) AS "totalAmount",
-              -- adresse de facturation, à faire figurer sur la facture
+              -- adresse de facturation : elle servira si on édite des factures plus tard
+              -- (l'email de confirmation ne vaut pas facture : pas de mentions légales)
               buyer_address AS "billingAddress"
        FROM purchase
        WHERE id = $1 AND account_id = $2`,
@@ -132,5 +135,39 @@ export const ordersDatamapper = {
 
     // la commande, avec ses lignes dans une propriété "lines" (format du contrat)
     return { ...orderResult.rows[0], lines: linesResult.rows };
+  },
+
+  // --------------------------------
+  // L'historique des commandes d'un client, la plus récente en premier
+  // --------------------------------
+  async findAllForAccount(accountId: number): Promise<IOrderSummary[]> {
+    const result = await pool.query(
+      `SELECT id, purchase_date AS "purchaseDate", status,
+              CAST(total_amount AS FLOAT) AS "totalAmount"
+       FROM purchase
+       WHERE account_id = $1
+       ORDER BY purchase_date DESC, id DESC`,
+      [accountId],
+    );
+    return result.rows;
+  },
+
+  // --------------------------------
+  // Change le statut et enregistre la date du changement dans la bonne colonne
+  // --------------------------------
+  async updateStatus(id: number, status: OrderStatus): Promise<void> {
+    await pool.query(
+      `UPDATE purchase
+       -- CAST : $2 sert deux fois (colonne VARCHAR et comparaison), PostgreSQL doit connaître son type
+       SET status = CAST($2 AS VARCHAR),
+           -- CASE WHEN … THEN … ELSE … END = le if / else du SQL
+           -- si le nouveau statut est 'payée' → date du jour, sinon la colonne garde sa valeur
+           paid_at = CASE WHEN $2 = 'payée' THEN now() ELSE paid_at END,
+           -- même principe pour les deux autres dates
+           planted_at = CASE WHEN $2 = 'plantée' THEN now() ELSE planted_at END,
+           cancelled_at = CASE WHEN $2 = 'annulée' THEN now() ELSE cancelled_at END
+       WHERE id = $1`,
+      [id, status],
+    );
   },
 };
