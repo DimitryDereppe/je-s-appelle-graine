@@ -2,6 +2,47 @@
 
 Suivi de mon travail sur Je s’appelle Graine. Les décisions notées ici ont été prises avec l'équipe ; le suivi de l'équipe est dans le [carnet de bord Je s’appelle Graine](CARNET-DE-BORD-JE-S-APPELLE-GRAINE.md), que je tiens à jour.
 
+## 2026-11-09 — F6 : commandes du client, pages commandes et page compte
+
+### Travail réalisé
+
+- **Sprint planning :** Kanban mis à jour (cartes du sprint 2 reportées en sprint 3, cartes terminées fermées).
+- **Partie compte de F6** (#160, #162) : dernier admin en 409 au lieu de 403, comme dans F9 ; contrat #159 et plan de tests mis à jour ; PR #201 fusionnée.
+- **Back des commandes du client** (#198, #199), PR #206 :
+  - `GET /api/orders` : historique du client, la plus récente d'abord, sans les lignes ;
+  - `PATCH /api/orders/:id/status` : annulation seulement si la commande est en attente (409 sinon), schéma Zod avec `z.literal("annulée")` ;
+  - `updateStatus` dans `ordersDatamapper` : le statut et la date dans la bonne colonne (`paid_at`, `planted_at`, `cancelled_at`), réutilisable par F8 ;
+  - 10 tests d'intégration, plan de tests et `test.orders.http`.
+- **Pages commandes** (#200), PR #208 :
+  - `/commandes` : une carte par commande, statut en français ;
+  - `/commandes/[id]` : détail, arbres avec leur lieu de plantation, bouton d'annulation avec confirmation ;
+  - si la commande a été payée entre-temps, la page la relit et affiche un message selon son statut ;
+  - tests manuels sur ordinateur, téléphone et au clavier ; Lighthouse accessibilité 100.
+- **Page compte** (#161), en cours : menu vers les commandes et vers chaque bloc, informations préremplies, changement du mot de passe, suppression du compte.
+- **Suivi de l'équipe :** relecture du panier de Loïc (le panier était gardé en mémoire et la commande le trouvait vide), message et étape 0 de son challenge ; point sur l'avancement de chacun et challenge mis à jour pour demain.
+
+### Ce que j'ai appris
+
+- Un `UPDATE` sans `WHERE` modifie toutes les lignes de la table.
+- `CASE WHEN … THEN … ELSE … END` est le `if / else` du SQL. Quand un même paramètre (`$2`) sert à deux endroits, `CAST` indique son type à PostgreSQL.
+- `z.literal` n'accepte qu'une seule valeur exacte.
+- `useEffect` : la liste des dépendances contient ce que l'effet utilise et qui vient du composant ; la fonction de l'effet ne peut pas être `async`.
+- Un formulaire avec `action` est vidé par React après l'envoi, puis reprend ses `defaultValue`.
+- `<dl>`, `<dt>` et `<dd>` décrivent une liste « intitulé → valeur » pour les lecteurs d'écran.
+- Un bouton n'hérite pas de la police du site : `font: inherit`.
+
+### Décisions (prises avec l'équipe)
+
+- Dernier administrateur : 409 dans F6 comme dans F9.
+- Page `/compte` avec un menu, vue avec Shanna
+
+### À poursuivre
+
+- Page compte : lien « Bonjour X » vers `/compte`, tests manuels, PR relue par Shanna.
+- Relire F9 dès que Mahamadou ouvre sa PR.
+- F8 : choisir avec Dimitry qui prend le back et le front, et écrire le contrat #167 ensemble.
+- Aider Shanna sur les tests de F7 et Loïc sur les règles du panier.
+
 ## 2026-11-06 — F6 : compte du client, relecture de F5 et test du site en ligne
 
 ### Travail réalisé
