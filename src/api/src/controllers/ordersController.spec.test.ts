@@ -330,8 +330,42 @@ describe("ordersController", () => {
         assert.ok(
           email.includes(`Indiquez « Commande n° ${response.data.id} »`),
         );
+        // prénom et nom du client
+        assert.ok(
+          email.includes(
+            `Bonjour ${libTests.ALICE.firstname} ${libTests.ALICE.lastname},`,
+          ),
+        );
       } finally {
         // on remet le vrai console.log, réussite ou échec
+        consoleLog.mock.restore();
+      }
+    });
+
+    it("should prepare the confirmation email for a payment by check", async () => {
+      // Arrange : ALICE a un panier et paie par chèque ; on espionne console.log
+      const { cookie } = await createCustomerWithCart();
+      const consoleLog = mock.method(console, "log", () => {});
+
+      try {
+        // Act : même body, seul le mode de paiement change (...validBody copie le reste)
+        const response = await libTests.requester.post(
+          "/orders",
+          { ...validBody, paymentMethod: "chèque" },
+          { headers: { Cookie: cookie } },
+        );
+
+        // Assert : le texte du chèque, sans le « n° » en trop, et pas celui du virement
+        assert.strictEqual(response.status, 201);
+        const email = consoleLog.mock.calls[0].arguments[0];
+        assert.ok(email.includes("Paiement par chèque :\n"));
+        assert.ok(!email.includes("Paiement par chèque : n°"));
+        assert.ok(email.includes("À l'ordre de : "));
+        assert.ok(
+          email.includes(`Écrivez « Commande n° ${response.data.id} »`),
+        );
+        assert.ok(!email.includes("IBAN : "));
+      } finally {
         consoleLog.mock.restore();
       }
     });

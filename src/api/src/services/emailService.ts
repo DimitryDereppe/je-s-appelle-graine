@@ -67,13 +67,13 @@ IBAN : ${paymentInstructions.iban}
 BIC : ${paymentInstructions.bic}
 Titulaire : ${paymentInstructions.holder}
 Indiquez « Commande n° ${order.id} » dans le libellé du virement.`
-      : `Paiement par chèque : n°
+      : `Paiement par chèque :
 À l'ordre de : ${paymentInstructions.payableTo}
 À envoyer à : ${paymentInstructions.address}
 Écrivez « Commande n° ${order.id} » au dos du chèque.`;
 
   // le texte complet : un template literal garde les retours à la ligne tels quels
-  const text = `Bonjour ${account.firstname},
+  const text = `Bonjour ${account.firstname} ${account.lastname},
 
 Votre commande n° ${order.id} est confirmée. Merci pour votre geste pour la forêt !
 

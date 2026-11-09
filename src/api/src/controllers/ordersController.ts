@@ -53,7 +53,8 @@ export async function createOrder(req: IAuthenticatedRequest, res: Response) {
     paymentCommitment: z.literal(true, {
       error: "Vous devez vous engager à payer sous 10 jours.",
     }),
-    // adresse de facturation saisie par le client : elle figure sur la facture
+    // adresse de facturation saisie par le client : elle servira si on édite des factures plus tard
+    // (l'email de confirmation ne vaut pas facture : il n'a pas les mentions légales obligatoires)
     // schéma défini dans utils.ts
     billingAddress: billingAddressSchema,
   });

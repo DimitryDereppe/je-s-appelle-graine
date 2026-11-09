@@ -108,7 +108,8 @@ export const ordersDatamapper = {
               payment_method AS "paymentMethod",
               -- NUMERIC arrive en texte dans Node : CAST le change en nombre
               CAST(total_amount AS FLOAT) AS "totalAmount",
-              -- adresse de facturation, à faire figurer sur la facture
+              -- adresse de facturation : elle servira si on édite des factures plus tard
+              -- (l'email de confirmation ne vaut pas facture : pas de mentions légales)
               buyer_address AS "billingAddress"
        FROM purchase
        WHERE id = $1 AND account_id = $2`,
