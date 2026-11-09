@@ -55,4 +55,55 @@ export const cartDatamapper = {
     // une seule ligne insérée ou mise à jour : rows[0]
     return result.rows[0];
   },
+  async findCartItem(
+    userId: number,
+    treeId: number,
+  ): Promise<ICartItem | null> {
+    const sqlQuery = `
+    SELECT cart_item.id, cart_item.account_id AS "accountId",
+           cart_item.tree_id AS "treeId", cart_item.quantity,
+           tree.name,
+           CAST(tree.price AS FLOAT) AS price,
+           tree.photo_url AS "photoUrl",
+           tree.planting_location AS "plantingLocation",
+           availability.name AS "availabilityName"
+    FROM cart_item
+    JOIN tree ON cart_item.tree_id = tree.id
+    JOIN availability ON tree.availability_id = availability.id
+    WHERE cart_item.account_id = $1 AND cart_item.tree_id = $2;
+    `;
+    const result = await pool.query(sqlQuery, [userId, treeId]);
+    return result.rows[0] ?? null;
+  },
+
+  async updateCartItemQuantity(
+    userId: number,
+    treeId: number,
+    quantity: number,
+  ) {
+    const sqlQuery = `
+    UPDATE cart_item
+    SET quantity = $3
+    WHERE account_id = $1 AND tree_id = $2
+    RETURNING id, account_id AS "accountId", tree_id AS "treeId", quantity;
+    `;
+    const result = await pool.query(sqlQuery, [userId, treeId, quantity]);
+    return result.rows[0] ?? null;
+  },
+
+  async deleteCartItem(userId: number, treeId: number) {
+    const sqlQuery = `
+    DELETE FROM cart_item
+    WHERE account_id = $1 AND tree_id = $2;
+    `;
+    await pool.query(sqlQuery, [userId, treeId]);
+  },
+
+  async clearCart(userId: number) {
+    const sqlQuery = `
+    DELETE FROM cart_item
+    WHERE account_id = $1;
+    `;
+    await pool.query(sqlQuery, [userId]);
+  },
 };
