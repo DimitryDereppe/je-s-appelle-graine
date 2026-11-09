@@ -85,3 +85,22 @@ export type PaymentInstructions =
 export interface IOrderWithInstructions extends IOrder {
   paymentInstructions: PaymentInstructions;
 }
+
+// --------------------------------
+// Commandes du client (F6, contrat carte #159)
+// --------------------------------
+export type OrderStatus = "en attente" | "payée" | "plantée" | "annulée";
+
+// une commande dans l'historique (GET /api/orders) : sans les lignes
+export interface IOrderSummary {
+  id: number;
+  purchaseDate: string;
+  status: OrderStatus;
+  totalAmount: number;
+}
+
+// une commande en détail (GET /api/orders/:id et réponse de l'annulation)
+// extends + status : avec le statut limité aux 4 valeurs
+export interface IOrderDetail extends IOrderWithInstructions {
+  status: OrderStatus;
+}

@@ -251,12 +251,13 @@ Même fichier. Les 10 cas passent.
 
 ### Tests d'intégration — email de confirmation (US25)
 
-Même fichier. Les 2 cas passent. En test, `SMTP_HOST` est absent : l'email est affiché avec `console.log` au lieu d'être envoyé ; le test remplace `console.log` (`mock.method`) pour lire son contenu, ou pour simuler un échec d'envoi.
+Même fichier. Les 3 cas passent. En test, `SMTP_HOST` est absent : l'email est affiché avec `console.log` au lieu d'être envoyé ; le test remplace `console.log` (`mock.method`) pour lire son contenu, ou pour simuler un échec d'envoi.
 
-| N°        | Cas                                        | Type        | Attendu                                                                                                       | Obtenu |
-| --------- | ------------------------------------------ | ----------- | ------------------------------------------------------------------------------------------------------------- | ------ |
-| F5-INT-22 | Email préparé à la création de la commande | Intégration | destinataire, n° de commande, montant TTC, adresse de facturation, IBAN et référence à mettre dans le libellé | ✅     |
-| F5-INT-23 | Échec de l'envoi de l'email                | Intégration | `201`, commande gardée, panier vidé, échec noté dans les logs (`console.error`)                               | ✅     |
+| N°        | Cas                                        | Type        | Attendu                                                                                                                               | Obtenu |
+| --------- | ------------------------------------------ | ----------- | ------------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| F5-INT-22 | Email préparé à la création de la commande | Intégration | destinataire, « Bonjour prénom nom », n° de commande, montant TTC, adresse de facturation, IBAN et référence à mettre dans le libellé | ✅     |
+| F5-INT-23 | Échec de l'envoi de l'email                | Intégration | `201`, commande gardée, panier vidé, échec noté dans les logs (`console.error`)                                                       | ✅     |
+| F5-INT-24 | Email d'une commande payée par chèque      | Intégration | « Paiement par chèque : » sans « n° », ordre du chèque, référence à écrire au dos, pas d'IBAN                                         | ✅     |
 
 ### Tests manuels — pages `/commandes/nouvelle`, `/commandes/nouvelle/paiement`, `/commandes/[id]/confirmation`
 
@@ -345,6 +346,24 @@ Même fichier. Les 7 cas passent.
 | F6-INT-31 | Commande d'un autre client     | Intégration | `404` « Commande introuvable. », commande inchangée                               | ✅     |
 | F6-INT-32 | Id qui n'est pas un entier > 0 | Intégration | `400`                                                                             | ✅     |
 | F6-INT-33 | Sans connexion                 | Intégration | `401`                                                                             | ✅     |
+
+### Tests manuels — pages `/commandes` et `/commandes/[id]` (carte #200)
+
+Vérifiés sur `feat/f6-commandes-front` le 09/11/2026. Les 11 cas passent.
+
+| N°        | Cas                                                             | Type   | Attendu                                                                                                               | Obtenu |
+| --------- | --------------------------------------------------------------- | ------ | --------------------------------------------------------------------------------------------------------------------- | ------ |
+| F6-MAN-1  | `/commandes` sans être connecté                                 | Manuel | redirection vers `/connexion`, puis retour sur `/commandes` après la connexion                                        | ✅     |
+| F6-MAN-2  | Client sans commande                                            | Manuel | message « Vous n’avez pas encore passé de commande. » et lien vers les arbres                                         | ✅     |
+| F6-MAN-3  | Client avec plusieurs commandes                                 | Manuel | la plus récente d’abord ; numéro, date, statut en français, montant TTC ; chaque carte mène au détail                 | ✅     |
+| F6-MAN-4  | Détail d’une commande en attente                                | Manuel | date, statut, mode de paiement, date limite, adresse, arbres, total ; bouton « Annuler la commande »                  | ✅     |
+| F6-MAN-5  | Annuler, puis choisir « Annuler » dans la confirmation          | Manuel | rien n’est envoyé, la commande reste en attente                                                                       | ✅     |
+| F6-MAN-6  | Annuler et confirmer                                            | Manuel | statut « Annulée », bouton masqué, message annoncé ; « Annulée » aussi dans la liste                                  | ✅     |
+| F6-MAN-7  | Commande payée pendant que la page est ouverte                  | Manuel | message « Votre paiement a déjà été reçu… », statut « Payée », bouton masqué                                          | ✅     |
+| F6-MAN-8  | Détail d’une commande payée, plantée ou annulée                 | Manuel | ni bouton d’annulation ni date limite                                                                                 | ✅     |
+| F6-MAN-9  | `/commandes/abc`, `/commandes/9999`, commande d’un autre client | Manuel | « Cette commande est introuvable. »                                                                                   | ✅     |
+| F6-MAN-10 | Mobile (360 px) et clavier                                      | Manuel | rien ne déborde ; Tab atteint les cartes, le lien de retour et le bouton, focus visible ; Échap ferme la confirmation | ✅     |
+| F6-MAN-11 | Lighthouse sur les deux pages                                   | Manuel | accessibilité ≥ 90 ; SEO sous 90 attendu : `noindex` volontaire, page privée                                          | ✅     |
 
 ## F7 à F9
 
