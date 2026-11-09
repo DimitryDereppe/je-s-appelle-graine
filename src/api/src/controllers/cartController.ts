@@ -1,29 +1,28 @@
 import type { Response } from "express";
 import type { IAuthenticatedRequest } from "../@types/index.d.ts";
 import { getAuthenticatedUser } from "./utils.ts";
-import { cartStore } from "../data/cartStore.ts";
+import { cartDatamapper } from "../datamappers/cartDatamapper.ts";
 import { z } from "zod";
 
 // --------------------------------
 // Schémas Zod : validés AVANT tout appel à la BDD
-// (body invalide -> erreur 400 levée par Zod, aucune requête SQL inutile)
+// coerce.number convertit "3" (string) en 3 (number)
 // --------------------------------
 const addCartItemSchema = z.object({
-  treeId: z.number().int().positive(),
-  quantity: z.number().int().positive(),
+  treeId: z.coerce.number().int().positive(),
+  quantity: z.coerce.number().int().positive(),
 });
 
 const updateCartItemSchema = z.object({
-  quantity: z.number().int().positive(),
+  quantity: z.coerce.number().int().positive(),
 });
 
-// req.params ne contient que du texte : coerce.number transforme "12" en 12
-const idParamSchema = z.coerce.number().int().positive();
+const treeIdParamSchema = z.coerce.number().int().positive();
 
 export async function getCart(req: IAuthenticatedRequest, res: Response) {
   const user = await getAuthenticatedUser(req);
 
-  const cart = await cartStore.findCartByUserId(user.id);
+  const cart = await cartDatamapper.findCartByUserId(user.id);
 
   res.status(200).json(cart);
 }
@@ -31,10 +30,13 @@ export async function getCart(req: IAuthenticatedRequest, res: Response) {
 export async function addCartItem(req: IAuthenticatedRequest, res: Response) {
   const user = await getAuthenticatedUser(req);
 
-  // body invalide -> Zod lance une erreur (400) AVANT d'appeler la BDD
   const { treeId, quantity } = addCartItemSchema.parse(req.body);
 
-  const newCartItem = await cartStore.addCartItem(user.id, treeId, quantity);
+  const newCartItem = await cartDatamapper.addCartItem(
+    user.id,
+    treeId,
+    quantity,
+  );
 
   res.status(201).json(newCartItem);
 }
@@ -45,15 +47,19 @@ export async function updateCartItem(
 ) {
   const user = await getAuthenticatedUser(req);
 
-  // validation du paramètre d'URL et du body par Zod
-  const itemId = idParamSchema.parse(req.params.id);
+  const treeId = treeIdParamSchema.parse(req.params.treeId);
   const { quantity } = updateCartItemSchema.parse(req.body);
 
-  const updatedCartItem = await cartStore.updateCartItem(
+  const updatedCartItem = await cartDatamapper.updateCartItemQuantity(
     user.id,
-    itemId,
+    treeId,
     quantity,
   );
+
+  if (!updatedCartItem) {
+    res.status(404).json({ error: "Ligne du panier introuvable" });
+    return;
+  }
 
   res.status(200).json(updatedCartItem);
 }
@@ -64,9 +70,17 @@ export async function deleteCartItem(
 ) {
   const user = await getAuthenticatedUser(req);
 
-  const itemId = idParamSchema.parse(req.params.id);
+  const treeId = treeIdParamSchema.parse(req.params.treeId);
 
-  await cartStore.deleteCartItem(user.id, itemId);
+  await cartDatamapper.deleteCartItem(user.id, treeId);
+
+  res.status(204).send();
+}
+
+export async function clearCart(req: IAuthenticatedRequest, res: Response) {
+  const user = await getAuthenticatedUser(req);
+
+  await cartDatamapper.clearCart(user.id);
 
   res.status(204).send();
 }
