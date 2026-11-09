@@ -251,12 +251,13 @@ Même fichier. Les 10 cas passent.
 
 ### Tests d'intégration — email de confirmation (US25)
 
-Même fichier. Les 2 cas passent. En test, `SMTP_HOST` est absent : l'email est affiché avec `console.log` au lieu d'être envoyé ; le test remplace `console.log` (`mock.method`) pour lire son contenu, ou pour simuler un échec d'envoi.
+Même fichier. Les 3 cas passent. En test, `SMTP_HOST` est absent : l'email est affiché avec `console.log` au lieu d'être envoyé ; le test remplace `console.log` (`mock.method`) pour lire son contenu, ou pour simuler un échec d'envoi.
 
-| N°        | Cas                                        | Type        | Attendu                                                                                                       | Obtenu |
-| --------- | ------------------------------------------ | ----------- | ------------------------------------------------------------------------------------------------------------- | ------ |
-| F5-INT-22 | Email préparé à la création de la commande | Intégration | destinataire, n° de commande, montant TTC, adresse de facturation, IBAN et référence à mettre dans le libellé | ✅     |
-| F5-INT-23 | Échec de l'envoi de l'email                | Intégration | `201`, commande gardée, panier vidé, échec noté dans les logs (`console.error`)                               | ✅     |
+| N°        | Cas                                        | Type        | Attendu                                                                                                                               | Obtenu |
+| --------- | ------------------------------------------ | ----------- | ------------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| F5-INT-22 | Email préparé à la création de la commande | Intégration | destinataire, « Bonjour prénom nom », n° de commande, montant TTC, adresse de facturation, IBAN et référence à mettre dans le libellé | ✅     |
+| F5-INT-23 | Échec de l'envoi de l'email                | Intégration | `201`, commande gardée, panier vidé, échec noté dans les logs (`console.error`)                                                       | ✅     |
+| F5-INT-24 | Email d'une commande payée par chèque      | Intégration | « Paiement par chèque : » sans « n° », ordre du chèque, référence à écrire au dos, pas d'IBAN                                         | ✅     |
 
 ### Tests manuels — pages `/commandes/nouvelle`, `/commandes/nouvelle/paiement`, `/commandes/[id]/confirmation`
 
