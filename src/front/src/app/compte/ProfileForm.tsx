@@ -75,9 +75,9 @@ export function ProfileForm() {
 
       // 400 : champ invalide ; 409 : email déjà utilisé → message de l'API
       if (response.status === 400 || response.status === 409) {
-        const data: { error?: string } = await response.json();
+        const apiMessage: { error?: string } = await response.json();
         setErrorMessage(
-          data.error ?? "Les informations saisies sont invalides.",
+          apiMessage.error ?? "Les informations saisies sont invalides.",
         );
         return;
       }

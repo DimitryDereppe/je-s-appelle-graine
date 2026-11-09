@@ -31,9 +31,9 @@ export function PasswordForm() {
 
       // 400 : mot de passe actuel faux ou nouveau trop court → message de l'API
       if (response.status === 400) {
-        const data: { error?: string } = await response.json();
+        const apiMessage: { error?: string } = await response.json();
         setErrorMessage(
-          data.error ?? "Le mot de passe n’a pas pu être changé.",
+          apiMessage.error ?? "Le mot de passe n’a pas pu être changé.",
         );
         document.getElementById("currentPassword")?.focus();
         return;

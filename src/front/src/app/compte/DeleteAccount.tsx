@@ -29,8 +29,10 @@ export function DeleteAccount() {
 
       // 409 : dernier administrateur → message de l'API
       if (!response.ok) {
-        const data: { error?: string } = await response.json();
-        setErrorMessage(data.error ?? "La suppression n’a pas fonctionné.");
+        const apiMessage: { error?: string } = await response.json();
+        setErrorMessage(
+          apiMessage.error ?? "La suppression n’a pas fonctionné.",
+        );
         return;
       }
 
