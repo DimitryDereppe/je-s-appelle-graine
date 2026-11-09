@@ -75,6 +75,7 @@ export interface IAccessToken {
 // Requête d'un utilisateur connecté : isConnected y ajoute l'id et le rôle lus dans le JWT
 // champs facultatifs (?) : avant isConnected, la requête ne les a pas encore
 export interface IAuthenticatedRequest extends Request {
+  body: unknown;
   userId?: number;
   userRole?: Role;
 }

@@ -1,6 +1,9 @@
 import type { Request, Response } from "express";
 import { z } from "zod";
+import type { ITreeInput } from "../@types/index.d.ts";
 import { adminTreeDatamapper } from "../datamappers/adminTreeDatamapper.ts";
+import { ConflictError, NotFoundError } from "../lib/errors.ts";
+
 const treeBodySchema = z.object({
   name: z.string().trim().min(1, { error: "Le nom est obligatoire." }),
   description: z.string().nullable(),
@@ -11,14 +14,45 @@ const treeBodySchema = z.object({
     .string()
     .startsWith("/images/trees/", {
       error: "Le chemin de la photo doit commencer par /images/trees/.",
-    }),
+    })
+    .nullable(),
   plantingLocation: z.string().nullable(),
   categoryId: z.number().int({ error: "Catégorie invalide." }),
   availabilityId: z.number().int({ error: "Disponibilité invalide." }),
 });
 
-// POST /api/admin/trees.
+// Pour le PATCH, tous les champs deviennent facultatifs.
+const patchTreeBodySchema = treeBodySchema.partial();
 
+// GET /api/admin/trees
+export async function findAll(_req: Request, res: Response): Promise<void> {
+  const trees = await adminTreeDatamapper.findAll();
+  res.status(200).json(trees);
+}
+
+// GET /api/admin/trees/:id
+export async function findById(req: Request, res: Response): Promise<void> {
+  const id = Number(req.params.id);
+  const tree = await adminTreeDatamapper.findById(id);
+
+  if (!tree) {
+    throw new NotFoundError("Arbre introuvable.");
+  }
+
+  res.status(200).json(tree);
+}
+
+// GET /api/admin/availabilities
+export async function findAllAvailabilities(
+  _req: Request,
+  res: Response,
+): Promise<void> {
+  const availabilities = await adminTreeDatamapper.findAllAvailabilities();
+
+  res.status(200).json(availabilities);
+}
+
+// POST /api/admin/trees
 export async function create(req: Request, res: Response): Promise<void> {
   // Vérifie les champs reçus dans le body.
   const treeInput = await treeBodySchema.parseAsync(req.body);
@@ -56,4 +90,105 @@ export async function create(req: Request, res: Response): Promise<void> {
   const newTree = await adminTreeDatamapper.findById(newTreeId);
 
   res.status(201).json(newTree);
+}
+
+// PATCH /api/admin/trees/:id
+export async function update(req: Request, res: Response): Promise<void> {
+  // Vérifie les champs envoyés. Ils peuvent être absents si on ne les modifie pas.
+  const changes = await patchTreeBodySchema.parseAsync(req.body);
+  const id = Number(req.params.id);
+
+  // Récupère l'arbre actuel pour garder ses champs non modifiés.
+  const currentTree = await adminTreeDatamapper.findById(id);
+
+  if (!currentTree) {
+    throw new NotFoundError("Arbre introuvable.");
+  }
+
+  // Prépare l'arbre complet à enregistrer.
+  const treeInput: ITreeInput = {
+    name: changes.name ?? currentTree.name,
+    description:
+      changes.description !== undefined
+        ? changes.description
+        : currentTree.description,
+    price: changes.price ?? currentTree.price,
+    photoUrl:
+      changes.photoUrl !== undefined ? changes.photoUrl : currentTree.photoUrl,
+    plantingLocation:
+      changes.plantingLocation !== undefined
+        ? changes.plantingLocation
+        : currentTree.plantingLocation,
+    categoryId: changes.categoryId ?? currentTree.categoryId,
+    availabilityId: changes.availabilityId ?? currentTree.availabilityId,
+  };
+
+  // Vérifie que la catégorie existe.
+  const categoryExists = await adminTreeDatamapper.categoryExists(
+    treeInput.categoryId,
+  );
+
+  if (!categoryExists) {
+    res.status(400).json({
+      error: "Catégorie invalide.",
+      status: 400,
+    });
+    return;
+  }
+
+  // Vérifie que la disponibilité existe.
+  const availabilityExists = await adminTreeDatamapper.availabilityExists(
+    treeInput.availabilityId,
+  );
+
+  if (!availabilityExists) {
+    res.status(400).json({
+      error: "Disponibilité invalide.",
+      status: 400,
+    });
+    return;
+  }
+
+  // Enregistre les modifications.
+  const updatedTreeId = await adminTreeDatamapper.update(id, treeInput);
+
+  if (updatedTreeId === undefined) {
+    throw new NotFoundError("Arbre introuvable.");
+  }
+
+  // Récupère l'arbre modifié pour le renvoyer.
+  const updatedTree = await adminTreeDatamapper.findById(updatedTreeId);
+
+  res.status(200).json(updatedTree);
+}
+
+// DELETE /api/admin/trees/:id
+export async function deleteById(req: Request, res: Response): Promise<void> {
+  const id = Number(req.params.id);
+
+  // Vérifie que l'arbre existe.
+  const tree = await adminTreeDatamapper.findById(id);
+
+  if (!tree) {
+    throw new NotFoundError("Arbre introuvable.");
+  }
+
+  // Vérifie si l'arbre apparaît dans une commande.
+  const hasOrders = await adminTreeDatamapper.hasOrders(id);
+
+  if (hasOrders) {
+    throw new ConflictError(
+      "Cet arbre a déjà été commandé : passez-le à « retiré ».",
+    );
+  }
+
+  // Supprime l'arbre.
+  const deletedTreeId = await adminTreeDatamapper.deleteById(id);
+
+  if (deletedTreeId === undefined) {
+    throw new NotFoundError("Arbre introuvable.");
+  }
+
+  // Confirme que l'arbre a été supprimé.
+  res.status(204).send();
 }
