@@ -59,7 +59,7 @@ CREATE TABLE tree (
   photo_url         VARCHAR(255),                                 -- ex. /images/trees/pin-maritime.webp
   planting_location VARCHAR(150),
   category_id       INT NOT NULL REFERENCES category (id),
-  avail ability_id   INT NOT NULL REFERENCES availability (id)
+  availability_id   INT NOT NULL REFERENCES availability (id)
 );
 
 -- -----------------------------------------------------------------------------
