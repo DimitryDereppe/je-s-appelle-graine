@@ -1,10 +1,14 @@
 "use client";
 
+// ─── Bouton "Ajouter au panier" ──────────────────────────────────────────────
+// Appelle POST /api/cart/items via clientApi, puis rafraîchit le compteur.
+
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import styles from "./addToCartButton.module.css";
 import { clientApi } from "@/app/utils/clientApi";
+import { useCartCount } from "@/app/context/CartCountContext";
 
 interface AddToCartButtonProps {
   treeId: number;
@@ -20,9 +24,11 @@ export function AddToCartButton({
   iconOn = false,
 }: AddToCartButtonProps) {
   const router = useRouter();
+  const { refresh } = useCartCount(); // ← rafraîchit le compteur après mutation
   const [isAdding, setIsAdding] = useState(false);
   const [cartMessage, setCartMessage] = useState("");
 
+  // ─── Handler : POST /api/cart/items puis refresh du compteur ───────────────
   async function handleAddToCart() {
     if (isOutOfStock) return;
 
@@ -35,6 +41,7 @@ export function AddToCartButton({
         quantity: 1,
       });
 
+      // 401 / 403 : pas connecté → redirection vers la page de connexion
       if (response.status === 401 || response.status === 403) {
         const currentPage = window.location.pathname + window.location.search;
         router.push(`/connexion?next=${encodeURIComponent(currentPage)}`);
@@ -45,6 +52,8 @@ export function AddToCartButton({
         throw new Error("L'ajout au panier n'a pas fonctionné.");
       }
 
+      // ✅ Ajout réussi en base → on relit le panier pour mettre à jour le badge
+      await refresh();
       setCartMessage(iconOn ? "+ 1" : "L'arbre a été ajouté au panier.");
     } catch (addError) {
       setCartMessage(
@@ -73,9 +82,9 @@ export function AddToCartButton({
         )}
       </button>
       {cartMessage && (
-        <p className={styles.cartMessage} role="status" aria-live="polite">
+        <span className={styles.cartMessage} role="status" aria-live="polite">
           {cartMessage}
-        </p>
+        </span>
       )}
     </>
   );
