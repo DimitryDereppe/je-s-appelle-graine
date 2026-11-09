@@ -782,7 +782,7 @@ describe("userController", () => {
       assert.strictEqual(result.rows[0].buyer_email, libTests.ALICE.email);
     });
 
-    it("should respond 403 if the account is the last active admin", async () => {
+    it("should respond 409 if the account is the last active admin", async () => {
       // Arrange : un seul admin
       const adminId = await libTests.createAccount(ADMIN);
       const cookie = await libTests.loginAs(ADMIN);
@@ -793,7 +793,7 @@ describe("userController", () => {
       });
 
       // Assert : le compte reste en BDD
-      assert.strictEqual(response.status, 403);
+      assert.strictEqual(response.status, 409);
       assert.strictEqual(
         response.data.error,
         "Impossible de supprimer le dernier administrateur.",
@@ -804,7 +804,7 @@ describe("userController", () => {
       assert.strictEqual(result.rows.length, 1);
     });
 
-    it("should respond 403 if the other admin is deactivated", async () => {
+    it("should respond 409 if the other admin is deactivated", async () => {
       // Arrange : un admin désactivé ne compte pas
       await libTests.createAccount(ADMIN);
       await libTests.createAccount({ ...OTHER_ADMIN, isActive: false });
@@ -816,7 +816,7 @@ describe("userController", () => {
       });
 
       // Assert
-      assert.strictEqual(response.status, 403);
+      assert.strictEqual(response.status, 409);
     });
 
     it("should respond 204 if another active admin remains", async () => {

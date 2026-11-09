@@ -2,11 +2,7 @@ import type { Request, Response } from "express";
 import type { IAuthenticatedRequest } from "../@types/index.d.ts";
 import { getAuthenticatedUser } from "./utils.ts";
 import { z } from "zod";
-import {
-  ConflictError,
-  BadRequestError,
-  ForbiddenError,
-} from "../lib/errors.ts";
+import { ConflictError, BadRequestError } from "../lib/errors.ts";
 import { accountDatamapper } from "../datamappers/accountDatamapper.ts";
 import argon2 from "argon2";
 import { clearAccessCookie } from "../lib/token.ts";
@@ -232,13 +228,14 @@ export async function deleteMe(req: IAuthenticatedRequest, res: Response) {
   // le compte connecté (401 s'il n'existe plus, 403 s'il est désactivé)
   const account = await getAuthenticatedUser(req);
 
-  // un admin ne peut pas supprimer son compte s'il est le dernier admin actif → 403
+  // un admin ne peut pas supprimer son compte s'il est le dernier admin actif → 409
   // on ne compte les admins que si le compte à supprimer est celui d'un admin
   if (
     account.role === "admin" &&
     (await accountDatamapper.countActiveAdmins()) <= 1
   ) {
-    throw new ForbiddenError(
+    // 409 et pas 403 : il a le droit de supprimer son compte, c'est l'état de la BDD qui bloque
+    throw new ConflictError(
       "Impossible de supprimer le dernier administrateur.",
     );
   }

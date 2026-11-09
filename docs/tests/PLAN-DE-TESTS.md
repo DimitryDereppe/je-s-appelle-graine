@@ -307,8 +307,8 @@ Même fichier. Les 7 cas passent.
 | F6-INT-14 | Suppression d'un client              | Intégration | `204`, cookie effacé, compte retiré de la BDD                     | ✅     |
 | F6-INT-15 | Jeton réutilisé après la suppression | Intégration | `401` « Vous devez être connecté. »                               | ✅     |
 | F6-INT-16 | Client avec une commande             | Intégration | `204`, commande conservée, identité gardée, `account_id` à `NULL` | ✅     |
-| F6-INT-17 | Dernier admin actif                  | Intégration | `403` « Impossible de supprimer le dernier administrateur. »      | ✅     |
-| F6-INT-18 | Autre admin désactivé                | Intégration | `403` : un compte désactivé ne compte pas                         | ✅     |
+| F6-INT-17 | Dernier admin actif                  | Intégration | `409` « Impossible de supprimer le dernier administrateur. »      | ✅     |
+| F6-INT-18 | Autre admin désactivé                | Intégration | `409` : un compte désactivé ne compte pas                         | ✅     |
 | F6-INT-19 | Un autre admin actif reste           | Intégration | `204`                                                             | ✅     |
 | F6-INT-20 | Sans connexion                       | Intégration | `401` « Vous devez être connecté. »                               | ✅     |
 
