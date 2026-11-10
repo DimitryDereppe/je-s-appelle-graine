@@ -6,13 +6,13 @@ import {
   NotFoundError,
 } from "../lib/errors.ts";
 
-//obtien la liste de tous les customer
+//obtien la liste de tous les compte
 export async function getAllUsers(_req: Request, res: Response) {
   const accounts = await accountDatamapper.findAllForAdmin();
   res.status(200).json(accounts);
 }
 
-// un arbre selon son id
+// un compte selon son id
 export async function getOneUser(req: Request, res: Response) {
   const id = Number(req.params.id);
   const account = await accountDatamapper.findById(id);
@@ -43,8 +43,8 @@ export async function updateUserStatus(req: Request, res: Response) {
     isActive === false && account.role === "admin" && account.isActive;
 
   if (disable) {
-    const numberAdminsActifs = await accountDatamapper.countActiveAdmins();
-    if (numberAdminsActifs <= 1) {
+    const actifAdminsNumber = await accountDatamapper.countActiveAdmins();
+    if (actifAdminsNumber <= 1) {
       throw new ConflictError(
         "Impossible de désactiver le dernier administrateur.",
       );
@@ -63,7 +63,7 @@ export async function deleteUser(req: Request, res: Response) {
   // le compte existe-t-il ? → sinon 404
   const account = await accountDatamapper.findById(id);
   if (!account) {
-    throw new NotFoundError("Compte introuvable");
+    throw new NotFoundError("Compte introuvable.");
   }
 
   // règle du dernier admin → 409

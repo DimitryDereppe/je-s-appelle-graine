@@ -36,6 +36,21 @@ export interface ICategory {
 }
 
 // --------------------------------
+// Panier : une ligne renvoyée par GET /api/cart (même forme que côté API)
+// --------------------------------
+export interface ICartItem {
+  id: number;
+  accountId: number;
+  treeId: number;
+  quantity: number;
+  name: string;
+  price: number;
+  photoUrl: string | null;
+  plantingLocation: string | null;
+  availabilityName: string;
+}
+
+// --------------------------------
 // Commandes (F5, contrat carte #103) — table purchase ("order" est réservé en SQL)
 // --------------------------------
 export type PaymentMethod = "virement" | "chèque";
@@ -88,4 +103,22 @@ export interface IOrderSummary {
 // extends + status : avec le statut limité aux 4 valeurs
 export interface IOrderDetail extends IOrderWithInstructions {
   status: OrderStatus;
+}
+
+// --------------------------------
+// Compte du client (F6, contrat carte #159)
+// --------------------------------
+// mêmes valeurs que le CHECK de la table account (utilisé aussi par IRegister)
+export type AccountType = "particulier" | "association" | "entreprise";
+
+// réponse de GET et PATCH /api/users/me
+export interface IAccount {
+  id: number;
+  firstname: string;
+  lastname: string;
+  email: string;
+  address: string | null;
+  accountType: AccountType;
+  organizationName: string | null;
+  role: string;
 }
