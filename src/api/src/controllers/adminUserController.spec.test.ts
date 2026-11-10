@@ -162,7 +162,7 @@ describe("adminUserController", () => {
 
       // Assert
       assert.strictEqual(response.status, 404);
-      assert.strictEqual(response.data.error, "Compte introuvable");
+      assert.strictEqual(response.data.error, "Compte introuvable.");
     });
 
     it("should respond 400 if the id is not a number", async () => {
@@ -326,7 +326,7 @@ describe("adminUserController", () => {
 
       // Assert
       assert.strictEqual(response.status, 404);
-      assert.strictEqual(response.data.error, "Compte introuvable");
+      assert.strictEqual(response.data.error, "Compte introuvable.");
     });
 
     it("should respond 409 when deactivating the last active admin", async () => {
@@ -440,7 +440,7 @@ describe("adminUserController", () => {
 
       // Assert
       assert.strictEqual(response.status, 404);
-      assert.strictEqual(response.data.error, "Compte introuvable");
+      assert.strictEqual(response.data.error, "Compte introuvable.");
     });
 
     it("should respond 400 if the id is not a number", async () => {

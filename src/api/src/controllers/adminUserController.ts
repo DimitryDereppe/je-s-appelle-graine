@@ -17,7 +17,7 @@ export async function getOneUser(req: Request, res: Response) {
   const id = Number(req.params.id);
   const account = await accountDatamapper.findById(id);
   if (!account) {
-    throw new NotFoundError("Compte introuvable");
+    throw new NotFoundError("Compte introuvable.");
   }
   res.status(200).json(account);
 }
@@ -35,7 +35,7 @@ export async function updateUserStatus(req: Request, res: Response) {
   // 2. on cherche le compte (sinon → 404)
   const account = await accountDatamapper.findById(id);
   if (!account) {
-    throw new NotFoundError("Compte introuvable");
+    throw new NotFoundError("Compte introuvable.");
   }
 
   // 3. on ne peut pas désactiver le dernier admin actif (→ 409)
