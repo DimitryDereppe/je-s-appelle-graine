@@ -19,6 +19,7 @@ const navigationLinks = [
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface User {
   firstname: string;
+  role: string; // "customer" ou "admin" : le lien « Administration » n'est affiché qu'à un admin
 }
 
 // ─── Composant principal ──────────────────────────────────────────────────────
@@ -170,12 +171,37 @@ export default function Header() {
                 {label}
               </Link>
             ))}
-            {/* Connecté : prénom avec lien vers mon compte + déconnexion ; visiteur : lien vers la connexion */}{" "}
+
+            {/* Connecté : prénom avec lien vers mon compte + déconnexion ; visiteur : lien vers la connexion */}
             {user ? (
               <>
-                <span className={styles.greeting}>
+                <Link
+                  className={`${styles.navigationLink} ${
+                    pathname === "/compte" ? styles.activeLink : ""
+                  }`}
+                  href="/compte"
+                  aria-current={pathname === "/compte" ? "page" : undefined}
+                  onClick={() => setIsMenuOpen(false)}
+                >
                   Bonjour {user.firstname}
-                </span>
+                </Link>
+                {/* seulement pour un admin ; la vraie protection reste dans l'API (403) */}
+                {user.role === "admin" && (
+                  <Link
+                    // startsWith (et pas === comme les autres liens) : souligné sur toutes les pages
+                    // de l'espace admin, /admin comme /admin/arbres ou /admin/comptes/5
+                    className={`${styles.navigationLink} ${
+                      pathname.startsWith("/admin") ? styles.activeLink : ""
+                    }`}
+                    href="/admin"
+                    aria-current={
+                      pathname.startsWith("/admin") ? "page" : undefined
+                    }
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Administration
+                  </Link>
+                )}
                 <button
                   type="button"
                   className={`${styles.navigationLink} ${styles.logoutButton}`}

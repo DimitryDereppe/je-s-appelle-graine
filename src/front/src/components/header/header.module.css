@@ -130,16 +130,6 @@
   background-color: var(--color-green);
 }
 
-/* Message « Bonjour … » : même alignement qu'un lien, mais pas cliquable */
-.greeting {
-  display: flex;
-  align-items: center;
-  min-height: 44px;
-  padding: 0.5rem 0.75rem;
-  color: var(--color-deep-green, #18352e);
-  font-size: 1rem;
-}
-
 /* Retire l'apparence par défaut d'un <button> (bordure, fond gris, police système) */
 .logoutButton {
   border: 0;
