@@ -8,5 +8,11 @@ export const router = Router();
 router.get("/orders", adminOrderController.getAllOrders);
 
 // GET /api/admin/orders/:id : le détail d'une commande
-// validateId : 400 si l'id n'est pas un entier > 0
 router.get("/orders/:id", validateId, adminOrderController.getOrderById);
+
+// PATCH /api/admin/orders/:id/status : modifier l'état d'une commande
+router.patch(
+  "/orders/:id/status",
+  validateId,
+  adminOrderController.updateOneOrder,
+);
