@@ -1,7 +1,11 @@
 // Service d'envoi d'emails (carte #105) : ni HTTP (contrôleur) ni BDD (datamapper),
 // seulement la mise en forme et l'envoi. Le contrôleur lui donne tout ce qu'il faut.
 import nodemailer from "nodemailer";
-import type { IAccountProfile, IOrder } from "../@types/index.d.ts";
+import type {
+  IAccountProfile,
+  IAdminOrder,
+  IOrder,
+} from "../@types/index.d.ts";
 import { config } from "../../config.ts";
 
 // instructions de paiement, calculées par le contrôleur (getPaymentInstructions)
@@ -108,5 +112,56 @@ L'équipe Je s'appelle Graine`;
   }
 
   // production : envoi réel ; une erreur ici remonte au contrôleur, qui l'attrape (try…catch)
+  await transporter.sendMail(email);
+}
+
+// --------------------------------
+// email de changement de statut : paiement reçu (US25b) ou annulation (US25c)
+// --------------------------------
+// la commande relue après le changement (findOrderByIdForAdmin) : elle a déjà l'acheteur et le nouveau statut
+export async function sendOrderStatusEmail(order: IAdminOrder) {
+  // montant : 50.7 → "50,70 €" (même écriture que l'email de confirmation)
+  const amount = `${order.totalAmount.toFixed(2).replace(".", ",")} €`;
+
+  // le message et l'objet dépendent du nouveau statut de la commande
+  const message =
+    order.status === "payée"
+      ? "Votre paiement a bien été reçu. Merci ! Vos arbres seront bientôt plantés."
+      : "Votre commande a été annulée faute de paiement sous 10 jours.";
+
+  const subject =
+    order.status === "payée"
+      ? `Commande n° ${order.id} : paiement reçu`
+      : `Commande n° ${order.id} annulée`;
+
+  // template literal : tout ce qui est entre les backticks fait partie du texte de l'email,
+  // espaces compris : les lignes sont collées à gauche pour que l'email n'ait pas de décalage
+  const text = `Bonjour ${order.buyerFirstname} ${order.buyerLastname},
+
+${message}
+
+Référence : commande n° ${order.id}
+Montant TTC : ${amount}
+
+L'équipe Je s'appelle Graine`;
+
+  // l'email, au format attendu par Nodemailer
+  const email = {
+    from: config.mail.from,
+    // l'adresse copiée dans la commande : l'email part même si le compte a été supprimé
+    to: order.buyerEmail,
+    subject,
+    text,
+  };
+
+  // dev et tests : on affiche l'email au lieu de l'envoyer (comme sendOrderConfirmation)
+  if (!transporter) {
+    console.log(
+      `--- Email non envoyé (SMTP_HOST absent) ---\nÀ : ${email.to}\nObjet : ${email.subject}\n\n${email.text}\n---`,
+    );
+    return;
+  }
+
+  // production : envoi réel ; une erreur remonte au contrôleur, qui l'attrape (try…catch)
   await transporter.sendMail(email);
 }

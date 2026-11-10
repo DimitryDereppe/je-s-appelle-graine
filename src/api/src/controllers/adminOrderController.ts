@@ -2,6 +2,7 @@ import type { Request, Response } from "express";
 import { z } from "zod";
 import { ordersDatamapper } from "../datamappers/ordersDatamapper.ts";
 import { ConflictError, NotFoundError } from "../lib/errors.ts";
+import { sendOrderStatusEmail } from "../services/emailService.ts";
 
 // GET /api/admin/orders?status=… : toutes les commandes, ou celles d'un statut
 export async function getAllOrders(req: Request, res: Response) {
@@ -63,5 +64,25 @@ export async function updateOneOrder(req: Request, res: Response) {
 
   // relit la commande : nouveau statut et date du changement (paidAt, plantedAt ou cancelledAt)
   const updatedOrder = await ordersDatamapper.findOrderByIdForAdmin(orderId);
+  // Pour le typage :
+  // findOrderByIdForAdmin peut renvoyer null : si c'est le cas, on s'arrête ici (throw) ;
+  // après ce if, TypeScript sait que la commande n'est pas null (en pratique, elle existe : on vient de la modifier)
+  if (!updatedOrder) {
+    throw new NotFoundError("Commande introuvable.");
+  }
+
+  // email au client à « payée » et à « annulée », rien pour « plantée »
+  if (status === "payée" || status === "annulée") {
+    // Même si l'envoi d'email échoue, le changement de statut est déjà enregistré
+    try {
+      await sendOrderStatusEmail(updatedOrder);
+    } catch (error) {
+      console.error("Email de changement de statut non envoyé", {
+        orderId,
+        error,
+      });
+    }
+  }
+
   res.status(200).json(updatedOrder);
 }
