@@ -12,8 +12,7 @@ export function CartSummary() {
   // null tant que le panier n'est pas chargé
   const [items, setItems] = useState<ICartItem[] | null>(null);
   const [errorMessage, setErrorMessage] = useState("");
-  // { items, total } (Loïc) : décommenter pour garder le total renvoyé par l'API
-  // const [total, setTotal] = useState(0);
+  const [total, setTotal] = useState(0);
   const router = useRouter();
 
   // useEffect : lance le chargement une fois la page affichée dans le navigateur
@@ -32,14 +31,10 @@ export function CartSummary() {
           return;
         }
 
-        // aujourd'hui l'API renvoie la liste des lignes
-        const data: ICartItem[] = await response.json();
-        setItems(data);
-
-        // { items, total } (Loïc) : remplacer les 2 lignes au-dessus par :
-        // const data: { items: ICartItem[]; total: number } = await response.json();
-        // setItems(data.items);
-        // setTotal(data.total);
+        const data: { items: ICartItem[]; total: number } =
+          await response.json();
+        setItems(data.items);
+        setTotal(data.total);
       } catch {
         setErrorMessage("Une erreur est survenue.");
       }
@@ -70,14 +65,6 @@ export function CartSummary() {
       </>
     );
   }
-
-  // reduce : additionne prix × quantité de chaque ligne, en partant de 0
-  // (même calcul que l'API ; c'est elle qui refait le vrai total à la commande)
-  // { items, total } (Loïc) : supprimer ce calcul, total vient alors du state
-  const total = items.reduce(
-    (sum, item) => sum + item.price * item.quantity,
-    0,
-  );
 
   // some : true si au moins un arbre n'est plus disponible → l'API refuserait la commande
   const hasUnavailableTree = items.some(
