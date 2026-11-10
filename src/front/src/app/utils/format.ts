@@ -1,3 +1,5 @@
+import type { OrderStatus } from "../../@types";
+
 // Écrit un montant en euros, à la française : 9.9 → « 9,90 € »
 export function formatEuros(amount: number): string {
   return amount.toLocaleString("fr-FR", {
@@ -13,4 +15,20 @@ export function formatDate(date: string): string {
     dateStyle: "long",
     timeZone: "Europe/Paris",
   });
+}
+
+// Statut d'une commande, tel qu'on l'affiche au client
+// pas de default : status ne peut valoir que ces 4 valeurs (type OrderStatus),
+// TypeScript signale un case oublié
+export function formatOrderStatus(status: OrderStatus): string {
+  switch (status) {
+    case "en attente":
+      return "En attente de paiement";
+    case "payée":
+      return "Payée";
+    case "plantée":
+      return "Plantée";
+    case "annulée":
+      return "Annulée";
+  }
 }
