@@ -387,6 +387,30 @@ Vérifiés sur `feat/f6-compte-front` le 10/11/2026. Les 12 cas passent.
 | F6-MAN-22 | Mobile (360 px) et clavier                   | Manuel | rien ne déborde ; Tab atteint le menu, les champs et les boutons, focus visible                                                                                               | ✅     |
 | F6-MAN-23 | Lighthouse                                   | Manuel | accessibilité ≥ 90 ; SEO sous 90 attendu : `noindex` volontaire, page privée                                                                                                  | ✅     |
 
-## F7 à F9
+**## F7 · Admin catalogue (US41, US42, US43, US43b)**
+
+Tests d'intégration dans `src/api/src/controllers/adminTreeController.spec.test.ts`
+
+**### Tests d'intégration — routes admin des arbres**
+
+| N°        | Cas                                      | Type        | Attendu                                                       | Obtenu      |
+| --------- | ---------------------------------------- | ----------- | ------------------------------------------------------------- | ----------- |
+| F7-INT-1  | La liste contient un arbre retiré        | Intégration | `200`, l'arbre retiré apparaît dans la liste                  | ✅          |
+| F7-INT-2  | Création puis modification du prix seul  | Intégration | `POST` en `201`, `PATCH` en `200`, autres champs inchangés    | ✅          |
+| F7-INT-3  | Liste sans connexion                     | Intégration | `401`, « Vous devez être connecté. »                          | ✅          |
+| F7-INT-4  | Liste avec un compte client              | Intégration | `403`, « Accès réservé à l'administrateur. »                  | ✅          |
+| F7-INT-5  | Lecture d'un arbre inconnu               | Intégration | `404`                                                         | ✅          |
+| F7-INT-6  | Création valide                          | Intégration | `201`, l'arbre créé est renvoyé                               | ✅          |
+| F7-INT-7  | Création avec un nom vide                | Intégration | `400`, « Le nom est obligatoire. »                            | ✅          |
+| F7-INT-8  | Création avec un prix négatif            | Intégration | `400`, « Le prix doit être positif. »                         | ✅          |
+| F7-INT-9  | Création avec une URL de photo externe   | Intégration | `400`, chemin de photo invalide                               | ✅          |
+| F7-INT-10 | Création avec une catégorie inconnue     | Intégration | `400`, « Catégorie invalide. »                                | ✅          |
+| F7-INT-11 | Création avec une disponibilité inconnue | Intégration | `400`, « Disponibilité invalide. »                            | ✅          |
+| F7-INT-12 | Suppression d'un arbre jamais commandé   | Intégration | `204`, arbre supprimé                                         | ✅          |
+| F7-INT-13 | Suppression d'un arbre déjà commandé     | Intégration | `409`, suppression refusée                                    | ✅          |
+| F7-INT-14 | Liste des disponibilités                 | Intégration | `200`, les trois disponibilités sont présentes, triées par id | ✅          |
+| F7-INT-15 | Changement de disponibilité avec `PATCH` | Intégration | `200`, l'arbre reçoit la disponibilité demandée               | ⏳ à écrire |
+
+**## F8 et F9**
 
 À compléter au fil des sprints.

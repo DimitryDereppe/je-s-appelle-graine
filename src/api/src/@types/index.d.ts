@@ -183,3 +183,28 @@ export interface ICategory {
   id: number;
   name: string;
 }
+
+// Données complètes d’un arbre pour l’espace d’admin.
+// Récupere ITree et ajoute les id de catégorie et de disponibilité,
+export interface IAdminTree extends ITree {
+  categoryId: number;
+  availabilityId: number;
+}
+
+// Données envoyées pour créer ou modifier un arbre.
+// Les champs description, photo et lieu peuvent être vidés avec null.
+export interface ITreeInput {
+  name: string;
+  description: string | null;
+  price: number;
+  photoUrl: string | null;
+  plantingLocation: string | null;
+  categoryId: number;
+  availabilityId: number;
+}
+
+// Disponibilité proposée coté admin
+export interface IAvailability {
+  id: number;
+  name: ICatalogueTree["availabilityName"];
+}
