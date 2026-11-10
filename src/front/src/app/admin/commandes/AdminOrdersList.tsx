@@ -113,6 +113,8 @@ export function AdminOrdersList() {
               <span className={styles.date}>
                 {formatDate(order.purchaseDate)}
               </span>
+              {/* écrit en toutes lettres : pas seulement une couleur, lisible par tout le monde */}
+              {order.isLate && <span className={styles.late}>En retard</span>}
             </Link>
           </li>
         ))}

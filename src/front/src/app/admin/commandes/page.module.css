@@ -68,11 +68,18 @@
 }
 
 .status,
-.amount {
+.amount,
+.late {
   text-align: right;
 }
 
 .amount {
+  font-weight: 600;
+}
+
+/* « En retard » : en gras et en couleur, en plus du texte */
+.late {
+  color: var(--color-terracotta);
   font-weight: 600;
 }
 
