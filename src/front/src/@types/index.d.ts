@@ -104,3 +104,21 @@ export interface IOrderSummary {
 export interface IOrderDetail extends IOrderWithInstructions {
   status: OrderStatus;
 }
+
+// --------------------------------
+// Compte du client (F6, contrat carte #159)
+// --------------------------------
+// mêmes valeurs que le CHECK de la table account (utilisé aussi par IRegister)
+export type AccountType = "particulier" | "association" | "entreprise";
+
+// réponse de GET et PATCH /api/users/me
+export interface IAccount {
+  id: number;
+  firstname: string;
+  lastname: string;
+  email: string;
+  address: string | null;
+  accountType: AccountType;
+  organizationName: string | null;
+  role: string;
+}
