@@ -170,6 +170,7 @@ export default function Header() {
                 {label}
               </Link>
             ))}
+            {/* Connecté : prénom avec lien vers mon compte + déconnexion ; visiteur : lien vers la connexion */}{" "}
             {user ? (
               <>
                 <span className={styles.greeting}>
