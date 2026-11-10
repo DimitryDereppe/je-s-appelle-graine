@@ -1,0 +1,812 @@
+import { describe, it, mock } from "node:test";
+import assert from "node:assert";
+import * as libTests from "../../test/index.ts";
+import { pool } from "../data/db-client.ts";
+
+// --------------------------------
+// prépare un client connecté avec un panier : 3 chênes à 16,90 € et 1 hêtre à 12,50 €
+// retourne ce dont les tests ont besoin
+// par défaut le client est ALICE ; on peut passer un autre compte (ex. SHERLOCK.account)
+// --------------------------------
+async function createCustomerWithCart(account = libTests.ALICE) {
+  const aliceId = await libTests.createAccount(account);
+  const oakId = await libTests.createTree({
+    name: "Chêne pédonculé",
+    price: 16.9,
+    plantingLocation: "Forêt de Brocéliande — Paimpont (35)",
+  });
+  const beechId = await libTests.createTree({ name: "Hêtre", price: 12.5 });
+  await libTests.addCartItem(aliceId, oakId, 3);
+  await libTests.addCartItem(aliceId, beechId, 1);
+  const cookie = await libTests.loginAs(account);
+  return { aliceId, oakId, cookie };
+}
+
+// compte les lignes d'une table : pour vérifier que « rien n'est enregistré »
+async function countRows(table: "purchase" | "purchase_line" | "cart_item") {
+  const result = await pool.query(`SELECT COUNT(*) FROM ${table}`);
+  return Number(result.rows[0].count);
+}
+
+const billingAddress = "12 rue des Chênes, 35380 Paimpont";
+const validBody = {
+  paymentMethod: "virement",
+  paymentCommitment: true,
+  billingAddress,
+};
+
+// Test d'intégration : requête HTTP et BDD de test
+describe("ordersController", () => {
+  // ==================
+  // POST /orders (passer commande)
+  // ==================
+  describe("[POST] /api/orders", () => {
+    it("should respond 201 with the order, its lines, total and due date", async () => {
+      // Arrange
+      const { cookie } = await createCustomerWithCart();
+
+      // Act
+      const response = await libTests.requester.post("/orders", validBody, {
+        headers: { Cookie: cookie },
+      });
+
+      // Assert : champs du contrat #103
+      assert.strictEqual(response.status, 201);
+      assert.deepStrictEqual(Object.keys(response.data).sort(), [
+        "billingAddress",
+        "dueDate",
+        "id",
+        "lines",
+        "paymentInstructions",
+        "paymentMethod",
+        "purchaseDate",
+        "status",
+        "totalAmount",
+      ]);
+      assert.strictEqual(response.data.status, "en attente");
+      assert.strictEqual(response.data.paymentMethod, "virement");
+      assert.strictEqual(response.data.billingAddress, billingAddress);
+      // total recalculé par l'API : 3 × 16,90 + 1 × 12,50 = 63,20 (arrondi au centime)
+      assert.strictEqual(response.data.totalAmount, 63.2);
+      // date limite = date de commande + 10 jours
+      const expectedDueDate = new Date(response.data.purchaseDate);
+      expectedDueDate.setUTCDate(expectedDueDate.getUTCDate() + 10);
+      assert.strictEqual(
+        response.data.dueDate,
+        expectedDueDate.toISOString().slice(0, 10),
+      );
+      // lignes figées : nom, prix payé, quantité, lieu de plantation
+      assert.deepStrictEqual(response.data.lines[0], {
+        treeName: "Chêne pédonculé",
+        unitPrice: 16.9,
+        quantity: 3,
+        plantingLocation: "Forêt de Brocéliande — Paimpont (35)",
+      });
+      assert.strictEqual(response.data.lines.length, 2);
+    });
+
+    it("should give the IBAN for a bank transfer", async () => {
+      // Arrange
+      const { cookie } = await createCustomerWithCart();
+
+      // Act
+      const response = await libTests.requester.post("/orders", validBody, {
+        headers: { Cookie: cookie },
+      });
+
+      // Assert : instructions de virement (valeurs de config.ts)
+      assert.deepStrictEqual(
+        Object.keys(response.data.paymentInstructions).sort(),
+        ["bic", "holder", "iban"],
+      );
+    });
+
+    it("should give the payee and address for a cheque", async () => {
+      // Arrange
+      const { cookie } = await createCustomerWithCart();
+
+      // Act
+      const response = await libTests.requester.post(
+        "/orders",
+        { ...validBody, paymentMethod: "chèque" },
+        { headers: { Cookie: cookie } },
+      );
+
+      // Assert : instructions pour un chèque
+      assert.strictEqual(response.status, 201);
+      assert.deepStrictEqual(
+        Object.keys(response.data.paymentInstructions).sort(),
+        ["address", "payableTo"],
+      );
+    });
+
+    it("should save the buyer identity and empty the cart", async () => {
+      // Arrange
+      const { aliceId, cookie } = await createCustomerWithCart();
+
+      // Act
+      const response = await libTests.requester.post("/orders", validBody, {
+        headers: { Cookie: cookie },
+      });
+
+      // Assert : identité figée dans la commande, panier vidé
+      const purchase = await pool.query(
+        "SELECT buyer_email, buyer_address, account_id FROM purchase WHERE id = $1",
+        [response.data.id],
+      );
+      assert.strictEqual(purchase.rows[0].buyer_email, libTests.ALICE.email);
+      assert.strictEqual(purchase.rows[0].buyer_address, billingAddress);
+      assert.strictEqual(purchase.rows[0].account_id, aliceId);
+      assert.strictEqual(await countRows("purchase_line"), 2);
+      assert.strictEqual(await countRows("cart_item"), 0);
+    });
+
+    it("should keep the price paid even if the tree price changes later", async () => {
+      // Arrange : commande passée, puis l'admin change le prix du chêne
+      const { oakId, cookie } = await createCustomerWithCart();
+      const order = await libTests.requester.post("/orders", validBody, {
+        headers: { Cookie: cookie },
+      });
+      await pool.query("UPDATE tree SET price = 99 WHERE id = $1", [oakId]);
+
+      // Act
+      const response = await libTests.requester.get(
+        `/orders/${order.data.id}`,
+        { headers: { Cookie: cookie } },
+      );
+
+      // Assert : le prix de la ligne reste celui du jour de la commande
+      assert.strictEqual(response.data.lines[0].unitPrice, 16.9);
+      assert.strictEqual(response.data.totalAmount, 63.2);
+    });
+
+    it("should respond 400 if the payment method is invalid", async () => {
+      // Arrange
+      const { cookie } = await createCustomerWithCart();
+
+      // Act
+      const response = await libTests.requester.post(
+        "/orders",
+        { ...validBody, paymentMethod: "carte" },
+        { headers: { Cookie: cookie } },
+      );
+
+      // Assert
+      assert.strictEqual(response.status, 400);
+      assert.strictEqual(response.data.error, "Mode de paiement invalide.");
+    });
+
+    it("should respond 400 if the payment commitment is not checked", async () => {
+      // Arrange
+      const { cookie } = await createCustomerWithCart();
+
+      // Act : case non cochée
+      const response = await libTests.requester.post(
+        "/orders",
+        { ...validBody, paymentCommitment: false },
+        { headers: { Cookie: cookie } },
+      );
+
+      // Assert
+      assert.strictEqual(response.status, 400);
+      assert.strictEqual(
+        response.data.error,
+        "Vous devez vous engager à payer sous 10 jours.",
+      );
+    });
+
+    it("should respond 400 if the billing address is missing or blank", async () => {
+      // Arrange
+      const { cookie } = await createCustomerWithCart();
+      const bodyWithoutAddress = {
+        paymentMethod: "virement",
+        paymentCommitment: true,
+      };
+
+      // Act : adresse absente, puis adresse faite seulement d'espaces
+      const missing = await libTests.requester.post(
+        "/orders",
+        bodyWithoutAddress,
+        { headers: { Cookie: cookie } },
+      );
+      const blank = await libTests.requester.post(
+        "/orders",
+        { ...validBody, billingAddress: "   " },
+        { headers: { Cookie: cookie } },
+      );
+
+      // Assert
+      assert.strictEqual(missing.status, 400);
+      assert.strictEqual(
+        missing.data.error,
+        "L'adresse de facturation est obligatoire.",
+      );
+      assert.strictEqual(blank.status, 400);
+      assert.strictEqual(
+        blank.data.error,
+        "L'adresse de facturation est obligatoire.",
+      );
+    });
+
+    it("should respond 400 if the cart is empty", async () => {
+      // Arrange : ALICE n'a rien dans son panier
+      await libTests.createAccount(libTests.ALICE);
+      const cookie = await libTests.loginAs(libTests.ALICE);
+
+      // Act
+      const response = await libTests.requester.post("/orders", validBody, {
+        headers: { Cookie: cookie },
+      });
+
+      // Assert
+      assert.strictEqual(response.status, 400);
+      assert.strictEqual(response.data.error, "Votre panier est vide.");
+      assert.strictEqual(await countRows("purchase"), 0);
+    });
+
+    it("should respond 409 and save nothing if a tree is no longer available", async () => {
+      // Arrange : un arbre retiré du catalogue est resté dans le panier
+      const { aliceId, cookie } = await createCustomerWithCart();
+      const withdrawnId = await libTests.createTree({
+        name: "Orme",
+        availability: "retiré",
+      });
+      await libTests.addCartItem(aliceId, withdrawnId, 1);
+
+      // Act
+      const response = await libTests.requester.post("/orders", validBody, {
+        headers: { Cookie: cookie },
+      });
+
+      // Assert : 409, aucune commande, panier intact (3 lignes)
+      assert.strictEqual(response.status, 409);
+      assert.strictEqual(
+        response.data.error,
+        "Un arbre de votre panier n'est plus disponible.",
+      );
+      assert.strictEqual(await countRows("purchase"), 0);
+      assert.strictEqual(await countRows("cart_item"), 3);
+    });
+
+    it("should save nothing if a step fails in the middle of the transaction", async () => {
+      // Arrange : on force l'échec de l'étape 2 (lignes de commande) avec un trigger
+      // qui lève une erreur à chaque INSERT dans purchase_line.
+      // L'étape 1 (INSERT purchase) a déjà réussi à ce moment-là : seul le ROLLBACK peut l'annuler.
+      const { cookie } = await createCustomerWithCart();
+      await pool.query(`
+        CREATE FUNCTION fail_purchase_line() RETURNS trigger AS $$
+        BEGIN RAISE EXCEPTION 'échec simulé'; END;
+        $$ LANGUAGE plpgsql`);
+      await pool.query(`
+        CREATE TRIGGER fail_purchase_line BEFORE INSERT ON purchase_line
+        FOR EACH ROW EXECUTE FUNCTION fail_purchase_line()`);
+
+      try {
+        // Act
+        const response = await libTests.requester.post("/orders", validBody, {
+          headers: { Cookie: cookie },
+        });
+
+        // Assert : 500, et la base est exactement comme avant la commande
+        assert.strictEqual(response.status, 500);
+        assert.strictEqual(await countRows("purchase"), 0);
+        assert.strictEqual(await countRows("purchase_line"), 0);
+        assert.strictEqual(await countRows("cart_item"), 2);
+      } finally {
+        // le trigger n'est pas effacé entre deux tests (seules les données le sont) :
+        // on le supprime, réussite ou échec, pour ne pas casser les tests suivants
+        await pool.query("DROP TRIGGER fail_purchase_line ON purchase_line");
+        await pool.query("DROP FUNCTION fail_purchase_line");
+      }
+    });
+
+    // --- email de confirmation (carte #105) ---
+    // en test, SMTP_HOST est absent : emailService affiche l'email avec console.log au lieu de l'envoyer.
+    // mock.method remplace console.log le temps du test : on récupère ce qui aurait été affiché.
+
+    it("should prepare the confirmation email with the order information", async () => {
+      // Arrange : ALICE a un panier ; on espionne console.log (sans rien afficher)
+      const { cookie } = await createCustomerWithCart();
+      const consoleLog = mock.method(console, "log", () => {});
+
+      try {
+        // Act
+        const response = await libTests.requester.post("/orders", validBody, {
+          headers: { Cookie: cookie },
+        });
+
+        // Assert : un seul affichage, l'email, avec les informations de la confirmation
+        assert.strictEqual(response.status, 201);
+        assert.strictEqual(consoleLog.mock.callCount(), 1);
+        // arguments[0] : le premier argument passé à console.log (le texte de l'email)
+        const email = consoleLog.mock.calls[0].arguments[0];
+        assert.ok(email.includes(`À : ${libTests.ALICE.email}`));
+        assert.ok(
+          email.includes(`Objet : Commande n° ${response.data.id} confirmée`),
+        );
+        assert.ok(email.includes("Montant TTC : 63,20 €")); // 3 × 16,90 + 12,50
+        assert.ok(email.includes(billingAddress));
+        assert.ok(email.includes("IBAN : "));
+        assert.ok(
+          email.includes(`Indiquez « Commande n° ${response.data.id} »`),
+        );
+        // prénom et nom du client
+        assert.ok(
+          email.includes(
+            `Bonjour ${libTests.ALICE.firstname} ${libTests.ALICE.lastname},`,
+          ),
+        );
+      } finally {
+        // on remet le vrai console.log, réussite ou échec
+        consoleLog.mock.restore();
+      }
+    });
+
+    it("should prepare the confirmation email for a payment by check", async () => {
+      // Arrange : ALICE a un panier et paie par chèque ; on espionne console.log
+      const { cookie } = await createCustomerWithCart();
+      const consoleLog = mock.method(console, "log", () => {});
+
+      try {
+        // Act : même body, seul le mode de paiement change (...validBody copie le reste)
+        const response = await libTests.requester.post(
+          "/orders",
+          { ...validBody, paymentMethod: "chèque" },
+          { headers: { Cookie: cookie } },
+        );
+
+        // Assert : le texte du chèque, sans le « n° » en trop, et pas celui du virement
+        assert.strictEqual(response.status, 201);
+        const email = consoleLog.mock.calls[0].arguments[0];
+        assert.ok(email.includes("Paiement par chèque :\n"));
+        assert.ok(!email.includes("Paiement par chèque : n°"));
+        assert.ok(email.includes("À l'ordre de : "));
+        assert.ok(
+          email.includes(`Écrivez « Commande n° ${response.data.id} »`),
+        );
+        assert.ok(!email.includes("IBAN : "));
+      } finally {
+        consoleLog.mock.restore();
+      }
+    });
+
+    it("should keep the order if the confirmation email fails", async () => {
+      // Arrange : on simule un échec d'envoi : console.log (l'« envoi » en test) lève une erreur ;
+      // console.error est espionné pour vérifier la trace laissée par le catch du contrôleur
+      const { cookie } = await createCustomerWithCart();
+      const consoleLog = mock.method(console, "log", () => {
+        throw new Error("échec d'envoi simulé");
+      });
+      const consoleError = mock.method(console, "error", () => {});
+
+      try {
+        // Act
+        const response = await libTests.requester.post("/orders", validBody, {
+          headers: { Cookie: cookie },
+        });
+
+        // Assert : 201, commande gardée, panier vidé, et l'échec est noté dans les logs
+        assert.strictEqual(response.status, 201);
+        assert.strictEqual(await countRows("purchase"), 1);
+        assert.strictEqual(await countRows("cart_item"), 0);
+        assert.strictEqual(consoleError.mock.callCount(), 1);
+        assert.strictEqual(
+          consoleError.mock.calls[0].arguments[0],
+          "Email de confirmation non envoyé",
+        );
+      } finally {
+        consoleLog.mock.restore();
+        consoleError.mock.restore();
+      }
+    });
+
+    it("should respond 401 if not connected", async () => {
+      // Act : sans cookie
+      const response = await libTests.requester.post("/orders", validBody);
+
+      // Assert
+      assert.strictEqual(response.status, 401);
+      assert.strictEqual(response.data.error, "Vous devez être connecté.");
+    });
+  });
+
+  // ==================
+  // GET /orders/:id (page de confirmation)
+  // ==================
+  describe("[GET] /api/orders/:id", () => {
+    it("should respond 200 with the same order as POST /api/orders", async () => {
+      // Arrange : ALICE passe commande
+      const { cookie } = await createCustomerWithCart();
+      const order = await libTests.requester.post("/orders", validBody, {
+        headers: { Cookie: cookie },
+      });
+
+      // Act
+      const response = await libTests.requester.get(
+        `/orders/${order.data.id}`,
+        { headers: { Cookie: cookie } },
+      );
+
+      // Assert : même contenu que la réponse du POST (la page reste correcte si on la recharge)
+      assert.strictEqual(response.status, 200);
+      assert.deepStrictEqual(response.data, order.data);
+    });
+
+    it("should return the billing address given when ordering", async () => {
+      // Arrange : ALICE commande avec une adresse de facturation
+      // (différente de celle de son compte : c'est bien l'adresse saisie qui est gardée)
+      const { cookie } = await createCustomerWithCart();
+      const otherAddress = "221B Baker Street, London NW1 6XE";
+      const order = await libTests.requester.post(
+        "/orders",
+        { ...validBody, billingAddress: otherAddress },
+        { headers: { Cookie: cookie } },
+      );
+
+      // Act : relecture de la commande, comme sur la page de confirmation
+      const response = await libTests.requester.get(
+        `/orders/${order.data.id}`,
+        { headers: { Cookie: cookie } },
+      );
+
+      // Assert : l'adresse de facturation est celle saisie, prête pour la facture
+      assert.strictEqual(response.status, 200);
+      assert.strictEqual(response.data.billingAddress, otherAddress);
+    });
+
+    // un client par pays : chacun commande avec son adresse de facturation
+    // (lettres accentuées, ß, code postal britannique : la chaîne doit revenir intacte)
+    const europeanCustomers = [
+      libTests.SHERLOCK, // Royaume-Uni
+      libTests.POIROT, // Belgique
+      libTests.EINSTEIN, // Allemagne
+      libTests.QUICHOTTE, // Espagne
+    ];
+    for (const customer of europeanCustomers) {
+      const { account, billingAddress: customerAddress } = customer;
+
+      it(`should return the billing address of ${account.firstname} ${account.lastname}`, async () => {
+        // Arrange : le client commande avec son adresse de facturation
+        const { cookie } = await createCustomerWithCart(account);
+        const order = await libTests.requester.post(
+          "/orders",
+          { ...validBody, billingAddress: customerAddress },
+          { headers: { Cookie: cookie } },
+        );
+
+        // Act : relecture de la commande, comme sur la page de confirmation
+        const response = await libTests.requester.get(
+          `/orders/${order.data.id}`,
+          { headers: { Cookie: cookie } },
+        );
+
+        // Assert : l'adresse est celle saisie, sans modification
+        assert.strictEqual(order.status, 201);
+        assert.strictEqual(response.status, 200);
+        assert.strictEqual(response.data.billingAddress, customerAddress);
+      });
+    }
+
+    it("should remove the spaces around the billing address", async () => {
+      // Arrange
+      const { cookie } = await createCustomerWithCart(
+        libTests.SHERLOCK.account,
+      );
+
+      // Act : adresse entourée d'espaces (copier-coller maladroit)
+      const response = await libTests.requester.post(
+        "/orders",
+        {
+          ...validBody,
+          billingAddress: `   ${libTests.SHERLOCK.billingAddress}   `,
+        },
+        { headers: { Cookie: cookie } },
+      );
+
+      // Assert : trim (schéma Zod) a retiré les espaces avant l'enregistrement
+      assert.strictEqual(response.status, 201);
+      assert.strictEqual(
+        response.data.billingAddress,
+        libTests.SHERLOCK.billingAddress,
+      );
+    });
+
+    it("should respond 400 if the billing address is longer than 255 characters", async () => {
+      // Arrange
+      const { cookie } = await createCustomerWithCart();
+
+      // Act : 256 caractères, un de trop pour la colonne buyer_address
+      const response = await libTests.requester.post(
+        "/orders",
+        { ...validBody, billingAddress: "a".repeat(256) },
+        { headers: { Cookie: cookie } },
+      );
+
+      // Assert
+      assert.strictEqual(response.status, 400);
+      assert.strictEqual(
+        response.data.error,
+        "L'adresse de facturation est trop longue.",
+      );
+    });
+
+    it("should respond 404 for the order of another customer", async () => {
+      // Arrange : ALICE passe commande, un autre client se connecte
+      const { cookie } = await createCustomerWithCart();
+      const order = await libTests.requester.post("/orders", validBody, {
+        headers: { Cookie: cookie },
+      });
+      const other = { ...libTests.ALICE, email: "autre@test.fr" };
+      await libTests.createAccount(other);
+      const otherCookie = await libTests.loginAs(other);
+
+      // Act : l'autre client demande la commande d'ALICE
+      const response = await libTests.requester.get(
+        `/orders/${order.data.id}`,
+        { headers: { Cookie: otherCookie } },
+      );
+
+      // Assert : 404, comme une commande inconnue (on ne révèle pas qu'elle existe)
+      assert.strictEqual(response.status, 404);
+      assert.strictEqual(response.data.error, "Commande introuvable.");
+    });
+
+    it("should respond 404 for an unknown order", async () => {
+      // Arrange
+      await libTests.createAccount(libTests.ALICE);
+      const cookie = await libTests.loginAs(libTests.ALICE);
+
+      // Act
+      const response = await libTests.requester.get("/orders/999", {
+        headers: { Cookie: cookie },
+      });
+
+      // Assert
+      assert.strictEqual(response.status, 404);
+    });
+
+    it("should respond 400 if the id is not a positive integer", async () => {
+      // Arrange
+      await libTests.createAccount(libTests.ALICE);
+      const cookie = await libTests.loginAs(libTests.ALICE);
+
+      // Act
+      const response = await libTests.requester.get("/orders/abc", {
+        headers: { Cookie: cookie },
+      });
+
+      // Assert : refusé par validateId
+      assert.strictEqual(response.status, 400);
+    });
+
+    it("should respond 401 if not connected", async () => {
+      // Act
+      const response = await libTests.requester.get("/orders/1");
+
+      // Assert
+      assert.strictEqual(response.status, 401);
+    });
+  });
+  // ==================
+  // GET /orders (historique du client)
+  // ==================
+  describe("[GET] /api/orders", () => {
+    it("should respond 200 with the customer orders, the most recent first", async () => {
+      // Arrange : ALICE passe deux commandes (le panier est rempli à nouveau entre les deux)
+      const { aliceId, oakId, cookie } = await createCustomerWithCart();
+      const first = await libTests.requester.post("/orders", validBody, {
+        headers: { Cookie: cookie },
+      });
+      await libTests.addCartItem(aliceId, oakId, 1);
+      const second = await libTests.requester.post("/orders", validBody, {
+        headers: { Cookie: cookie },
+      });
+
+      // Act
+      const response = await libTests.requester.get("/orders", {
+        headers: { Cookie: cookie },
+      });
+
+      // Assert : la plus récente d'abord, seulement les champs du résumé (contrat #159)
+      assert.strictEqual(response.status, 200);
+      assert.deepStrictEqual(
+        response.data.map((order: { id: number }) => order.id),
+        [second.data.id, first.data.id],
+      );
+      assert.deepStrictEqual(Object.keys(response.data[0]).sort(), [
+        "id",
+        "purchaseDate",
+        "status",
+        "totalAmount",
+      ]);
+      assert.strictEqual(response.data[1].status, "en attente");
+      // 3 × 16,90 + 1 × 12,50 = 63,20 : un nombre, pas le texte "63.20"
+      assert.strictEqual(response.data[1].totalAmount, 63.2);
+    });
+
+    it("should not return the orders of another customer", async () => {
+      // Arrange : ALICE passe commande, un autre client n'a rien commandé
+      const { cookie } = await createCustomerWithCart();
+      await libTests.requester.post("/orders", validBody, {
+        headers: { Cookie: cookie },
+      });
+      const other = { ...libTests.ALICE, email: "autre@test.fr" };
+      await libTests.createAccount(other);
+      const otherCookie = await libTests.loginAs(other);
+
+      // Act
+      const response = await libTests.requester.get("/orders", {
+        headers: { Cookie: otherCookie },
+      });
+
+      // Assert : liste vide, jamais la commande d'ALICE
+      assert.strictEqual(response.status, 200);
+      assert.deepStrictEqual(response.data, []);
+    });
+
+    it("should respond 401 if not connected", async () => {
+      // Act
+      const response = await libTests.requester.get("/orders");
+
+      // Assert
+      assert.strictEqual(response.status, 401);
+    });
+  });
+
+  // ==================
+  // PATCH /orders/:id/status (annulation par le client)
+  // ==================
+  describe("[PATCH] /api/orders/:id/status", () => {
+    // ALICE passe une commande (en attente) : retourne son id et le cookie
+    async function createPendingOrder() {
+      const { cookie } = await createCustomerWithCart();
+      const order = await libTests.requester.post("/orders", validBody, {
+        headers: { Cookie: cookie },
+      });
+      return { orderId: order.data.id, cookie };
+    }
+
+    it("should respond 200 and cancel an order waiting for payment", async () => {
+      // Arrange
+      const { orderId, cookie } = await createPendingOrder();
+
+      // Act
+      const response = await libTests.requester.patch(
+        `/orders/${orderId}/status`,
+        { status: "annulée" },
+        { headers: { Cookie: cookie } },
+      );
+
+      // Assert : la commande avec son nouveau statut, comme GET /api/orders/:id
+      assert.strictEqual(response.status, 200);
+      assert.strictEqual(response.data.id, orderId);
+      assert.strictEqual(response.data.status, "annulée");
+      assert.strictEqual(response.data.lines.length, 2);
+      // en BDD : statut changé et date d'annulation enregistrée
+      const purchase = await pool.query(
+        "SELECT status, cancelled_at FROM purchase WHERE id = $1",
+        [orderId],
+      );
+      assert.strictEqual(purchase.rows[0].status, "annulée");
+      assert.notStrictEqual(purchase.rows[0].cancelled_at, null);
+    });
+
+    it("should respond 409 if the order is already paid", async () => {
+      // Arrange : l'admin a enregistré le paiement
+      const { orderId, cookie } = await createPendingOrder();
+      await pool.query("UPDATE purchase SET status = 'payée' WHERE id = $1", [
+        orderId,
+      ]);
+
+      // Act
+      const response = await libTests.requester.patch(
+        `/orders/${orderId}/status`,
+        { status: "annulée" },
+        { headers: { Cookie: cookie } },
+      );
+
+      // Assert : refusé, la commande reste payée
+      assert.strictEqual(response.status, 409);
+      assert.strictEqual(
+        response.data.error,
+        "Seule une commande en attente de paiement peut être annulée.",
+      );
+      const purchase = await pool.query(
+        "SELECT status FROM purchase WHERE id = $1",
+        [orderId],
+      );
+      assert.strictEqual(purchase.rows[0].status, "payée");
+    });
+
+    it("should respond 409 if the order is already cancelled", async () => {
+      // Arrange : première annulation
+      const { orderId, cookie } = await createPendingOrder();
+      await libTests.requester.patch(
+        `/orders/${orderId}/status`,
+        { status: "annulée" },
+        { headers: { Cookie: cookie } },
+      );
+
+      // Act : deuxième annulation
+      const response = await libTests.requester.patch(
+        `/orders/${orderId}/status`,
+        { status: "annulée" },
+        { headers: { Cookie: cookie } },
+      );
+
+      // Assert
+      assert.strictEqual(response.status, 409);
+    });
+
+    it("should respond 400 if the status is not annulée", async () => {
+      // Arrange
+      const { orderId, cookie } = await createPendingOrder();
+
+      // Act : le client essaie de marquer sa commande comme payée
+      const response = await libTests.requester.patch(
+        `/orders/${orderId}/status`,
+        { status: "payée" },
+        { headers: { Cookie: cookie } },
+      );
+
+      // Assert : refusé par Zod, la commande reste en attente
+      assert.strictEqual(response.status, 400);
+      assert.strictEqual(response.data.error, "Statut invalide.");
+      const purchase = await pool.query(
+        "SELECT status FROM purchase WHERE id = $1",
+        [orderId],
+      );
+      assert.strictEqual(purchase.rows[0].status, "en attente");
+    });
+
+    it("should respond 404 for the order of another customer", async () => {
+      // Arrange : ALICE passe commande, un autre client se connecte
+      const { orderId } = await createPendingOrder();
+      const other = { ...libTests.ALICE, email: "autre@test.fr" };
+      await libTests.createAccount(other);
+      const otherCookie = await libTests.loginAs(other);
+
+      // Act : l'autre client essaie d'annuler la commande d'ALICE
+      const response = await libTests.requester.patch(
+        `/orders/${orderId}/status`,
+        { status: "annulée" },
+        { headers: { Cookie: otherCookie } },
+      );
+
+      // Assert : 404 et la commande d'ALICE n'a pas changé
+      assert.strictEqual(response.status, 404);
+      assert.strictEqual(response.data.error, "Commande introuvable.");
+      const purchase = await pool.query(
+        "SELECT status FROM purchase WHERE id = $1",
+        [orderId],
+      );
+      assert.strictEqual(purchase.rows[0].status, "en attente");
+    });
+
+    it("should respond 400 if the id is not a positive integer", async () => {
+      // Arrange
+      await libTests.createAccount(libTests.ALICE);
+      const cookie = await libTests.loginAs(libTests.ALICE);
+
+      // Act
+      const response = await libTests.requester.patch(
+        "/orders/abc/status",
+        { status: "annulée" },
+        { headers: { Cookie: cookie } },
+      );
+
+      // Assert : refusé par validateId
+      assert.strictEqual(response.status, 400);
+    });
+
+    it("should respond 401 if not connected", async () => {
+      // Act
+      const response = await libTests.requester.patch("/orders/1/status", {
+        status: "annulée",
+      });
+
+      // Assert
+      assert.strictEqual(response.status, 401);
+    });
+  });
+});

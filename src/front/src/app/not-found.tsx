@@ -1,3 +1,4 @@
+import Link from "next/link";
 import Image from "next/image";
 import styles from "./not-found.module.css";
 
@@ -6,6 +7,10 @@ export default function NotFound() {
     <main className={styles.main}>
       <section className={styles.hero}>
         <h1 className={styles.tagline}>OUPS, CETTE PAGE N&apos;EXISTE PAS</h1>
+
+        <Link href="/arbres" className={styles.backLink}>
+          ← Retour aux arbres
+        </Link>
 
         <div className={styles.heroImage}>
           <Image

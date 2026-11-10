@@ -4,6 +4,18 @@ import type {
 } from "../@types/index.d.ts";
 import { accountDatamapper } from "../datamappers/accountDatamapper.ts";
 import { ForbiddenError, UnauthorizedError } from "../lib/errors.ts";
+import { z } from "zod";
+
+// --------------------------------
+// schéma Zod de l'adresse de facturation (une seule chaîne)
+// trim retire les espaces au début et à la fin, avant de vérifier la longueur
+// max(255) : la taille de la colonne purchase.buyer_address
+// --------------------------------
+export const billingAddressSchema = z
+  .string({ error: "L'adresse de facturation est obligatoire." })
+  .trim()
+  .min(1, { error: "L'adresse de facturation est obligatoire." })
+  .max(255, { error: "L'adresse de facturation est trop longue." });
 
 // --------------------------------
 // recherche le compte connecté selon l'id placé par isConnected dans la requête
