@@ -123,6 +123,8 @@
   border-radius: 8px;
   background-color: white;
   color: var(--color-terracotta);
+  /* un bouton n'hérite pas de la police du site par défaut */
+  font: inherit;
   font-weight: 600;
   cursor: pointer;
 }

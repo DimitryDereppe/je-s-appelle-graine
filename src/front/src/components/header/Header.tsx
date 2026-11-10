@@ -128,9 +128,16 @@ export default function Header() {
             {/* Connecté : prénom + déconnexion ; visiteur : lien vers la connexion */}
             {user ? (
               <>
-                <span className={styles.greeting}>
+                <Link
+                  className={`${styles.navigationLink} ${
+                    pathname === "/compte" ? styles.activeLink : ""
+                  }`}
+                  href="/compte"
+                  aria-current={pathname === "/compte" ? "page" : undefined}
+                  onClick={() => setIsMenuOpen(false)}
+                >
                   Bonjour {user.firstname}
-                </span>
+                </Link>
                 <button
                   type="button"
                   className={`${styles.navigationLink} ${styles.logoutButton}`}
