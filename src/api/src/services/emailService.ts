@@ -51,7 +51,7 @@ export async function sendOrderConfirmation(
     .map((line) => {
       // le lieu de plantation peut être absent (null) : on ne l'écrit que s'il existe
       const location = line.plantingLocation
-        ? ` — planté à : ${line.plantingLocation}`
+        ? ` — Lieu de plantation : ${line.plantingLocation}`
         : "";
       return `- ${line.treeName} × ${line.quantity} : ${formatEuros(line.unitPrice * line.quantity)}${location}`;
     })
