@@ -1,4 +1,4 @@
-import type { Response } from "express";
+import type { Response, NextFunction } from "express";
 import type { IAuthenticatedRequest } from "../@types/index.d.ts";
 import { getAuthenticatedUser } from "./utils.ts";
 import { cartDatamapper } from "../datamappers/cartDatamapper.ts";
@@ -8,6 +8,7 @@ import { z } from "zod";
 // Schémas Zod : validés AVANT tout appel à la BDD
 // coerce.number convertit "3" (string) en 3 (number)
 // --------------------------------
+
 const addCartItemSchema = z.object({
   treeId: z.coerce.number().int().positive(),
   quantity: z.coerce.number().int().positive(),
@@ -19,68 +20,97 @@ const updateCartItemSchema = z.object({
 
 const treeIdParamSchema = z.coerce.number().int().positive();
 
-export async function getCart(req: IAuthenticatedRequest, res: Response) {
-  const user = await getAuthenticatedUser(req);
+// --------------------------------
+// Wrapper async → transmet les rejections au middleware d'erreur
+// --------------------------------
+const asyncHandler =
+  (fn: (req: IAuthenticatedRequest, res: Response) => Promise<void>) =>
+  (req: IAuthenticatedRequest, res: Response, next: NextFunction) =>
+    fn(req, res).catch(next);
 
-  const cart = await cartDatamapper.findCartByUserId(user.id);
+// --------------------------------
+// Handlers
+// --------------------------------
+export const getCart = asyncHandler(
+  async (req: IAuthenticatedRequest, res: Response) => {
+    const user = await getAuthenticatedUser(req);
 
-  res.status(200).json(cart);
-}
+    const cart = await cartDatamapper.findCartByUserId(user.id);
+    const items = (cart ?? []).map((item) => ({
+      id: item.id,
+      accountId: item.accountId,
+      treeId: item.treeId,
+      quantity: item.quantity,
+      name: item.name,
+      price: Number(item.price),
+      photoUrl: item.photoUrl ?? null,
+      plantingLocation: item.plantingLocation ?? null,
+      availabilityName: item.availabilityName ?? null,
+      lineTotal: Number(item.price) * item.quantity,
+    }));
 
-export async function addCartItem(req: IAuthenticatedRequest, res: Response) {
-  const user = await getAuthenticatedUser(req);
+    const total = items.reduce((sum, item) => sum + item.lineTotal, 0);
 
-  const { treeId, quantity } = addCartItemSchema.parse(req.body);
+    res.status(200).json({ items, total });
+  },
+);
 
-  const newCartItem = await cartDatamapper.addCartItem(
-    user.id,
-    treeId,
-    quantity,
-  );
+export const addCartItem = asyncHandler(
+  async (req: IAuthenticatedRequest, res: Response) => {
+    const user = await getAuthenticatedUser(req);
 
-  res.status(201).json(newCartItem);
-}
+    const { treeId, quantity } = addCartItemSchema.parse(req.body);
 
-export async function updateCartItem(
-  req: IAuthenticatedRequest,
-  res: Response,
-) {
-  const user = await getAuthenticatedUser(req);
+    const newCartItem = await cartDatamapper.addCartItem(
+      user.id,
+      treeId,
+      quantity,
+    );
 
-  const treeId = treeIdParamSchema.parse(req.params.treeId);
-  const { quantity } = updateCartItemSchema.parse(req.body);
+    res.status(201).json(newCartItem);
+  },
+);
 
-  const updatedCartItem = await cartDatamapper.updateCartItemQuantity(
-    user.id,
-    treeId,
-    quantity,
-  );
+export const updateCartItem = asyncHandler(
+  async (req: IAuthenticatedRequest, res: Response) => {
+    const user = await getAuthenticatedUser(req);
 
-  if (!updatedCartItem) {
-    res.status(404).json({ error: "Ligne du panier introuvable" });
-    return;
-  }
+    const treeId = treeIdParamSchema.parse(req.params.treeId);
+    const { quantity } = updateCartItemSchema.parse(req.body);
 
-  res.status(200).json(updatedCartItem);
-}
+    const updatedCartItem = await cartDatamapper.updateCartItemQuantity(
+      user.id,
+      treeId,
+      quantity,
+    );
 
-export async function deleteCartItem(
-  req: IAuthenticatedRequest,
-  res: Response,
-) {
-  const user = await getAuthenticatedUser(req);
+    if (!updatedCartItem) {
+      res.status(404).json({ error: "Ligne du panier introuvable" });
+      return;
+    }
 
-  const treeId = treeIdParamSchema.parse(req.params.treeId);
+    res.status(200).json(updatedCartItem);
+  },
+);
 
-  await cartDatamapper.deleteCartItem(user.id, treeId);
+export const deleteCartItem = asyncHandler(
+  async (req: IAuthenticatedRequest, res: Response) => {
+    const user = await getAuthenticatedUser(req);
 
-  res.status(204).send();
-}
+    const treeId = treeIdParamSchema.parse(req.params.treeId);
 
-export async function clearCart(req: IAuthenticatedRequest, res: Response) {
-  const user = await getAuthenticatedUser(req);
+    await cartDatamapper.deleteCartItem(user.id, treeId);
 
-  await cartDatamapper.clearCart(user.id);
+    res.status(204).end();
+  },
+);
 
-  res.status(204).send();
-}
+export const clearCart = asyncHandler(
+  async (req: IAuthenticatedRequest, res: Response) => {
+    const user = await getAuthenticatedUser(req);
+
+    await cartDatamapper.clearCart(user.id);
+
+    res.status(204).end();
+  },
+);

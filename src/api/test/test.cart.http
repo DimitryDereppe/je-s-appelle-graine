@@ -68,7 +68,7 @@ Cookie: {{cookie}}
 
 ### --------------------------------
 ### 5. READ : panier complet, 2 lignes
-GET {{host}}/api/cart
+GET {{host}}/api/cart/
 Cookie: {{cookie}}
 
 ### --------------------------------
