@@ -18,7 +18,7 @@ import { clientApi } from "@/app/utils/clientApi";
 interface CartItem {
   id: number;
   treeId: number;
-  treeName: string;
+  name: string;
   quantity: number;
   price: number;
 }
@@ -45,8 +45,9 @@ export function CartCountProvider({ children }: { children: ReactNode }) {
     try {
       const response = await clientApi("cart", "GET");
       if (response.ok) {
-        const data: CartItem[] = await response.json();
-        setItems(data);
+        const data: { items: CartItem[]; total: number } =
+          await response.json();
+        setItems(data.items);
       } else if (response.status === 401) {
         setItems([]);
       }
@@ -67,8 +68,9 @@ export function CartCountProvider({ children }: { children: ReactNode }) {
         if (cancelled) return;
 
         if (response.ok) {
-          const data: CartItem[] = await response.json();
-          setItems(data);
+          const data: { items: CartItem[]; total: number } =
+            await response.json();
+          setItems(data.items);
         } else if (response.status === 401) {
           setItems([]);
         }

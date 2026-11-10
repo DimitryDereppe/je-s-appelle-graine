@@ -5,6 +5,7 @@
 // permet de modifier la quantité (PATCH) et de supprimer une ligne (DELETE).
 
 import { useState } from "react";
+import Link from "next/link";
 import styles from "./cartItems.module.css";
 import { clientApi } from "@/app/utils/clientApi";
 import { useCartCount } from "@/app/context/CartCountContext";
@@ -14,11 +15,11 @@ export function CartItems() {
   const [error, setError] = useState("");
 
   // ─── Modifier la quantité : PATCH /api/cart/items/:id ──────────────────────
-  async function handleUpdateQuantity(itemId: number, quantity: number) {
+  async function handleUpdateQuantity(treeId: number, quantity: number) {
     if (quantity < 1) return; // on ne permet pas 0 (utiliser DELETE)
 
     try {
-      const response = await clientApi(`cart/items/${itemId}`, "PATCH", {
+      const response = await clientApi(`cart/items/${treeId}`, "PATCH", {
         quantity,
       });
 
@@ -34,9 +35,9 @@ export function CartItems() {
   }
 
   // ─── Supprimer une ligne : DELETE /api/cart/items/:id ──────────────────────
-  async function handleDeleteItem(itemId: number) {
+  async function handleDeleteItem(treeId: number) {
     try {
-      const response = await clientApi(`cart/items/${itemId}`, "DELETE");
+      const response = await clientApi(`cart/items/${treeId}`, "DELETE");
 
       if (!response.ok) {
         throw new Error("La suppression a échoué.");
@@ -76,7 +77,7 @@ export function CartItems() {
           <li key={item.id} className={styles.item}>
             {/* Nom + prix unitaire */}
             <div className={styles.itemInfo}>
-              <span className={styles.treeName}>{item.treeName}</span>
+              <span className={styles.treeName}>{item.name}</span>
               <span className={styles.unitPrice}>
                 {item.price.toFixed(2)} €
               </span>
@@ -86,8 +87,10 @@ export function CartItems() {
             <div className={styles.qtyControl}>
               <button
                 type="button"
-                aria-label={`Diminuer la quantité de ${item.treeName}`}
-                onClick={() => handleUpdateQuantity(item.id, item.quantity - 1)}
+                aria-label={`Diminuer la quantité de ${item.name}`}
+                onClick={() =>
+                  handleUpdateQuantity(item.treeId, item.quantity - 1)
+                }
                 disabled={item.quantity <= 1}
               >
                 −
@@ -95,8 +98,10 @@ export function CartItems() {
               <span className={styles.qtyValue}>{item.quantity}</span>
               <button
                 type="button"
-                aria-label={`Augmenter la quantité de ${item.treeName}`}
-                onClick={() => handleUpdateQuantity(item.id, item.quantity + 1)}
+                aria-label={`Augmenter la quantité de ${item.name}`}
+                onClick={() =>
+                  handleUpdateQuantity(item.treeId, item.quantity + 1)
+                }
               >
                 +
               </button>
@@ -111,15 +116,17 @@ export function CartItems() {
             <button
               type="button"
               className={styles.deleteBtn}
-              aria-label={`Retirer ${item.treeName} du panier`}
-              onClick={() => handleDeleteItem(item.id)}
+              aria-label={`Retirer ${item.name} du panier`}
+              onClick={() => handleDeleteItem(item.treeId)}
             >
               ✕
             </button>
           </li>
         ))}
       </ul>
-
+      <Link href="/commandes/nouvelle" className={styles.orderLink}>
+        Commander
+      </Link>
       {/* Total du panier */}
       <p className={styles.total}>
         Total : <strong>{total.toFixed(2)} €</strong>
