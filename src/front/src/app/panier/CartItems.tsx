@@ -1,11 +1,8 @@
 "use client";
 
-// ─── Liste des articles du panier ────────────────────────────────────────────
-// Lit le panier depuis le Context (déjà chargé via GET /api/cart),
-// permet de modifier la quantité (PATCH) et de supprimer une ligne (DELETE).
-
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import styles from "./cartItems.module.css";
 import { clientApi } from "@/app/utils/clientApi";
 import { useCartCount } from "@/app/context/CartCountContext";
@@ -14,58 +11,53 @@ export function CartItems() {
   const { items, loading, refresh } = useCartCount();
   const [error, setError] = useState("");
 
-  // ─── Modifier la quantité : PATCH /api/cart/items/:id ──────────────────────
   async function handleUpdateQuantity(treeId: number, quantity: number) {
-    if (quantity < 1) return; // on ne permet pas 0 (utiliser DELETE)
-
+    if (quantity < 1) return;
     try {
       const response = await clientApi(`cart/items/${treeId}`, "PATCH", {
         quantity,
       });
-
-      if (!response.ok) {
-        throw new Error("La modification a échoué.");
-      }
-
-      // ✅ Mis à jour en base → on relit le panier
+      if (!response.ok) throw new Error("La modification a échoué.");
       await refresh();
     } catch {
       setError("Impossible de modifier la quantité.");
     }
   }
 
-  // ─── Supprimer une ligne : DELETE /api/cart/items/:id ──────────────────────
   async function handleDeleteItem(treeId: number) {
     try {
       const response = await clientApi(`cart/items/${treeId}`, "DELETE");
-
-      if (!response.ok) {
-        throw new Error("La suppression a échoué.");
-      }
-
-      // ✅ Supprimé de la base → on relit le panier
+      if (!response.ok) throw new Error("La suppression a échoué.");
       await refresh();
     } catch {
       setError("Impossible de retirer cet article.");
     }
   }
 
-  // ─── Rendu ─────────────────────────────────────────────────────────────────
   if (loading) {
     return <p className={styles.loading}>Chargement du panier…</p>;
   }
 
   if (items.length === 0) {
-    return <p className={styles.empty}>Votre panier est vide.</p>;
+    return (
+      <div className={styles.container}>
+        <h1 className={styles.title}>Mon panier</h1>
+        <p className={styles.empty}>Votre panier est vide.</p>
+      </div>
+    );
   }
 
   const total = items.reduce(
     (sum, item) => sum + item.price * item.quantity,
     0,
   );
+  const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
 
   return (
     <div className={styles.container}>
+      <h1 className={styles.title}>Mon panier</h1>
+      <p className={styles.subtitle}>Votre forêt de demain commence ici.</p>
+
       {error && (
         <p className={styles.error} role="alert">
           {error}
@@ -75,62 +67,87 @@ export function CartItems() {
       <ul className={styles.list}>
         {items.map((item) => (
           <li key={item.id} className={styles.item}>
-            {/* Nom + prix unitaire */}
+            <Image
+              src={item.photoUrl}
+              alt={item.name}
+              width={64}
+              height={64}
+              className={styles.itemImage}
+            />
             <div className={styles.itemInfo}>
               <span className={styles.treeName}>{item.name}</span>
+              <p className={styles.cardLocation}>
+                <span className={styles.locationIcon}>
+                  <Image
+                    src="/assets/localisation.svg"
+                    alt=""
+                    className={styles.badgeIcon}
+                    width={18}
+                    height={18}
+                  />
+                </span>
+                <span className={styles.location}>{item.plantingLocation}</span>
+              </p>{" "}
               <span className={styles.unitPrice}>
-                {item.price.toFixed(2)} €
+                {item.price.toFixed(0)}€ TTC
               </span>
+              <div className={styles.qtyControl}>
+                <button
+                  type="button"
+                  aria-label={`Diminuer la quantité de ${item.name}`}
+                  onClick={() =>
+                    handleUpdateQuantity(item.treeId, item.quantity - 1)
+                  }
+                  disabled={item.quantity <= 1}
+                >
+                  −
+                </button>
+                <span className={styles.qtyValue}>{item.quantity}</span>
+                <button
+                  type="button"
+                  aria-label={`Augmenter la quantité de ${item.name}`}
+                  onClick={() =>
+                    handleUpdateQuantity(item.treeId, item.quantity + 1)
+                  }
+                >
+                  +
+                </button>
+              </div>
             </div>
-
-            {/* Contrôle de la quantité : − / valeur / + */}
-            <div className={styles.qtyControl}>
+            <div className={styles.priceAndClosure}>
               <button
                 type="button"
-                aria-label={`Diminuer la quantité de ${item.name}`}
-                onClick={() =>
-                  handleUpdateQuantity(item.treeId, item.quantity - 1)
-                }
-                disabled={item.quantity <= 1}
+                className={styles.deleteBtn}
+                aria-label={`Retirer ${item.name} du panier`}
+                onClick={() => handleDeleteItem(item.treeId)}
               >
-                −
+                ✕
               </button>
-              <span className={styles.qtyValue}>{item.quantity}</span>
-              <button
-                type="button"
-                aria-label={`Augmenter la quantité de ${item.name}`}
-                onClick={() =>
-                  handleUpdateQuantity(item.treeId, item.quantity + 1)
-                }
-              >
-                +
-              </button>
+              <p className={styles.lineTotal}>
+                {(item.price * item.quantity).toFixed(0)}€ TTC
+              </p>
             </div>
-
-            {/* Prix total de la ligne */}
-            <span className={styles.lineTotal}>
-              {(item.price * item.quantity).toFixed(2)} €
-            </span>
-
-            {/* Bouton supprimer */}
-            <button
-              type="button"
-              className={styles.deleteBtn}
-              aria-label={`Retirer ${item.name} du panier`}
-              onClick={() => handleDeleteItem(item.treeId)}
-            >
-              ✕
-            </button>
           </li>
         ))}
       </ul>
+
+      <div className={styles.summary}>
+        <h2 className={styles.summaryTitle}>Récapitulatif</h2>
+        <div className={styles.summaryRow}>
+          <span>
+            Sous-total ({totalItems} arbre{totalItems > 1 ? "s" : ""})
+          </span>
+          <span>{total.toFixed(2).replace(".", ",")}€ TTC</span>
+        </div>
+        <div className={styles.summaryRowTotal}>
+          <span>Total TTC</span>
+          <span>{total.toFixed(2).replace(".", ",")}€ TTC</span>
+        </div>
+      </div>
+
       <Link href="/commandes/nouvelle" className={styles.orderLink}>
-        Commander
+        Passer au paiement
       </Link>
-      {/* Total du panier */}
-      <p className={styles.total}>
-        Total : <strong>{total.toFixed(2)} €</strong>
-      </p>
     </div>
   );
 }

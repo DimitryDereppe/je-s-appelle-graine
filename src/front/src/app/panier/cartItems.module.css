@@ -1,2 +1,261 @@
-p {
+/* cartItems.module.css */
+
+.container {
+  max-width: 780px;
+  width: 90%;
+  margin: 0 auto;
+  padding: 1.5rem 1.25rem 2rem;
+  font-family:
+    system-ui,
+    -apple-system,
+    sans-serif;
+  color: #1f2937;
+}
+
+.title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0 0 0.25rem;
+  color: #1a5c2a;
+}
+
+.subtitle {
+  font-size: 0.9rem;
+  color: #6b7280;
+  margin: 0 0 1.5rem;
+}
+
+.loading,
+.empty {
+  text-align: center;
+  color: #6b7280;
+  padding: 2rem 0;
+}
+
+.error {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #dc2626;
+  padding: 0.6rem 1rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  margin-bottom: 1rem;
+}
+
+/* ─── Liste des articles ────────────────────────────────────────────── */
+
+.list {
+  list-style: none;
+  margin: 0 0 1.5rem;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.item {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  min-height: 150px;
+  height: 20vh;
+  gap: 0.75rem;
+  min-width: 300px;
+  padding: 0;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  position: relative;
+}
+
+.itemImage {
+  width: 30%;
+  min-width: 108px;
+  min-height: 150px;
+  height: 20vh;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.itemInfo {
+  display: flex;
+  flex-direction: column;
+  justify-items: space-between;
+  gap: 0.25rem;
+  width: 50%;
+}
+
+.treeName {
+  font-weight: 600;
+  font-size: 1rem;
+  color: #245a46;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 4%;
+}
+
+.location {
+  font-size: 0.75rem;
+  color: #9ca3af;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-wrap: wrap;
+}
+
+.unitPrice {
+  font-size: 0.8rem large;
+  color: #b6532c;
+  font-weight: 500;
+  margin-top: 4%;
+}
+
+/* ─── Contrôle quantité ─────────────────────────────────────────────── */
+
+.qtyControl {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 8%;
+  margin-bottom: 4%;
+}
+
+.qtyControl button {
+  width: 26px;
+  height: 26px;
+  border: 1px solid #d1d5db;
+  background: #fff;
+  border-radius: 50%;
+  font-size: 1rem;
+  font-weight: 500;
+  color: #374151;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  line-height: 1;
+  transition:
+    border-color 0.15s,
+    background 0.15s;
+}
+
+.qtyControl button:hover:not(:disabled) {
+  border-color: #1a5c2a;
+  background: #f0fdf4;
+}
+
+.qtyControl button:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.qtyValue {
+  min-width: 1.5ch;
+  text-align: center;
+  font-weight: 600;
+  font-size: 0.9rem;
+  & button,
+  span {
+    color: #1a5c2a;
+  }
+}
+
+/* ─── Prix ligne ────────────────────────────────────────────────────── */
+
+.lineTotal {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: #1a5c2a;
+  min-width: 5ch;
+  text-align: right;
+  text-wrap: nowrap;
+  margin-right: 10%;
+  margin-bottom: 8%;
+}
+
+.priceAndClosure {
+  height: 100%;
+  width: 20%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: end;
+}
+/* ─── Bouton supprimer ──────────────────────────────────────────────── */
+
+.deleteBtn {
+  position: relative;
+  right: 0.5rem;
+  width: 24px;
+  height: 24px;
+  border: none;
+  background: transparent;
+  border-radius: 50%;
+  color: #d1d5db;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition:
+    color 0.15s,
+    background 0.15s;
+}
+
+.deleteBtn:hover {
+  color: #dc2626;
+  background: #fef2f2;
+}
+
+/* ─── Récapitulatif ─────────────────────────────────────────────────── */
+
+.summary {
+  border-top: 1px solid #e5e7eb;
+  padding: 1.25rem;
+  margin-bottom: 1.5rem;
+  box-shadow:;
+  border-radius: 12px;
+  min-width: 300px;
+}
+
+.summaryTitle {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin: 0 0 0.75rem;
+  color: #1f2937;
+}
+
+.summaryRow {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.9rem;
+  color: #6b7280;
+  margin-bottom: 0.5rem;
+}
+
+.summaryRowTotal {
+  display: flex;
+  justify-content: space-between;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #1a5c2a;
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+/* ─── CTA ───────────────────────────────────────────────────────────── */
+
+.orderLink {
+  display: block;
+  min-width: 300px;
+  text-align: center;
+  background: #1a5c2a;
+  color: #fff;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 1rem;
+  padding: 1rem;
+  border-radius: 12px;
+  transition: background 0.2s;
+}
+
+.orderLink:hover {
+  background: #145222;
 }
