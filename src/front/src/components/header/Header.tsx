@@ -1,73 +1,113 @@
 "use client";
 
+// ─── Imports ──────────────────────────────────────────────────────────────────
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 import SearchBar from "./SearchBar";
 import styles from "./header.module.css";
 import Image from "next/image";
+import { useCartCount } from "@/app/context/CartCountContext";
 
+// ─── Constantes ───────────────────────────────────────────────────────────────
 const navigationLinks = [
   { href: "/", label: "Accueil" },
   { href: "/arbres", label: "Nos arbres" },
   { href: "/qui-sommes-nous", label: "Qui sommes-nous" },
 ];
 
-// Ce dont l'en-tête a besoin dans la réponse de GET /api/users/me
+// ─── Types ────────────────────────────────────────────────────────────────────
 interface User {
   firstname: string;
   role: string; // "customer" ou "admin" : le lien « Administration » n'est affiché qu'à un admin
 }
 
+// ─── Composant principal ──────────────────────────────────────────────────────
 export default function Header() {
   const pathname = usePathname();
   const router = useRouter();
+
+  // Compteur d'articles dans le panier (partagé via le Context)
+  const { itemCount } = useCartCount();
+
+  // État local du menu mobile (hamburger)
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+
   // null = aucun utilisateur connecté (ou pas encore de réponse de l'API)
   const [user, setUser] = useState<User | null>(null);
-  // message à afficher sous l'en-tête (ex. compte désactivé) ; null = rien à afficher
+
+  // Message à afficher sous l'en-tête (ex. compte désactivé) ; null = rien à afficher
   const [alertMessage, setAlertMessage] = useState<string | null>(null);
 
-  // À chaque changement de page : redemander à l'API qui est connecté (le navigateur envoie le cookie)
+  // ─── Fetch utilisateur à chaque changement de page ──────────────────────────
+  // Le navigateur envoie le cookie automatiquement → l'API renvoie l'utilisateur
   useEffect(() => {
+    // Flag de cancellation : évite qu'une réponse obsolète écrase l'état
+    // si l'utilisateur navigue rapidement (race condition)
+    let cancelled = false;
+
     async function fetchCurrentUser() {
       try {
         const response = await fetch("/api/users/me");
+
+        // Réponse obsolète (l'utilisateur a déjà navigué ailleurs) → on ignore
+        if (cancelled) return;
+
         // 403 : jeton valide, mais l'admin a désactivé le compte après la connexion
         //       → on affiche le message renvoyé par l'API, et l'en-tête d'un visiteur
         if (response.status === 403) {
           const data: { error: string } = await response.json();
+          if (cancelled) return;
           setAlertMessage(data.error);
           setUser(null);
           return;
         }
+
+        // 401 : simplement pas connecté, ce n'est pas une erreur à afficher
         if (!response.ok) {
-          // 401 : simplement pas connecté, ce n'est pas une erreur à afficher
+          if (cancelled) return;
           setUser(null);
+          setAlertMessage(null); // ← correction : on efface l'alerte éventuelle
           return;
         }
+
+        // 200 : utilisateur connecté, on stocke ses infos
         const data: User = await response.json();
+        if (cancelled) return;
         setUser(data);
+        setAlertMessage(null); // ← correction : on efface l'alerte éventuelle
       } catch {
+        if (cancelled) return;
         // API injoignable : on affiche l'en-tête comme pour un visiteur
         setUser(null);
+        setAlertMessage(null); // ← correction : on efface l'alerte éventuelle
       }
     }
+
     fetchCurrentUser();
+
+    // Cleanup : invalide la réponse en cours si le composant se démonte
+    // ou si pathname change avant que le fetch ne soit terminé
+    return () => {
+      cancelled = true;
+    };
   }, [pathname]);
 
-  // Au clic sur « Déconnexion » : l'API supprime le cookie, puis on oublie l'utilisateur
+  // ─── Déconnexion ────────────────────────────────────────────────────────────
+  // L'API supprime le cookie, puis on oublie l'utilisateur côté front
   async function handleLogout() {
     try {
       const response = await fetch("/api/auth", { method: "DELETE" });
+
       // 204 : déconnexion réussie
-      // 401 : jeton expiré ou invalide, la personne n'est déjà plus connectée côté serveur
-      //       → on la déconnecte aussi côté front, sinon le bouton resterait sans effet
+      // 401 : jeton expiré ou invalide → on déconnecte aussi côté front
       // autre erreur (ex. 500) : on ne change rien
       if (!response.ok && response.status !== 401) {
         return;
       }
+
       setUser(null);
+      setAlertMessage(null); // ← on efface aussi l'alerte à la déconnexion
       setIsMenuOpen(false);
       router.push("/");
     } catch {
@@ -75,13 +115,15 @@ export default function Header() {
     }
   }
 
+  // ─── Rendu ──────────────────────────────────────────────────────────────────
   return (
     <header className={styles.header}>
       <div className={styles.inner}>
+        {/* ─── Logo / Marque ─────────────────────────────────────────────── */}
         <Link
           className={styles.brand}
           href="/"
-          aria-label="Je s’appelle Graine, accueil"
+          aria-label="Je s'appelle Graine, accueil"
           onClick={() => setIsMenuOpen(false)}
         >
           <Image
@@ -91,9 +133,10 @@ export default function Header() {
             width={34}
             height={34}
           />
-          <span className={styles.brandName}>Je s’appelle Graine</span>
+          <span className={styles.brandName}>Je s&apos;appelle Graine</span>
         </Link>
 
+        {/* ─── Bouton hamburger (menu mobile) ────────────────────────────── */}
         <button
           className={styles.menuToggle}
           type="button"
@@ -104,6 +147,8 @@ export default function Header() {
         >
           <span aria-hidden="true">{isMenuOpen ? "×" : "☰"}</span>
         </button>
+
+        {/* ─── Navigation + SearchBar ────────────────────────────────────── */}
         <div className={styles.navArea}>
           <nav
             id="site-navigation"
@@ -112,6 +157,7 @@ export default function Header() {
             }`}
             aria-label="Navigation principale"
           >
+            {/* Liens de navigation principaux */}
             {navigationLinks.map(({ href, label }) => (
               <Link
                 key={href}
@@ -178,29 +224,43 @@ export default function Header() {
             )}
           </nav>
 
+          {/* Barre de recherche (Suspense pour le lazy loading) */}
           <Suspense fallback={null}>
             <SearchBar />
           </Suspense>
         </div>
 
+        {/* ─── Icône panier + badge compteur ─────────────────────────────── */}
         <Link
           className={styles.cartLink}
           href="/panier"
-          aria-label="Voir le panier"
+          aria-label={
+            itemCount > 0
+              ? `Voir le panier (${itemCount} article${itemCount > 1 ? "s" : ""})`
+              : "Voir le panier"
+          }
           onClick={() => setIsMenuOpen(false)}
         >
-          <Image
-            src={"/assets/panier.svg"}
-            alt=""
-            className={styles.badgeIcon}
-            width={24}
-            height={24}
-          />
+          <span className={styles.cartIconWrapper}>
+            <Image
+              src={"/assets/panier.svg"}
+              alt=""
+              className={styles.badgeIcon}
+              width={24}
+              height={24}
+            />
+            {/* Badge : visible uniquement si le panier n'est pas vide */}
+            {itemCount > 0 && (
+              <span className={styles.cartBadge} aria-hidden="true">
+                {itemCount}
+              </span>
+            )}
+          </span>
           <span className={styles.visuallyHidden}>Panier</span>
         </Link>
       </div>
 
-      {/* Affiché seulement s'il y a un message ; role="alert" le fait lire par les lecteurs d'écran */}
+      {/* ─── Alert globale (ex. compte désactivé) ────────────────────────── */}
       {alertMessage && (
         <p className={styles.alert} role="alert">
           {alertMessage}

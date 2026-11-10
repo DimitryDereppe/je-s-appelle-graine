@@ -70,13 +70,17 @@
 /* --- Actions : alignement horizontal --- */
 .cardActions {
   width: 100%;
-  margin-top: auto;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
 }
 
+.treeCardAction {
+  display: flex;
+  flex-direction: column-reverse;
+  overflow: auto;
+}
 .availabilityLocation {
   font-size: 0.8rem;
   color: #666;
