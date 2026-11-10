@@ -45,11 +45,6 @@
   text-decoration: none;
 }
 
-.menuItem span {
-  color: var(--color-muted);
-  font-size: 13px;
-}
-
 /* focus visible au clavier */
 .menuItem:hover,
 .menuItem:focus-visible {

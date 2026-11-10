@@ -25,20 +25,17 @@ export default function AccountPage() {
           <ul className={styles.menu}>
             <li>
               <Link href="/commandes" className={styles.menuItem}>
-                <strong>Mes commandes</strong>
-                <span>Suivre et annuler</span>
+                <strong>Suivre mes commandes</strong>
               </Link>
             </li>
             <li>
               <a href="#informations" className={styles.menuItem}>
-                <strong>Mes informations</strong>
-                <span>Nom, email, adresse</span>
+                <strong>Modifier mes informations</strong>
               </a>
             </li>
             <li>
               <a href="#mot-de-passe" className={styles.menuItem}>
-                <strong>Mot de passe</strong>
-                <span>Le changer</span>
+                <strong>Modifier mon mot de passe</strong>
               </a>
             </li>
             <li>
@@ -47,7 +44,6 @@ export default function AccountPage() {
                 className={`${styles.menuItem} ${styles.danger}`}
               >
                 <strong>Supprimer mon compte</strong>
-                <span>Définitivement</span>
               </a>
             </li>
           </ul>
