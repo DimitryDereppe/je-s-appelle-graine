@@ -2,21 +2,39 @@ import type { Request, Response } from "express";
 import { z } from "zod";
 import type { ITreeInput } from "../@types/index.d.ts";
 import { adminTreeDatamapper } from "../datamappers/adminTreeDatamapper.ts";
-import { ConflictError, NotFoundError } from "../lib/errors.ts";
+import {
+  BadRequestError,
+  ConflictError,
+  NotFoundError,
+} from "../lib/errors.ts";
 
 const treeBodySchema = z.object({
-  name: z.string().trim().min(1, { error: "Le nom est obligatoire." }),
+  name: z
+    .string()
+    .trim()
+    .min(1, { error: "Le nom est obligatoire." })
+    .max(150, {
+      error: "Le nom ne peut pas dépasser 150 caractères.",
+    }),
   description: z.string().nullable(),
   price: z
     .number({ error: "Le prix doit être positif." })
     .min(0, { error: "Le prix doit être positif." }),
   photoUrl: z
     .string()
+    .max(255, {
+      error: "Le chemin de la photo ne peut pas dépasser 255 caractères.",
+    })
     .startsWith("/images/trees/", {
       error: "Le chemin de la photo doit commencer par /images/trees/.",
     })
     .nullable(),
-  plantingLocation: z.string().nullable(),
+  plantingLocation: z
+    .string()
+    .max(150, {
+      error: "Le lieu de plantation ne peut pas dépasser 150 caractères.",
+    })
+    .nullable(),
   categoryId: z.number().int({ error: "Catégorie invalide." }),
   availabilityId: z.number().int({ error: "Disponibilité invalide." }),
 });
@@ -48,7 +66,6 @@ export async function findAllAvailabilities(
   res: Response,
 ): Promise<void> {
   const availabilities = await adminTreeDatamapper.findAllAvailabilities();
-
   res.status(200).json(availabilities);
 }
 
@@ -63,11 +80,7 @@ export async function create(req: Request, res: Response): Promise<void> {
   );
 
   if (!categoryExists) {
-    res.status(400).json({
-      error: "Catégorie invalide.",
-      status: 400,
-    });
-    return;
+    throw new BadRequestError("Catégorie invalide.");
   }
 
   // Vérifie que la disponibilité choisie existe.
@@ -76,11 +89,7 @@ export async function create(req: Request, res: Response): Promise<void> {
   );
 
   if (!availabilityExists) {
-    res.status(400).json({
-      error: "Disponibilité invalide.",
-      status: 400,
-    });
-    return;
+    throw new BadRequestError("Disponibilité invalide.");
   }
 
   // Enregistre l'arbre et récupère son identifiant.
@@ -129,11 +138,7 @@ export async function update(req: Request, res: Response): Promise<void> {
   );
 
   if (!categoryExists) {
-    res.status(400).json({
-      error: "Catégorie invalide.",
-      status: 400,
-    });
-    return;
+    throw new BadRequestError("Catégorie invalide.");
   }
 
   // Vérifie que la disponibilité existe.
@@ -142,11 +147,7 @@ export async function update(req: Request, res: Response): Promise<void> {
   );
 
   if (!availabilityExists) {
-    res.status(400).json({
-      error: "Disponibilité invalide.",
-      status: 400,
-    });
-    return;
+    throw new BadRequestError("Disponibilité invalide.");
   }
 
   // Enregistre les modifications.

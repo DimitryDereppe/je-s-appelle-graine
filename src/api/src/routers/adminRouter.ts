@@ -1,6 +1,4 @@
 import { Router } from "express";
-
-// décommenter quand adminTreeRouter.ts sera prêt
 import { router as adminTreeRouter } from "./adminTreeRouter.ts";
 
 // Routes /api/admin/... (F7, F8, F9)
