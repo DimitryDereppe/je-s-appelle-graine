@@ -2,6 +2,81 @@
 
 Suivi de mon travail sur Je s’appelle Graine. Les décisions notées ici ont été prises avec l'équipe ; le suivi de l'équipe est dans le [carnet de bord Je s’appelle Graine](CARNET-DE-BORD-JE-S-APPELLE-GRAINE.md), que je tiens à jour.
 
+## 2026-11-09 — F6 : commandes du client, pages commandes et page compte
+
+### Travail réalisé
+
+- **Sprint planning :** Kanban mis à jour (cartes du sprint 2 reportées en sprint 3, cartes terminées fermées).
+- **Partie compte de F6** (#160, #162) : dernier admin en 409 au lieu de 403, comme dans F9 ; contrat #159 et plan de tests mis à jour ; PR #201 fusionnée.
+- **Back des commandes du client** (#198, #199), PR #206 :
+  - `GET /api/orders` : historique du client, la plus récente d'abord, sans les lignes ;
+  - `PATCH /api/orders/:id/status` : annulation seulement si la commande est en attente (409 sinon), schéma Zod avec `z.literal("annulée")` ;
+  - `updateStatus` dans `ordersDatamapper` : le statut et la date dans la bonne colonne (`paid_at`, `planted_at`, `cancelled_at`), réutilisable par F8 ;
+  - 10 tests d'intégration, plan de tests et `test.orders.http`.
+- **Pages commandes** (#200), PR #208 :
+  - `/commandes` : une carte par commande, statut en français ;
+  - `/commandes/[id]` : détail, arbres avec leur lieu de plantation, bouton d'annulation avec confirmation ;
+  - si la commande a été payée entre-temps, la page la relit et affiche un message selon son statut ;
+  - tests manuels sur ordinateur, téléphone et au clavier ; Lighthouse accessibilité 100.
+- **Page compte** (#161), en cours : menu vers les commandes et vers chaque bloc, informations préremplies, changement du mot de passe, suppression du compte.
+- **Suivi de l'équipe :** relecture du panier de Loïc (le panier était gardé en mémoire et la commande le trouvait vide), message et étape 0 de son challenge ; point sur l'avancement de chacun et challenge mis à jour pour demain.
+
+### Ce que j'ai appris
+
+- Un `UPDATE` sans `WHERE` modifie toutes les lignes de la table.
+- `CASE WHEN … THEN … ELSE … END` est le `if / else` du SQL. Quand un même paramètre (`$2`) sert à deux endroits, `CAST` indique son type à PostgreSQL.
+- `z.literal` n'accepte qu'une seule valeur exacte.
+- `useEffect` : la liste des dépendances contient ce que l'effet utilise et qui vient du composant ; la fonction de l'effet ne peut pas être `async`.
+- Un formulaire avec `action` est vidé par React après l'envoi, puis reprend ses `defaultValue`.
+- `<dl>`, `<dt>` et `<dd>` décrivent une liste « intitulé → valeur » pour les lecteurs d'écran.
+- Un bouton n'hérite pas de la police du site : `font: inherit`.
+
+### Décisions (prises avec l'équipe)
+
+- Dernier administrateur : 409 dans F6 comme dans F9.
+- Page `/compte` avec un menu, vue avec Shanna
+
+### À poursuivre
+
+- Page compte : lien « Bonjour X » vers `/compte`, tests manuels, PR relue par Shanna.
+- Relire F9 dès que Mahamadou ouvre sa PR.
+- F8 : choisir avec Dimitry qui prend le back et le front, et écrire le contrat #167 ensemble.
+- Aider Shanna sur les tests de F7 et Loïc sur les règles du panier.
+
+## 2026-11-06 — F6 : compte du client, relecture de F5 et test du site en ligne
+
+### Travail réalisé
+
+- **F6, partie compte** (#160), sur `feat/f6-compte-back` :
+  - `PATCH /api/users/me` : modification du compte, email déjà pris par un autre compte → 409, `RETURNING` pour renvoyer le compte à jour;
+  - `PATCH /api/users/me/password` : vérification du mot de passe actuel avec `argon2.verify`, puis enregistrement du nouveau hash, réponse 204 ;
+  - `DELETE /api/users/me` : blocage du dernier admin actif (403), cookie effacé ;
+  - `clearAccessCookie` dans `lib/token.ts`, utilisée aussi par `logout` ;
+  - `.trim()` sur le prénom, le nom et la structure, et `.max()` selon la taille des colonnes, à l'inscription et à la modification ;
+  - essais des routes à la main sur l'API locale.
+  - Tests de la partie compte (#162), dont le dernier admin et la conservation des commandes après suppression.
+- **Relecture de F5 par rapport au cahier des charges :** conforme sur le parcours de commande. Corrections notées dans le challenge de Dimitry, dont un `n°` en trop dans l'email pour un chèque.
+- **Test du site en ligne :** pages, catalogue, recherche, accès protégés et formulaires invalides. Photos des arbres cassées : cause trouvée et confirmée par une compilation de production, corrigée par Dimitry (PR #197).
+- **Organisation :** challenge et Kanban mis à jour, documents de l'équipe du sprint 3.
+
+### Ce que j'ai appris
+
+- `RETURNING` renvoie la ligne modifiée dans la même requête. Il n'accepte pas de `JOIN` : une sous-requête permet de lire le nom du rôle.
+- `COUNT(*)` arrive en texte dans Node, d'où le `CAST(... AS INTEGER)`.
+- `??` ne remplace que `null` et `undefined`, alors que `||` remplace aussi une chaîne vide.
+- Les relais de `next.config.ts` sont figés à la compilation : `env_file` ne sert qu'au lancement du conteneur.
+
+### Décisions (prises avec l'équipe)
+
+- `deleteById` et `countActiveAdmins` sont écrites dans F6 (Fabrice) et réutilisées par F9(Mahamadou).
+- L'email de confirmation ne vaut pas facture ; une facture en PDF pourrait être une évolution du projet.
+
+### À poursuivre
+
+- Ouvrir ensuite la PR de `feat/f6-compte-back` vers `DEV`, relue par Shanna.
+- F6, commandes du client (#198, #199) : `GET /api/orders` et l'annulation d'une commande en attente, avec leurs tests, puis pages compte et commandes (#161, #200).
+- Relire F9, et aider Loïc et Shanna sur le back.
+
 ## 2026-11-05 — Fin de F2, outils communs et organisation du sprint 3
 
 ### Travail réalisé

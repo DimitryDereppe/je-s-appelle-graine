@@ -7,6 +7,10 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci
 COPY . .
+# Les rewrites de next.config.ts sont figés au build : API_URL doit exister ici,
+# pas seulement au démarrage (env_file du compose). Sans "/" final, next.config.ts l'ajoute.
+ARG API_URL=http://api:4000
+ENV API_URL=$API_URL
 RUN npm run build
 
 # Étape 2 : l'image qui tourne sur le VPS, sans le code source ni les node_modules complets

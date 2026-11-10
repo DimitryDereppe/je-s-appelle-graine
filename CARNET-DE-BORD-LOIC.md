@@ -121,6 +121,8 @@ Le groupe s'est divisé en deux. Une équipe commence à travailler sur le back 
 
 Shanna et moi continuons de produire le html des pages et nous les intégrons à Nextjs au fil de l'eau.
 
+### Actions du jour :
+
 <ul>
     <li> Achèvement des pages layout, acceuil et catalogue</li>
     <li> Liaison entre le front et le back sur la page d'acceuil avec un appel API pour hydrater le front </li>
@@ -131,6 +133,8 @@ Shanna et moi continuons de produire le html des pages et nous les intégrons à
 ### Contexte :
 
 Les tâches du sprint 1 sont termninées par les memebres du groupe ou en voie d'achèvement. Le déploiement du projet sur VPS a été mis en place par Dimitry.
+
+### Actions du jour :
 
 <ul>
     <li> Optimisation de la performance des pages en passant d'un rendu CLS à SSR pour l'acceuil et le catalogue</li>
@@ -146,6 +150,8 @@ Les tâches du sprint 1 sont termninées par les memebres du groupe ou en voie d
 
 Kick-off du sprint 2. Je continue de travailler sur le backlog de la première feature qui fait aussi intervenir des features de la deuxièeme feature.
 
+### Actions du jour :
+
 <ul>
     <li>Déploiement du vps sur ma machine en suivant la procédure écrite de Dimitry</li>
     <li>Mise en place d'un appel API globalisé </li>
@@ -158,18 +164,59 @@ Kick-off du sprint 2. Je continue de travailler sur le backlog de la première f
 
 Mahamadou travaille avec moi sur le sprint 2 pour des features relatives au catalogue et à la recherche. Son arrivée était l'occasion de faire un tour de présentation des fonctionnalités du front.
 
+### Actions du jour :
+
 <ul>
     <li>Mise en place du composant Arbre</li>
     <li>Intégration du cookie dans l'appel api</li>
 </ul>
 
-
 ## 04/11/2026 - Sprint 2
 
 ### Contexte :
+
+Poursuite du développement du Front avec Mahamadou. Accessoirement je découvre les avancées du back et notamment des fonctions déjà déployées par Mahamadou.
+
+### Actions du jour :
 
 <ul>
     <li>Développement de la page d'erreur</li>
     <li>Intégration de messages de chargement et d'erreur de chargement sur la page d'acceuil</li>
     <li>En cours : développement de la fiche arbre</li>
+</ul>
+
+## 05/11/2026 - Sprint 2
+
+### Actions du jour :
+
+<ul>
+    <li>Intégration des fonctions globales dans le front</li>
+    <li>Prise en compte des retours d'expérience sur le front</li>
+    <li> Fix et améliorations sur le front</li>
+</ul>
+
+## 06/11/2026 - Sprint 2
+
+### Contexte :
+
+Je passe sur le back pour développer la feature panier de bout en bout.
+
+### Actions du jour :
+
+<ul>
+    <li>Creation des routes paniers et des outils métiers</li>
+</ul>
+
+## 08/11/2026 - Sprint 3
+
+### Contexte :
+
+Après revue de ma PR pour le panier, je dois retravailler le cartDataMapper pour l'intégrer.
+
+### Actions du jour :
+
+<ul>
+    <li>Développement du CartDataMapper </li>
+    <li>Ecriture des test unitiaires et d'intégration dédiés au panier</li>
+    <li>Sur la partie client, mise en place du panier avec connexion à l'api</li>
 </ul>

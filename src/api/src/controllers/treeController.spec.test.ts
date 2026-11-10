@@ -301,6 +301,34 @@ describe("treeController", () => {
         "Recherche invalide : un seul texte de 100 caractères maximum",
       );
     });
+
+    // Doit répondre 400 si la recherche dépasse 100 caractères
+    it("should return 400 if search is longer than 100 characters", async () => {
+      // Act : "a".repeat(101) fabrique un texte de 101 caractères
+      const httpResponse = await libTests.requester.get(
+        `/trees?search=${"a".repeat(101)}`,
+      );
+      const body = httpResponse.data; // le JSON renvoyé (l'erreur)
+
+      // Assert : La route répond 400 et renvoie le message de validateSearchQuery (commonMiddleware.ts)
+      assert.strictEqual(httpResponse.status, 400);
+      assert.strictEqual(
+        body.error,
+        "Recherche invalide : un seul texte de 100 caractères maximum",
+      );
+    });
+
+    // Doit accepter une recherche d'exactement 100 caractères (la limite)
+    it("should accept a search of exactly 100 characters", async () => {
+      // Act : 100 caractères, c'est encore autorisé
+      const httpResponse = await libTests.requester.get(
+        `/trees?search=${"a".repeat(100)}`,
+      );
+
+      // Assert : pas d'erreur ; aucun arbre ne s'appelle « aaa… », donc tableau vide
+      assert.strictEqual(httpResponse.status, 200);
+      assert.deepStrictEqual(httpResponse.data, []);
+    });
   });
 
   // Test de la route de la fiche arbre
@@ -360,6 +388,232 @@ describe("treeController", () => {
       // Assert : La route répond 400 et renvoie le message de validateId (commonMiddleware.ts)
       assert.strictEqual(httpResponse.status, 400);
       assert.strictEqual(body.error, "Identifiant invalide");
+    });
+
+    // Doit répondre 400 si l'id dépasse la valeur maximale d'une colonne INT
+    it("should return 400 if id is too big", async () => {
+      // Act : plus grand que 2147483647 (MAX_ID) : sans validateId, PostgreSQL renverrait une erreur 500
+      const httpResponse = await libTests.requester.get("/trees/99999999999");
+      const body = httpResponse.data; // le JSON renvoyé (l'erreur)
+
+      // Assert
+      assert.strictEqual(httpResponse.status, 400);
+      assert.strictEqual(body.error, "Identifiant invalide");
+    });
+
+    // Doit renvoyer tout ce que demande US04 : photo, description, prix TTC, lieu de plantation
+    it("should return all the fields of the tree sheet", async () => {
+      // Arrange : 1 arbre dont tous les champs sont remplis
+      const treeId = await libTests.createTree({
+        name: "Chêne pédonculé",
+        description: "Un grand arbre des forêts de Bretagne",
+        price: 16.9,
+        photoUrl: "/images/trees/chene-pedoncule.webp",
+        plantingLocation: "Forêt de Brocéliande — Paimpont (35)",
+        category: "Feuillage caduc",
+      });
+
+      // Act
+      const httpResponse = await libTests.requester.get(`/trees/${treeId}`);
+      const body = httpResponse.data; // le JSON renvoyé (l'arbre)
+
+      // Assert : exactement ces champs, ni plus ni moins (triés par ordre alphabétique)
+      assert.strictEqual(httpResponse.status, 200);
+      assert.deepStrictEqual(Object.keys(body).sort(), [
+        "availabilityName",
+        "categoryName",
+        "description",
+        "id",
+        "name",
+        "photoUrl",
+        "plantingLocation",
+        "price",
+      ]);
+      // Assert : chaque valeur est celle enregistrée
+      assert.strictEqual(body.name, "Chêne pédonculé");
+      assert.strictEqual(
+        body.description,
+        "Un grand arbre des forêts de Bretagne",
+      );
+      // le prix arrive en nombre (CAST AS FLOAT dans le datamapper), pas en texte "16.90"
+      assert.strictEqual(body.price, 16.9);
+      assert.strictEqual(body.photoUrl, "/images/trees/chene-pedoncule.webp");
+      assert.strictEqual(
+        body.plantingLocation,
+        "Forêt de Brocéliande — Paimpont (35)",
+      );
+      assert.strictEqual(body.categoryName, "Feuillage caduc");
+    });
+
+    // Doit afficher la fiche d'un arbre en rupture de stock (seul « retiré » donne 404)
+    it("should return 200 if tree is out of stock", async () => {
+      // Arrange : 1 arbre en rupture de stock
+      const treeId = await libTests.createTree({
+        name: "Hêtre",
+        availability: "en rupture de stock",
+      });
+
+      // Act
+      const httpResponse = await libTests.requester.get(`/trees/${treeId}`);
+      const body = httpResponse.data;
+
+      // Assert : la fiche s'affiche, avec sa disponibilité
+      assert.strictEqual(httpResponse.status, 200);
+      assert.strictEqual(body.availabilityName, "en rupture de stock");
+    });
+  });
+
+  // Test du filtre par catégorie du catalogue
+  describe("[GET] /api/trees?category=:id", () => {
+    // Doit renvoyer seulement les arbres de la catégorie demandée
+    it("should return only the trees of the category", async () => {
+      // Arrange : 2 résineux, et 1 arbre d'une autre catégorie (Feuillage caduc par défaut)
+      await libTests.createTree({ name: "Pin maritime", category: "Résineux" });
+      await libTests.createTree({
+        name: "Sapin pectiné",
+        category: "Résineux",
+      });
+      await libTests.createTree({ name: "Chêne pédonculé" });
+      const categoryId = await libTests.getCategoryId("Résineux");
+
+      // Act : Appelle la route comme le ferait le front
+      const httpResponse = await libTests.requester.get(
+        `/trees?category=${categoryId}`,
+      );
+      const body = httpResponse.data; // le JSON renvoyé (tableau d'arbres)
+
+      // Assert : seuls les 2 résineux, triés par id ; le chêne est écarté
+      assert.strictEqual(httpResponse.status, 200);
+      assert.strictEqual(body.length, 2);
+      assert.strictEqual(body[0].name, "Pin maritime");
+      assert.strictEqual(body[1].name, "Sapin pectiné");
+    });
+
+    // Doit écarter les arbres retirés, même dans la bonne catégorie
+    it("should exclude withdrawn trees of the category", async () => {
+      // Arrange : 1 résineux disponible, 1 résineux retiré
+      await libTests.createTree({ name: "Pin maritime", category: "Résineux" });
+      await libTests.createTree({
+        name: "Pin sylvestre",
+        category: "Résineux",
+        availability: "retiré",
+      });
+      const categoryId = await libTests.getCategoryId("Résineux");
+
+      // Act
+      const httpResponse = await libTests.requester.get(
+        `/trees?category=${categoryId}`,
+      );
+      const body = httpResponse.data;
+
+      // Assert : seul l'arbre disponible
+      assert.strictEqual(httpResponse.status, 200);
+      assert.strictEqual(body.length, 1);
+      assert.strictEqual(body[0].name, "Pin maritime");
+    });
+
+    // Doit répondre 200 et un tableau vide si la catégorie n'existe pas
+    it("should return 200 with empty array when the category does not exist", async () => {
+      // Arrange : 1 arbre, pour prouver que le tableau vide vient du filtre et pas d'une base vide
+      await libTests.createTree({ name: "Chêne pédonculé" });
+
+      // Act : 999 est un id valide, mais aucune catégorie n'a cet id
+      const httpResponse = await libTests.requester.get("/trees?category=999");
+
+      // Assert : c'est un filtre, pas une ressource : 200 et [], pas 404
+      assert.strictEqual(httpResponse.status, 200);
+      assert.deepStrictEqual(httpResponse.data, []);
+    });
+
+    // Doit répondre 400 si la catégorie n'est pas un entier positif
+    // une boucle crée un test par valeur ; chaque valeur teste une partie de la condition de validateCategoryQuery
+    const invalidCategories = [
+      "abc", // pas un nombre
+      "1.5", // pas un entier
+      "0", // pas > 0
+      "-1", // pas > 0
+      "99999999999", // plus grand que MAX_ID : sans la validation, erreur 500 de PostgreSQL
+    ];
+    for (const invalidCategory of invalidCategories) {
+      it(`should return 400 if category is "${invalidCategory}"`, async () => {
+        // Act
+        const httpResponse = await libTests.requester.get(
+          `/trees?category=${invalidCategory}`,
+        );
+        const body = httpResponse.data; // le JSON renvoyé (l'erreur)
+
+        // Assert : La route répond 400 et renvoie le message de validateCategoryQuery (commonMiddleware.ts)
+        assert.strictEqual(httpResponse.status, 400);
+        assert.strictEqual(body.error, "Catégorie invalide");
+      });
+    }
+  });
+
+  // Test de la liste des catégories (boutons radio du filtre)
+  describe("[GET] /api/categories", () => {
+    // Doit renvoyer les catégories triées par id
+    it("should return the categories ordered by id", async () => {
+      // Arrange : createTree crée la catégorie si elle n'existe pas.
+      // « Résineux » est créé AVANT « Feuillage caduc » : l'ordre des id n'est pas l'ordre alphabétique,
+      // donc le test échouerait si la liste était triée par nom
+      await libTests.createTree({ name: "Pin maritime", category: "Résineux" });
+      await libTests.createTree({
+        name: "Chêne pédonculé",
+        category: "Feuillage caduc",
+      });
+
+      // Act
+      const httpResponse = await libTests.requester.get("/categories");
+      const body = httpResponse.data; // le JSON renvoyé (tableau de catégories)
+
+      // Assert : map garde seulement le nom de chaque catégorie, pour comparer l'ordre
+      assert.strictEqual(httpResponse.status, 200);
+      assert.deepStrictEqual(
+        body.map((category: { name: string }) => category.name),
+        ["Résineux", "Feuillage caduc"],
+      );
+    });
+
+    // Doit renvoyer exactement les champs id et name
+    it("should return id and name for each category", async () => {
+      // Arrange
+      await libTests.createTree({ name: "Pin maritime", category: "Résineux" });
+      const categoryId = await libTests.getCategoryId("Résineux");
+
+      // Act
+      const httpResponse = await libTests.requester.get("/categories");
+      const body = httpResponse.data;
+
+      // Assert : ni plus ni moins que id et name
+      assert.strictEqual(httpResponse.status, 200);
+      assert.deepStrictEqual(body, [{ id: categoryId, name: "Résineux" }]);
+    });
+
+    // Doit renvoyer chaque catégorie une seule fois, même si elle contient plusieurs arbres
+    it("should return each category only once", async () => {
+      // Arrange : 2 arbres dans la même catégorie
+      await libTests.createTree({ name: "Pin maritime", category: "Résineux" });
+      await libTests.createTree({
+        name: "Sapin pectiné",
+        category: "Résineux",
+      });
+
+      // Act
+      const httpResponse = await libTests.requester.get("/categories");
+
+      // Assert
+      assert.strictEqual(httpResponse.status, 200);
+      assert.strictEqual(httpResponse.data.length, 1);
+    });
+
+    // Doit répondre 200 et un tableau vide s'il n'y a aucune catégorie
+    it("should return 200 with empty array when no categories", async () => {
+      // Act : la BDD de test est vidée avant chaque test, il n'y a aucune catégorie
+      const httpResponse = await libTests.requester.get("/categories");
+
+      // Assert
+      assert.strictEqual(httpResponse.status, 200);
+      assert.deepStrictEqual(httpResponse.data, []);
     });
   });
 });
