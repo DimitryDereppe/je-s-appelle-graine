@@ -171,7 +171,6 @@ export default function Header() {
               </Link>
             ))}
 
-            {/* ─── Zone utilisateur (connecté vs visiteur) ──────────────── */}
             {user ? (
               <>
                 <span className={styles.greeting}>
