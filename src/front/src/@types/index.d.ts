@@ -89,3 +89,13 @@ export interface IOrderSummary {
 export interface IOrderDetail extends IOrderWithInstructions {
   status: OrderStatus;
 }
+
+//---------------------------------
+// Gestion des commandes (F8, contrat carte #169)
+//---------------------------------
+export interface IAdminOrderSummary extends IOrderSummary {
+  buyerFirstname: string;
+  buyerLastname: string;
+  buyerEmail: string;
+  isLate: boolean; // true si la commande est « en attente » depuis plus de 10 jours (calculé par l'API)
+}
