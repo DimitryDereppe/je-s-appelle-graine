@@ -370,6 +370,8 @@ Vérifiés sur `feat/f6-commandes-front` le 09/11/2026. Les 11 cas passent.
 
 ### Tests manuels — page `/compte` et lien « Bonjour X » (carte #161)
 
+Vérifiés sur `feat/f6-compte-front` le 10/11/2026. Les 12 cas passent.
+
 | N°        | Cas                                          | Type   | Attendu                                                                                                                                                                       | Obtenu |
 | --------- | -------------------------------------------- | ------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
 | F6-MAN-12 | « Bonjour X » dans l'en-tête                 | Manuel | mène à `/compte`, lien mis en avant sur cette page ; sur mobile, le menu burger se ferme                                                                                      | ✅     |
