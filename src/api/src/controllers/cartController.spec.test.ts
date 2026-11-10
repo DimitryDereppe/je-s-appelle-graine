@@ -11,12 +11,12 @@ describe("cartController", () => {
       await libTests.createAccount(libTests.ALICE);
       const cookie = await libTests.loginAs(libTests.ALICE);
 
-      const response = await libTests.requester.get("/cart", {
+      const response = await libTests.requester.get("/cart/", {
         headers: { Cookie: cookie },
       });
 
       assert.strictEqual(response.status, 200);
-      assert.deepStrictEqual(response.data, []);
+      assert.deepStrictEqual(response.data, { items: [], total: 0 });
     });
 
     it("should respond 200 with the cart lines and the tree details", async () => {
@@ -34,12 +34,14 @@ describe("cartController", () => {
       });
 
       assert.strictEqual(response.status, 200);
-      assert.strictEqual(response.data.length, 1);
-      const line = response.data[0];
+      assert.strictEqual(response.data.items.length, 1);
+      assert.strictEqual(response.data.total, 19.8);
+      const line = response.data.items[0];
       assert.deepStrictEqual(Object.keys(line).sort(), [
         "accountId",
         "availabilityName",
         "id",
+        "lineTotal",
         "name",
         "photoUrl",
         "plantingLocation",
@@ -53,6 +55,7 @@ describe("cartController", () => {
       assert.strictEqual(line.price, 9.9);
       assert.strictEqual(line.plantingLocation, "Landiras (33)");
       assert.strictEqual(line.availabilityName, "disponible");
+      assert.strictEqual(line.lineTotal, 19.8);
     });
 
     it("should respond only with the cart of the connected account", async () => {
@@ -73,9 +76,9 @@ describe("cartController", () => {
       });
 
       assert.strictEqual(response.status, 200);
-      assert.strictEqual(response.data.length, 1);
-      assert.strictEqual(response.data[0].treeId, aliceTreeId);
-      assert.strictEqual(response.data[0].accountId, aliceId);
+      assert.strictEqual(response.data.items.length, 1);
+      assert.strictEqual(response.data.items[0].treeId, aliceTreeId);
+      assert.strictEqual(response.data.items[0].accountId, aliceId);
     });
 
     it("should respond 401 if not connected", async () => {
@@ -157,6 +160,28 @@ describe("cartController", () => {
 
       assert.strictEqual(response.status, 201);
       assert.strictEqual(response.data.quantity, 5); // 2 + 3
+    });
+
+    it("should respond 400 if quantity exceeds MAX_QUANTITY_PER_TREE (100)", async () => {
+      const aliceId = await libTests.createAccount(libTests.ALICE);
+      const treeId = await libTests.createTree({ name: "Chêne" });
+      await libTests.addCartItem(aliceId, treeId, 90);
+      const cookie = await libTests.loginAs(libTests.ALICE);
+
+      const response = await libTests.requester.post(
+        "/cart/items",
+        {
+          treeId,
+          quantity: 15,
+        },
+        { headers: { Cookie: cookie } },
+      );
+
+      assert.strictEqual(response.status, 400);
+      assert.strictEqual(
+        response.data.error,
+        "La quantité doit être comprise entre 1 et 100.",
+      );
     });
 
     it("should respond 400 if quantity is 0", async () => {
@@ -243,6 +268,27 @@ describe("cartController", () => {
       assert.strictEqual(response.data.error, "Ligne du panier introuvable");
     });
 
+    it("should respond 400 if quantity exceeds MAX_QUANTITY_PER_TREE (100)", async () => {
+      const aliceId = await libTests.createAccount(libTests.ALICE);
+      const treeId = await libTests.createTree({ name: "Hêtre" });
+      await libTests.addCartItem(aliceId, treeId, 1);
+      const cookie = await libTests.loginAs(libTests.ALICE);
+
+      const response = await libTests.requester.patch(
+        `/cart/items/${treeId}`,
+        {
+          quantity: 105,
+        },
+        { headers: { Cookie: cookie } },
+      );
+
+      assert.strictEqual(response.status, 400);
+      assert.strictEqual(
+        response.data.error,
+        "La quantité doit être comprise entre 1 et 100.",
+      );
+    });
+
     it("should respond 400 if quantity is 0", async () => {
       const aliceId = await libTests.createAccount(libTests.ALICE);
       const treeId = await libTests.createTree({ name: "Hêtre" });
@@ -292,7 +338,7 @@ describe("cartController", () => {
       const getResponse = await libTests.requester.get("/cart", {
         headers: { Cookie: cookie },
       });
-      assert.strictEqual(getResponse.data.length, 0);
+      assert.strictEqual(getResponse.data.items.length, 0);
     });
 
     it("should respond 401 if not connected", async () => {
@@ -324,7 +370,7 @@ describe("cartController", () => {
       const getResponse = await libTests.requester.get("/cart", {
         headers: { Cookie: cookie },
       });
-      assert.deepStrictEqual(getResponse.data, []);
+      assert.deepStrictEqual(getResponse.data, { items: [], total: 0 });
     });
 
     it("should respond 401 if not connected", async () => {
