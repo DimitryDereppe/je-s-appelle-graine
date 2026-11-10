@@ -261,12 +261,12 @@ Même fichier. Les 3 cas passent. En test, `SMTP_HOST` est absent : l'email est 
 
 ### Tests manuels — pages `/commandes/nouvelle`, `/commandes/nouvelle/paiement`, `/commandes/[id]/confirmation`
 
-| N°       | Cas                                                       | Type   | Attendu                                                                         | Obtenu                        |
-| -------- | --------------------------------------------------------- | ------ | ------------------------------------------------------------------------------- | ----------------------------- |
-| F5-MAN-1 | Parcours panier → récapitulatif → paiement → confirmation | Manuel | commande créée, page de confirmation affichée                                   | ⏳ pages à faire (carte #107) |
-| F5-MAN-2 | Valider sans cocher l'engagement ou sans adresse          | Manuel | message d'erreur lisible, annoncé aux lecteurs d'écran (`role="alert"`)         | ⏳ pages à faire (carte #107) |
-| F5-MAN-3 | Page de confirmation                                      | Manuel | référence (n° de commande), montant TTC, date limite, IBAN ou adresse du chèque | ⏳ pages à faire (carte #107) |
-| F5-MAN-4 | Formulaires au clavier et en mobile (375 px)              | Manuel | labels, focus visible, champs obligatoires indiqués en texte                    | ⏳ pages à faire (carte #107) |
+| N°       | Cas                                                       | Type   | Attendu                                                                         | Obtenu |
+| -------- | --------------------------------------------------------- | ------ | ------------------------------------------------------------------------------- | ------ |
+| F5-MAN-1 | Parcours panier → récapitulatif → paiement → confirmation | Manuel | commande créée, page de confirmation affichée                                   | ✅     |
+| F5-MAN-2 | Valider sans cocher l'engagement ou sans adresse          | Manuel | message d'erreur lisible, annoncé aux lecteurs d'écran (`role="alert"`)         | ✅     |
+| F5-MAN-3 | Page de confirmation                                      | Manuel | référence (n° de commande), montant TTC, date limite, IBAN ou adresse du chèque | ✅     |
+| F5-MAN-4 | Formulaires au clavier et en mobile (375 px)              | Manuel | labels, focus visible, champs obligatoires indiqués en texte                    | ✅     |
 
 ## F6 · Espace client (US26 à US30)
 

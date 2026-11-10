@@ -23,7 +23,7 @@ export function AddToCartButton({ treeId, treeName }: AddToCartButtonProps) {
       const response = await fetch("/api/cart/items", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ tree_id: treeId, quantity: 1 }),
+        body: JSON.stringify({ treeId, quantity: 1 }),
       });
 
       if (response.status === 401 || response.status === 403) {
