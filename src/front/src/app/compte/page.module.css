@@ -38,24 +38,33 @@
   gap: 4px;
   height: 100%;
   padding: 14px;
-  border: 1px solid var(--color-border);
+  border: 2px solid var(--color-green);
   border-radius: 8px;
-  background-color: white;
-  color: inherit;
+  background-color: var(--color-green);
+  color: white;
   text-decoration: none;
 }
 
-/* focus visible au clavier */
+/* survol et focus au clavier : vert plus foncé, contour visible */
 .menuItem:hover,
 .menuItem:focus-visible {
-  border-color: var(--color-green);
-  outline: 2px solid var(--color-green);
+  background-color: var(--color-deep-green);
+  outline: 2px solid var(--color-deep-green);
   outline-offset: 2px;
 }
 
-/* suppression : en terracotta pour signaler une action à risque */
-.danger strong {
+/* suppression : fond blanc encadré de terracotta, pour signaler une action à risque */
+.danger {
+  border-color: var(--color-terracotta);
+  background-color: white;
   color: var(--color-terracotta);
+}
+
+.danger:hover,
+.danger:focus-visible {
+  background-color: var(--color-terracotta);
+  color: white;
+  outline-color: var(--color-terracotta);
 }
 
 @media (min-width: 700px) {
