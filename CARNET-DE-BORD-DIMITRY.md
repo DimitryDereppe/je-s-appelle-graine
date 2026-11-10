@@ -2,7 +2,7 @@
 
 Suivi de mon travail sur Je s’appelle Graine. Les décisions notées ici ont été prises avec l'équipe sur Discord ; le suivi de l'équipe est dans le [[Apothéose/apo-jesappellegraine/CARNET-DE-BORD-JE-S-APPELLE-GRAINE|carnet de bord Je s’appelle Graine]].
 
-## 2026-11-10 — Admin commandes (F8) : page liste `/admin/commandes` (#169), « Lieu de plantation » (#105, #107)
+## 2026-11-10 — Admin commandes (F8) : page liste `/admin/commandes`, filtre, « En retard », type du détail (#169), « Lieu de plantation » (#105, #107)
 
 ### Carte #107 — front de la commande
 
@@ -10,7 +10,7 @@ Suivi de mon travail sur Je s’appelle Graine. Les décisions notées ici ont �
 
 ### Carte #169 — front des pages admin des commandes (branche `feat/front-f8-#169`)
 
-- Contrat #167 validé : `GET /api/admin/orders?status=` (liste, 400 si statut invalide), `GET /api/admin/orders/:id` (détail, 404), `PATCH /api/admin/orders/:id/status` (409 si changement interdit). Changements autorisés : `en attente` → `payée` ou `annulée` ; `payée` → `plantée`. Le back (#168) est fait par Fabrice.
+- Contrat #167 validé : `GET /api/admin/orders?status=` (liste, 400 si statut invalide), `GET /api/admin/orders/:id` (détail, 404), `PATCH /api/admin/orders/:id/status` (409 si changement interdit). Le détail renvoie `dueDate` et `billingAddress` (pas `buyerAddress`) ; `paidAt`, `plantedAt`, `cancelledAt`, `buyerOrganization` et `billingAddress` peuvent valoir `null`. Changements autorisés : `en attente` → `payée` ou `annulée` ; `payée` → `plantée`. Le back (#168) est fait par Fabrice.
 - Type `IAdminOrderSummary` (`extends IOrderSummary`) dans `@types/index.d.ts` : nom, prénom et email de l'acheteur, `isLate`.
 - Page `/admin/commandes` (commit `5cfde45`) : `page.tsx` + `AdminOrdersList.tsx` (composant client, `GET admin/orders` avec le cookie) + `page.module.css`. 401 → `/connexion?next=/admin/commandes`, 403 → « Cette page est réservée à l’administration. », sinon un seul affichage à la fois : erreur, chargement, liste vide ou liste de cartes cliquables vers le détail.
 - Fusion de `DEV` (commit `92e9ae7`) : la mise en page `/admin` de Shanna (`layout.tsx` + `AdminGuard.tsx`, onglets) fournit déjà le `<main>` et le menu → `page.tsx` renvoie un fragment, sans `<main>` en double (commit `7426e70`).
@@ -19,18 +19,22 @@ Suivi de mon travail sur Je s’appelle Graine. Les décisions notées ici ont �
 
 - Email de commande (`emailService.ts`, commit `66e3a4a`, #105) et récapitulatif du panier (`CartSummary.tsx`, commit `19bdbc9`, #107) : même intitulé que la page commande.
 
-### Avancement de #169 : environ un tiers
+### Carte #169 — filtre, « En retard », type du détail
 
-- Fait : type (étape 1), page liste (étape 2).
-- En cours : étape 3, filtre par statut (`useState` du statut, `status` dans les dépendances du `useEffect`, `encodeURIComponent`, `<select>` + `<label>`).
+- Filtre par statut (commit `abcfb27`) : `useState<OrderStatus | "">("")` (`""` = tous les statuts), `status` dans les dépendances du `useEffect` (nouvelle requête à chaque choix), `setOrders(null)` pour réafficher « Chargement… », `?status=${encodeURIComponent(status)}` (espace et accents de « en attente », « payée »). `<select>` relié à son `<label>` par `htmlFor`/`id`, options générées depuis les 4 statuts avec `formatOrderStatus`.
+- Le filtre reste affiché quand la liste est vide (sinon impossible de revenir à « Tous les statuts ») : les cas chargement / vide / liste passent dans une fonction `renderOrders()` sous le filtre. Liste vide avec filtre → « Aucune commande avec ce statut. ».
+- « En retard » (commit `d6fefe7`) : `{order.isLate && …}`, écrit en toutes lettres (pas seulement une couleur), classe `.late`.
+- Type `IAdminOrderDetail extends IAdminOrderSummary` (commit `508c2af`), relu sur le contrat #167 ; commentaire « contrat carte #169 » corrigé en #167.
+- `tsc`, ESLint, Prettier OK ; pas encore testé dans le navigateur (back #168 pas prêt).
+
+### Avancement de #169 : environ la moitié
+
+- Fait : type liste (étape 1), page liste (étape 2), filtre (étape 3), « En retard » (étape 4), type du détail (début de l'étape 5).
 
 ### Reste à faire
 
-- Étape 3 : finir le filtre ; choisir le message quand le filtre ne trouve aucune commande.
-- Étape 4 : « En retard » écrit en texte à partir de `isLate`.
-- Étape 5 : page détail `/admin/commandes/[id]` (type détail avec `paymentMethod`, boutons seulement pour les changements autorisés, `PATCH`).
+- Étape 5 : page détail `/admin/commandes/[id]` (composant client `GET admin/orders/:id`, boutons seulement pour les changements autorisés, `PATCH`).
 - Étape 6 : vérifications navigateur, mobile, clavier, quand le back #168 sera prêt.
-- Corriger le commentaire de `IAdminOrderSummary` (« carte #169 » → #167) ; cocher « Contrat validé » sur #167.
 - Décider si les commits `66e3a4a` et `19bdbc9` (F5) restent sur la branche #169 ou partent dans une PR à part.
 - Proposer à Loïc `alt="Lieu de plantation"` sur l'icône de lieu (`TreeCard.tsx`, `arbres/[id]/page.tsx`), aujourd'hui `alt=""`.
 
