@@ -5,6 +5,7 @@ import type {
   IOrder,
   IOrderSummary,
   IAdminOrderSummary,
+  IAdminOrder,
   OrderStatus,
   PaymentMethod,
 } from "../@types/index.d.ts";
@@ -174,10 +175,13 @@ export const ordersDatamapper = {
 
   // --------------------------------
   // Liste admin : toutes les commandes, de tous les clients, la plus récente d'abord (contrat #167)
+  // pas de WHERE sur account_id : l'admin voit tout (la route est réservée à l'admin dans indexRouter)
   // --------------------------------
-  async findAllOrdersForAdmin(): Promise<IAdminOrderSummary[]> {
+  // status facultatif (?) : sans statut, toutes les commandes
+  async findAllOrdersForAdmin(
+    status?: OrderStatus,
+  ): Promise<IAdminOrderSummary[]> {
     const result = await pool.query(
-      // AS "…" : renomme la colonne en camelCase pour le JSON (guillemets : garde la majuscule)
       `SELECT id,
               purchase_date AS "purchaseDate",
               status,
@@ -187,15 +191,74 @@ export const ordersDatamapper = {
               buyer_firstname AS "buyerFirstname",
               buyer_lastname AS "buyerLastname",
               buyer_email AS "buyerEmail",
-              -- en retard si : en attente ET commandée il y a plus de 10 jours (isLate → true ou false)
+              -- en retard : en attente ET commandée il y a plus de 10 jours → true ou false
               -- now() - INTERVAL '10 days' : la date d'il y a 10 jours
               -- calculé à chaque requête plutôt qu'enregistré : une colonne is_late serait fausse dès le lendemain
               (status = 'en attente' AND purchase_date < now() - INTERVAL '10 days') AS "isLate"
        FROM purchase
-       -- id DESC : départage deux commandes passées au même moment
+       -- sans filtre ($1 vaut NULL) : toutes les commandes ; sinon, seulement ce statut
+       WHERE (CAST($1 AS VARCHAR) IS NULL OR status = $1)
        ORDER BY purchase_date DESC, id DESC`,
+      // ?? null : sans statut, on envoie NULL à PostgreSQL
+      [status ?? null],
     );
-    // le tableau des commandes
     return result.rows;
+  },
+
+  // --------------------------------
+  // Détail admin : une commande de n'importe quel client, avec ses lignes (contrat #167)
+  // retourne null si elle n'existe pas
+  // --------------------------------
+  async findOrderByIdForAdmin(id: number): Promise<IAdminOrder | null> {
+    const orderResult = await pool.query(
+      `SELECT id,
+              purchase_date AS "purchaseDate",
+              status,
+              CAST(total_amount AS FLOAT) AS "totalAmount",
+              buyer_firstname AS "buyerFirstname",
+              buyer_lastname AS "buyerLastname",
+              buyer_email AS "buyerEmail",
+              (status = 'en attente' AND purchase_date < now() - INTERVAL '10 days') AS "isLate",
+              -- même calcul que findOrderByIdAndAccountId : date limite en texte "AAAA-MM-JJ"
+              TO_CHAR(purchase_date + INTERVAL '10 days', 'YYYY-MM-DD') AS "dueDate",
+              payment_method AS "paymentMethod",
+              buyer_organization AS "buyerOrganization",
+              -- même nom que dans GET /api/orders/:id (contrat #167)
+              buyer_address AS "billingAddress",
+              -- null tant que le statut n'a pas été atteint
+              paid_at AS "paidAt",
+              planted_at AS "plantedAt",
+              cancelled_at AS "cancelledAt"
+       FROM purchase
+       -- pas de account_id : l'admin voit les commandes de tous les clients
+       WHERE id = $1`,
+      [id],
+    );
+
+    // aucune ligne : la commande n'existe pas (le contrôleur répondra 404)
+    if (orderResult.rows.length === 0) {
+      return null;
+    }
+
+    // les arbres de la commande sont dans une autre table (purchase_line) : deuxième requête
+    // même requête que pour le client (findOrderByIdAndAccountId) : même format pour le front
+    const linesResult = await pool.query(
+      // nom, prix et lieu copiés à l'achat
+      `SELECT tree_name AS "treeName",
+              CAST(unit_price AS FLOAT) AS "unitPrice",
+              quantity,
+              planting_location AS "plantingLocation"
+       FROM purchase_line
+       -- seulement les lignes de cette commande
+       WHERE purchase_id = $1
+       -- dans l'ordre où elles ont été enregistrées
+       ORDER BY id`,
+      [id],
+    );
+
+    // la commande, avec ses lignes dans une propriété "lines"
+    // ... (spread) : recopie toutes les propriétés de la commande, puis on ajoute le tableau des lignes
+    // → { id, status, totalAmount, ..., lines: [{ treeName, unitPrice, quantity, plantingLocation }] }
+    return { ...orderResult.rows[0], lines: linesResult.rows };
   },
 };
