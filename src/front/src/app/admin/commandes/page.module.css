@@ -1,15 +1,5 @@
 /* ===== Admin — commandes — mobile-first ===== */
-.main {
-  padding: 16px 16px 32px;
-  background-color: var(--color-ivory);
-  color: var(--color-deep-green);
-}
-
-.content {
-  max-width: 720px;
-  margin: 0 auto;
-}
-
+/* marges et largeur : données par <main> dans AdminGuard (app/admin/page.module.css) */
 .title {
   font-size: 24px;
   line-height: 1.2;

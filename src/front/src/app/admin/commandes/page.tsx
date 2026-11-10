@@ -10,14 +10,13 @@ export const metadata: Metadata = {
 };
 
 // Page /admin/commandes : page serveur, le chargement des commandes est fait par AdminOrdersList (composant client)
-// la mise en page /admin (onglets Catalogue, Commandes, Comptes) vient de app/admin/layout.tsx (carte #97, Shanna)
+// <main> et le menu des rubriques viennent de app/admin/layout.tsx (AdminGuard, carte #97) :
+// la page ne renvoie que son contenu, dans un fragment <> </> (regroupe sans ajouter de balise)
 export default function AdminOrdersPage() {
   return (
-    <main className={styles.main}>
-      <div className={styles.content}>
-        <h1 className={styles.title}>Commandes</h1>
-        <AdminOrdersList />
-      </div>
-    </main>
+    <>
+      <h1 className={styles.title}>Commandes</h1>
+      <AdminOrdersList />
+    </>
   );
 }
