@@ -3,6 +3,7 @@
 .main {
   width: 100%;
   min-height: 100vh;
+  min-width: 350px;
   display: flex;
   flex-direction: column;
   background-color: #f8f6f8;
