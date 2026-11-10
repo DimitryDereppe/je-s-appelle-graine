@@ -55,11 +55,24 @@ export const getCart = asyncHandler(
   },
 );
 
+const MAX_QUANTITY_PER_TREE = 100;
+
 export const addCartItem = asyncHandler(
   async (req: IAuthenticatedRequest, res: Response) => {
     const user = await getAuthenticatedUser(req);
 
     const { treeId, quantity } = addCartItemSchema.parse(req.body);
+
+    const existingItem = await cartDatamapper.findCartItem(user.id, treeId);
+    const currentQuantity = existingItem ? existingItem.quantity : 0;
+
+    if (currentQuantity + quantity > MAX_QUANTITY_PER_TREE) {
+      res.status(400).json({
+        error: "La quantité doit être comprise entre 1 et 100.",
+        status: 400,
+      });
+      return;
+    }
 
     const newCartItem = await cartDatamapper.addCartItem(
       user.id,
@@ -77,6 +90,14 @@ export const updateCartItem = asyncHandler(
 
     const treeId = treeIdParamSchema.parse(req.params.treeId);
     const { quantity } = updateCartItemSchema.parse(req.body);
+
+    if (quantity > MAX_QUANTITY_PER_TREE) {
+      res.status(400).json({
+        error: "La quantité doit être comprise entre 1 et 100.",
+        status: 400,
+      });
+      return;
+    }
 
     const updatedCartItem = await cartDatamapper.updateCartItemQuantity(
       user.id,
