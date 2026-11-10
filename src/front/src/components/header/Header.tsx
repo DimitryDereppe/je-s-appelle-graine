@@ -170,7 +170,6 @@ export default function Header() {
                 {label}
               </Link>
             ))}
-
             {user ? (
               <>
                 <span className={styles.greeting}>
