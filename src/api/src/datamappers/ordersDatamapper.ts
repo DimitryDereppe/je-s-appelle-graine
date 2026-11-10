@@ -4,6 +4,7 @@ import type {
   ICartItem,
   IOrder,
   IOrderSummary,
+  IAdminOrderSummary,
   OrderStatus,
   PaymentMethod,
 } from "../@types/index.d.ts";
@@ -169,5 +170,32 @@ export const ordersDatamapper = {
        WHERE id = $1`,
       [id, status],
     );
+  },
+
+  // --------------------------------
+  // Liste admin : toutes les commandes, de tous les clients, la plus récente d'abord (contrat #167)
+  // --------------------------------
+  async findAllOrdersForAdmin(): Promise<IAdminOrderSummary[]> {
+    const result = await pool.query(
+      // AS "…" : renomme la colonne en camelCase pour le JSON (guillemets : garde la majuscule)
+      `SELECT id,
+              purchase_date AS "purchaseDate",
+              status,
+              -- NUMERIC arrive en texte dans Node : CAST le change en nombre
+              CAST(total_amount AS FLOAT) AS "totalAmount",
+              -- identité de l'acheteur copiée à la commande : reste lisible même si le compte est supprimé
+              buyer_firstname AS "buyerFirstname",
+              buyer_lastname AS "buyerLastname",
+              buyer_email AS "buyerEmail",
+              -- en retard si : en attente ET commandée il y a plus de 10 jours (isLate → true ou false)
+              -- now() - INTERVAL '10 days' : la date d'il y a 10 jours
+              -- calculé à chaque requête plutôt qu'enregistré : une colonne is_late serait fausse dès le lendemain
+              (status = 'en attente' AND purchase_date < now() - INTERVAL '10 days') AS "isLate"
+       FROM purchase
+       -- id DESC : départage deux commandes passées au même moment
+       ORDER BY purchase_date DESC, id DESC`,
+    );
+    // le tableau des commandes
+    return result.rows;
   },
 };
