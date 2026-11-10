@@ -1,55 +1,27 @@
 "use client";
 // composant client : seul le navigateur envoie le cookie de connexion à l'API
 
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import type { AccountType, IAccount } from "../../@types";
 import { clientApi } from "../utils/clientApi";
 import styles from "./page.module.css";
 
-// Mes informations : chargées par GET /api/users/me, enregistrées par PATCH /api/users/me
-export function ProfileForm() {
-  // null tant que le compte n'est pas chargé
-  const [account, setAccount] = useState<IAccount | null>(null);
-  // dans un state : le champ « structure » apparaît ou disparaît selon le type choisi
-  const [accountType, setAccountType] = useState<AccountType>("particulier");
+interface ProfileFormProps {
+  // le compte déjà chargé par AccountContent (GET /api/users/me)
+  initialAccount: IAccount;
+}
+
+// Mes informations : préremplies avec le compte reçu, enregistrées par PATCH /api/users/me
+export function ProfileForm({ initialAccount }: ProfileFormProps) {
+  // part du compte reçu, puis remplacé par la réponse de l'API après chaque enregistrement
+  const [account, setAccount] = useState<IAccount>(initialAccount);
+  // dans un state : le champ « structure » apparaît ou disparaît selon le type choisi ;
+  // part du type enregistré, pour afficher le bon choix et la structure dès l'arrivée
+  const [accountType, setAccountType] = useState<AccountType>(
+    initialAccount.accountType,
+  );
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
-  const router = useRouter();
-
-  // chargement du compte une fois la page affichée dans le navigateur (qui envoie le cookie)
-  useEffect(() => {
-    // useEffect ne peut pas être async : on déclare une fonction async, appelée juste après
-    async function loadAccount() {
-      try {
-        const response = await clientApi("users/me");
-
-        if (response.status === 401) {
-          // pas connecté : la page de connexion nous renvoie ici ensuite
-          router.push("/connexion?next=/compte");
-          return;
-        }
-        // autre erreur de l'API (ex. 403 compte désactivé, 500)
-        if (!response.ok) {
-          setErrorMessage("Quelque chose n’a pas fonctionné.");
-          return;
-        }
-
-        const dataAccount: IAccount = await response.json();
-        setAccount(dataAccount);
-        // affiche le type enregistré dans le menu « Type de compte » (sinon il resterait
-        // sur « particulier », la valeur de départ du useState, et le champ structure serait caché)
-        setAccountType(dataAccount.accountType);
-      } catch {
-        // l'API n'a pas répondu : sans ce message, le chargement durerait toujours
-        setErrorMessage("Une erreur est survenue.");
-      }
-    }
-
-    loadAccount();
-    // dépendances = ce que l'effet utilise et qui vient du composant ;
-    // router ne change jamais : l'effet ne se lance qu'une fois
-  }, [router]);
 
   async function handleUpdate(formData: FormData) {
     setErrorMessage("");
@@ -92,17 +64,6 @@ export function ProfileForm() {
     } catch {
       setErrorMessage("Une erreur est survenue.");
     }
-  }
-
-  // erreur avant tout chargement : rien à afficher d'autre
-  if (!account) {
-    return errorMessage ? (
-      <p className={styles.error} role="alert">
-        {errorMessage}
-      </p>
-    ) : (
-      <p className={styles.subtitle}>Chargement de vos informations…</p>
-    );
   }
 
   return (

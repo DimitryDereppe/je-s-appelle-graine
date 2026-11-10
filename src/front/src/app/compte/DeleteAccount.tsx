@@ -8,6 +8,8 @@ import styles from "./page.module.css";
 // Supprimer son compte : DELETE /api/users/me (le cookie est effacé par l'API)
 export function DeleteAccount() {
   const [errorMessage, setErrorMessage] = useState("");
+  // message affiché pendant les 3 secondes avant la redirection
+  const [successMessage, setSuccessMessage] = useState("");
   // désactive le bouton pendant l'envoi : évite un double clic
   const [isDeleting, setIsDeleting] = useState(false);
   const router = useRouter();
@@ -36,8 +38,15 @@ export function DeleteAccount() {
         return;
       }
 
-      // 204 : compte supprimé et déconnecté ; l'en-tête se met à jour en changeant de page
-      router.push("/");
+      // 204 : compte supprimé et cookie effacé par l'API
+      setSuccessMessage(
+        "Votre compte a été supprimé. Vous allez être redirigé vers la page de connexion.",
+      );
+      // setTimeout : attend 3 secondes (3000 ms) pour laisser lire le message, comme à l'inscription ;
+      // en changeant de page, l'en-tête redemande qui est connecté et affiche « Connexion »
+      setTimeout(() => {
+        router.push("/connexion");
+      }, 3000);
     } catch {
       setErrorMessage("Une erreur est survenue.");
     } finally {
@@ -59,7 +68,8 @@ export function DeleteAccount() {
         type="button"
         className={styles.dangerButton}
         onClick={handleDelete}
-        disabled={isDeleting}
+        // désactivé aussi une fois le compte supprimé, pendant les 3 secondes
+        disabled={isDeleting || successMessage !== ""}
       >
         {isDeleting ? "Suppression…" : "Supprimer mon compte"}
       </button>
@@ -67,6 +77,12 @@ export function DeleteAccount() {
       {errorMessage && (
         <p className={styles.error} role="alert">
           {errorMessage}
+        </p>
+      )}
+      {/* role="status" : le lecteur d'écran annonce le message */}
+      {successMessage && (
+        <p className={styles.success} role="status">
+          {successMessage}
         </p>
       )}
     </>
