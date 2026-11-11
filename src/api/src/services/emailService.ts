@@ -116,23 +116,36 @@ L'équipe Je s'appelle Graine`;
 }
 
 // --------------------------------
-// email de changement de statut : paiement reçu (US25b) ou annulation (US25c)
+// email de changement de statut (F8) : paiement reçu (US25b), annulation (US25c) ou plantation (US25d)
 // --------------------------------
-// la commande relue après le changement (findOrderByIdForAdmin) : elle a déjà l'acheteur et le nouveau statut
-export async function sendOrderStatusEmail(order: IAdminOrder) {
+// deux fonctions : l'une fabrique l'email, l'autre l'envoie
+// séparer les deux permet de tester le contenu sans rien envoyer ni espionner console.log
+
+// fabrique l'email à partir de la commande relue après le changement (findOrderByIdForAdmin)
+// fonction « pure » : elle ne fait que renvoyer un objet, sans rien envoyer ni afficher
+export function buildOrderStatusEmail(order: IAdminOrder) {
   // montant : 50.7 → "50,70 €" (même écriture que l'email de confirmation)
   const amount = `${order.totalAmount.toFixed(2).replace(".", ",")} €`;
 
-  // le message et l'objet dépendent du nouveau statut de la commande
-  const message =
-    order.status === "payée"
-      ? "Votre paiement a bien été reçu. Merci ! Vos arbres seront bientôt plantés."
-      : "Votre commande a été annulée faute de paiement sous 10 jours.";
-
-  const subject =
-    order.status === "payée"
-      ? `Commande n° ${order.id} : paiement reçu`
-      : `Commande n° ${order.id} annulée`;
+  // le message et l'objet dépendent du statut de la commande
+  // switch : un cas par statut et default pour le statut « plantée »
+  let message: string;
+  let subject: string;
+  switch (order.status) {
+    case "payée":
+      message =
+        "Votre paiement a bien été reçu. Merci ! Vos arbres seront bientôt plantés.";
+      subject = `Commande n° ${order.id} : paiement reçu`;
+      break;
+    case "annulée":
+      message = "Votre commande a été annulée faute de paiement sous 10 jours.";
+      subject = `Commande n° ${order.id} annulée`;
+      break;
+    default:
+      message =
+        "Bonne nouvelle : vos arbres ont été plantés ! Merci de participer à la reforestation.";
+      subject = `Commande n° ${order.id} : vos arbres sont plantés`;
+  }
 
   // template literal : tout ce qui est entre les backticks fait partie du texte de l'email,
   // espaces compris : les lignes sont collées à gauche pour que l'email n'ait pas de décalage
@@ -146,13 +159,18 @@ Montant TTC : ${amount}
 L'équipe Je s'appelle Graine`;
 
   // l'email, au format attendu par Nodemailer
-  const email = {
+  return {
     from: config.mail.from,
-    // l'adresse copiée dans la commande : l'email part même si le compte a été supprimé
+    // l'adresse copiée dans la commande : l'email part même si le compte a été supprimé entre temps
     to: order.buyerEmail,
     subject,
     text,
   };
+}
+
+// envoie l'email fabriqué par buildOrderStatusEmail
+export async function sendOrderStatusEmail(order: IAdminOrder) {
+  const email = buildOrderStatusEmail(order);
 
   // dev et tests : on affiche l'email au lieu de l'envoyer (comme sendOrderConfirmation)
   if (!transporter) {
@@ -162,6 +180,6 @@ L'équipe Je s'appelle Graine`;
     return;
   }
 
-  // production : envoi réel ; une erreur remonte au contrôleur, qui l'attrape (try…catch)
+  // production : envoi réel (si une erreur remonte elle est attrapée dans le try/catch du contrôleur)
   await transporter.sendMail(email);
 }

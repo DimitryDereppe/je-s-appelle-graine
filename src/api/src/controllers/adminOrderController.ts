@@ -71,17 +71,15 @@ export async function updateOneOrder(req: Request, res: Response) {
     throw new NotFoundError("Commande introuvable.");
   }
 
-  // email au client à « payée » et à « annulée », rien pour « plantée »
-  if (status === "payée" || status === "annulée") {
-    // Même si l'envoi d'email échoue, le changement de statut est déjà enregistré
-    try {
-      await sendOrderStatusEmail(updatedOrder);
-    } catch (error) {
-      console.error("Email de changement de statut non envoyé", {
-        orderId,
-        error,
-      });
-    }
+  // email au client à chaque changement : payée, annulée ou plantée
+  // si l'envoi échoue, le changement de statut est déjà enregistré
+  try {
+    await sendOrderStatusEmail(updatedOrder);
+  } catch (error) {
+    console.error("Email de changement de statut non envoyé", {
+      orderId,
+      error,
+    });
   }
 
   res.status(200).json(updatedOrder);
