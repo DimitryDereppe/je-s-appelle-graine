@@ -1,5 +1,32 @@
 # Carnet de bord — Je s’appelle Graine
 
+## 2026-11-10 — Espace admin, F6 terminée, back de F7 et de F9 dans `DEV`
+
+### Travail réalisé
+
+- **Espace client (F6)** par Fabrice : page `/compte` (menu vers les commandes, informations, mot de passe, suppression) et lien « Bonjour X » vers cette page (PR #213, #161). F6 est terminée.
+- **Espace admin** par Fabrice, vu avec Shanna (PR #215) : lien « Administration » pour un admin, vérification du rôle commune à toutes les pages admin (`app/admin/layout.tsx`, `AdminGuard`), accueil `/admin` et CSS commun.
+- **Admin catalogue (F7), back** par Shanna (PR #219) : les 6 routes admin des arbres et 14 tests.
+- **Admin comptes (F9), back** par Mahamadou (PR #218) : liste, détail, désactivation, réactivation, suppression, 409 pour le dernier admin, et 23 tests. Tests de F2 (#90, #94, PR #214).
+- **Panier (F4)** par Loïc (PR #216, #217) : page `/panier`, bouton animé, compteur du panier dans l'en-tête, `GET /api/cart` qui renvoie `{ items, total }`.
+- **Admin commandes (F8), front** par Dimitry, sur sa branche : `/admin/commandes`, avec le filtre par statut et « En retard ».
+- **`DEV` :** 195 tests de l'API passent.
+
+### Décisions
+
+- **F8 :** Fabrice fait le back, Dimitry le front ; contrat #167 écrit ensemble.
+- **Espace admin :** une seule vérification du rôle, dans le layout de `app/admin/` : chaque page admin n'a qu'à afficher son contenu. La vraie protection reste dans l'API (403).
+- **Compte supprimé :** ses commandes restent en base, mais ne sont plus consultables, même en recréant un compte avec le même email.
+
+### À poursuivre
+
+- Fabrice : back de F8.
+- Dimitry : relecture de la PR #220, puis la page `/admin/commandes/[id]` et la PR du front de F8.
+- Shanna : front de F7, dans l'espace admin.
+- Mahamadou : finitions de relecture de F9, puis le front `/admin/comptes`.
+- Loïc : PR de `feat/f4-panier-front`, qui corrige la règle CSS vide qui empêche le front de compiler sur `DEV` ; compteur du panier relu à chaque page ; règles et tests du back du panier.
+- Tous : Gel des fonctionnalités jeudi 12 au soir.
+
 ## 2026-11-09 — Sprint 3 : planning, panier en base, F6 côté client et front de la commande
 
 ### Travail réalisé
@@ -26,7 +53,7 @@
 - **Compte supprimé :** ses commandes restent en base pour la comptabilité, mais ne sont plus consultables, même en recréant un compte avec le même email (droit à l'effacement). La page `/compte` le dit avant la suppression.
 - **Page `/compte` (vue avec Shanna) :** une seule page, avec un menu (commandes, informations, mot de passe, suppression) qui mène à chaque bloc. « Bonjour X » mène à cette page.
 - **Panier :** les routes codées, `/api/cart/items/:treeId` et `GET /api/cart` renvoie un tableau.
-- **F8 Admin commandes :** elle fait partie du MVP (US46, emails de paiement reçu et d'annulation). Dimitry et Fabrice se la partagent, l'un le back, l'autre le front (répartition à décider ensemble), en écrivant d'abord le contrat ensemble.
+- **F8 Admin commandes :** elle fait partie du MVP (US46, emails de paiement reçu, d'annulation et de plantation). Dimitry et Fabrice se la partagent, l'un le back, l'autre le front (répartition à décider ensemble), en écrivant d'abord le contrat ensemble.
 - **Pages privées (`/compte`, `/commandes`) :** `noindex`, donc un score SEO Lighthouse sous 90 accepté.
 
 ### À poursuivre

@@ -2,6 +2,56 @@
 
 Suivi de mon travail sur Je s’appelle Graine. Les décisions notées ici ont été prises avec l'équipe ; le suivi de l'équipe est dans le [carnet de bord Je s’appelle Graine](CARNET-DE-BORD-JE-S-APPELLE-GRAINE.md), que je tiens à jour.
 
+## 2026-11-11 — F8 : back des commandes pour l'admin, tests et `helmet`
+
+### Travail réalisé
+
+- **Back de F8** (#168, #170), PR #220 relue par Dimitry :
+  - `PATCH /api/admin/orders/:id/status` : les trois changements autorisés, 409 sinon avec les deux statuts dans le message, la commande relue en réponse ;
+  - emails de changement de statut (paiement reçu, annulation, plantation), à l'adresse copiée dans la commande, sans bloquer le changement si l'envoi échoue ;
+  - `buildOrderStatusEmail` (fabrique l'email) séparée de `sendOrderStatusEmail` (l'envoie) ;
+  - 21 tests d'intégration (droits, liste, filtre, `isLate`, détail, changements de statut, emails, compte supprimé) et 3 tests unitaires ; plan de tests de F8.
+- **Essai de `helmet`** sur une copie de `DEV` : 195 tests, en-têtes vérifiés, 15 photos sur 15 affichées dans le navigateur. `xss-clean` écarté.
+- **Suivi de l'équipe :** tour des branches, challenges mis à jour ; titres des tests en anglais vérifiés dans tout le projet ; compteur du panier qui garde l'ancien panier après une commande, trouvé et confié à Loïc.
+
+### Ce que j'ai appris
+
+- Un **mock** (`mock.method` de `node:test`) remplace une fonction le temps d'un test et garde la trace de ses appels : c'est ce qui permet de vérifier un email affiché avec `console.log`.
+- Séparer **fabriquer** et **envoyer** un email permet de tester son contenu avec un simple test unitaire.
+- `now() - INTERVAL '10 days'` : une date calculée par PostgreSQL à chaque requête, plutôt qu'une colonne qui serait fausse le lendemain.
+- Après un `if (!x) throw …`, TypeScript sait que `x` n'est plus `null` (_narrowing_).
+
+### À poursuivre
+
+- Fusionner la PR #220 après l'« Approve » de Dimitry.
+- Relire le front de F8 et de F9.
+- Présenter `helmet` à l'équipe.
+
+## 2026-11-10 — F6 terminée, espace admin et début du back de F8
+
+### Travail réalisé
+
+- **Page compte** (#161), PR #213 : menu, informations, mot de passe, suppression ; la page n'affiche rien tant que la connexion n'est pas vérifiée ; après une suppression, message puis page de connexion. Lien « Bonjour X » vers `/compte`.
+- **Espace admin**, vu avec Shanna, PR #215 : lien « Administration » pour un admin, `app/admin/layout.tsx` et `AdminGuard` qui vérifient le rôle pour toutes les pages admin, accueil `/admin` avec les boutons des rubriques, CSS commun.
+- **Back de F8** : types, `GET /api/admin/orders` (filtre `?status=`, `isLate` calculé dans la requête) et `GET /api/admin/orders/:id` ; contrat #167 précisé avec Dimitry.
+- **Relectures :** PR #218 de Mahamadou (conflit de `adminRouter.ts` réglé avec lui, en gardant les deux routeurs) ; contrat #163 mis à jour.
+- **Plan de tests :** tests manuels de `/compte`, accueil (F1) revérifié.
+
+### Ce que j'ai appris
+
+- Un `layout.tsx` dans un dossier de `app/` entoure toutes les pages de ce dossier ; un composant ne peut pas être à la fois serveur (`metadata`) et client (`useEffect`) : d'où un layout serveur qui contient `AdminGuard`.
+- `git stash` met des changements de côté pour changer de branche, `git stash pop` les remet.
+- Dans un `.module.css`, une règle doit viser une classe : un sélecteur de balise seul (`p { }`) empêche le front de compiler.
+
+### Décisions (prises avec l'équipe)
+
+- F8 : je fais le back, Dimitry le front.
+- Une seule vérification du rôle pour tout l'espace admin, dans le layout.
+
+### À poursuivre
+
+- `PATCH` du statut, emails et tests du back de F8.
+
 ## 2026-11-09 — F6 : commandes du client, pages commandes et page compte
 
 ### Travail réalisé
