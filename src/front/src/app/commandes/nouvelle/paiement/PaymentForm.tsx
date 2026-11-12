@@ -4,11 +4,13 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import type { IOrderWithInstructions } from "../../../../@types";
 import { clientApi } from "../../../utils/clientApi";
+import { useCartCount } from "@/app/context/CartCountContext";
 import styles from "./page.module.css";
 
 export function PaymentForm() {
   const [errorMessage, setErrorMessage] = useState("");
   const router = useRouter();
+  const { refresh } = useCartCount();
 
   async function handlePayment(formData: FormData) {
     setErrorMessage("");
@@ -47,6 +49,8 @@ export function PaymentForm() {
 
       // 201 : commande créée, on affiche sa confirmation grâce à son id
       const order: IOrderWithInstructions = await response.json();
+      // l'API a vidé le panier : le compteur et /panier se mettent à jour
+      await refresh();
       router.push(`/commandes/${order.id}/confirmation`);
     } catch {
       setErrorMessage("Une erreur est survenue.");
