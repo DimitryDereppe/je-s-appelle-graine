@@ -738,7 +738,7 @@ describe("ordersController", () => {
       assert.strictEqual(response.status, 409);
     });
 
-    it("should respond 400 if the status is not annulée", async () => {
+    it('should respond 400 if the status is not "annulée"', async () => {
       // Arrange
       const { orderId, cookie } = await createPendingOrder();
 

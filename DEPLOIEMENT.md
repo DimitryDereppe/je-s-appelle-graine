@@ -42,7 +42,7 @@ Tous sont dans `src/`. Les fichiers de développement ne changent pas.
 | ----------------------------- | ------------------------------------------------------------------------------ |
 | `docker-compose.prod.yml`     | Lance les 4 services ; `name: graine` évite d'écraser le projet de dev (`src`) |
 | `api/Dockerfile.prod`         | Compile le TypeScript, ne garde que `dist/` et les dépendances de prod         |
-| `front/Dockerfile.prod`       | `next build` en mode `standalone`, puis `node server.js`                       |
+| `front/Dockerfile.prod`       | `next build` en mode `standalone` (avec `API_URL`), puis `node server.js`      |
 | `nginx/default.conf.template` | HTTP → HTTPS ; `/api/` et `/images/trees/` vers l'API ; le reste vers le front |
 | `.env.prod.example`           | Modèle du `.env` à remplir sur la VM (le `.env` n'est jamais commité)          |
 | `crontab.prod`                | Les 2 tâches automatiques : certificat et mise à jour au démarrage (section 6) |
@@ -136,6 +136,7 @@ Dans le `.env` :
 - `SITE_URL` s'écrit **avec** (`https://PSEUDO-server.eddi.cloud`) ;
 - `JWT_SECRET` : la clé qui signe les jetons de connexion, générée avec `openssl rand -hex 32`. Laissée vide, l'API refuse de démarrer.
 - `ALLOWED_ORIGINS` : l'adresse du site **avec** `https://` (la même que `SITE_URL`) ; seul ce site peut appeler l'API depuis un navigateur (CORS).
+- `SMTP_*` : l'envoi des emails aux clients (confirmation de commande, paiement reçu, annulation, plantation) par le compte Gmail de l'équipe. Seul `SMTP_PASSWORD` est à remplir : le **mot de passe d'application** (16 lettres à la suite, sans espaces), rangé avec les accès de l'équipe.
 
 **Pourquoi `--standalone` au premier certificat :** Nginx ne peut pas démarrer sans certificat, car
 sa configuration HTTPS pointe dessus. Certbot lance donc son propre petit serveur sur le port 80,
@@ -158,6 +159,7 @@ curl -s -o /dev/null -w "%{http_code} → %{redirect_url}\n" http://PSEUDO-serve
 curl -s -o /dev/null -w "%{http_code}\n" https://PSEUDO-server.eddi.cloud/
 curl -s https://PSEUDO-server.eddi.cloud/api/health
 curl -s https://PSEUDO-server.eddi.cloud/api/trees/featured
+curl -s -o /dev/null -w "%{http_code} %{content_type}\n" "https://PSEUDO-server.eddi.cloud/_next/image?url=%2Fimages%2Ftrees%2Fpin-maritime.webp&w=640&q=75"
 ```
 
 Attendu, ligne par ligne :
@@ -166,6 +168,8 @@ Attendu, ligne par ligne :
 2. `200` : la page d'accueil répond, et le certificat est reconnu.
 3. `{"message":"je s'appelle Graine"}` : l'API répond.
 4. Les arbres mis en avant, en JSON : l'API lit bien la base.
+5. `200 image/webp` : le front (composant `<Image>`) récupère bien les photos des arbres auprès de
+   l'API.
 
 **Sur la VM**, depuis `~/apo-jesappellegraine/src` :
 
@@ -178,6 +182,10 @@ Attendu, ligne par ligne :
 | `ss -tln`                                                                    | sur `0.0.0.0`, seulement 22, 80 et 443      |
 | `ls -l .env`                                                                 | `-rw-------`                                |
 | `df -h /`                                                                    | assez de place ; sinon `docker image prune` |
+| `docker compose -f docker-compose.prod.yml exec api printenv SMTP_HOST`      | `smtp.gmail.com`                            |
+
+**Les emails :** passer une commande sur le site avec un compte à sa vraie adresse : l'email
+« Commande n° X confirmée » arrive (regarder aussi dans les spams : le compte Gmail est récent).
 
 ## 5. Mettre à jour le site
 
@@ -256,17 +264,21 @@ fichier tout seul.
 
 ## 7. Pièges rencontrés
 
-| Symptôme                                                    | Cause                                                    | Solution                                                  |
-| ----------------------------------------------------------- | -------------------------------------------------------- | --------------------------------------------------------- |
-| `apt install` : série de `404 Not Found`                    | Liste des paquets pas à jour                             | `sudo apt update` d'abord                                 |
-| `apt install npm` : centaines de paquets                    | Node est inutile sur la VM                               | Annuler : Node est dans les images                        |
-| `docker` : `permission denied` … `docker.sock`              | Groupe `docker` pas encore pris en compte                | `exit`, puis se reconnecter en SSH                        |
-| `git clone` ou `git pull` : `Permission denied (publickey)` | Clé absente de GitHub, ou avec phrase de passe sous cron | Section 3.1                                               |
-| `no configuration file provided`                            | Commande lancée hors de `src/`                           | `cd ~/apo-jesappellegraine/src`                           |
-| `env file …/src/.env not found`                             | Pas de `.env` dans `src/`                                | `cp .env.prod.example .env`                               |
-| Certbot : `Timeout during connect`                          | VM pas rendue publique (après un démarrage)              | La rendre publique sur Kourou VM Cloud, relancer          |
-| Certbot : `Service busy; retry later.`                      | Serveur Let's Encrypt surchargé                          | Relancer une ou deux minutes plus tard                    |
-| Règle ajoutée au template Nginx sans effet                  | `nginx -s reload` ne relit pas le template               | `docker compose -f docker-compose.prod.yml restart nginx` |
-| `502` ou `500` juste après une mise à jour                  | Les conteneurs redémarrent                               | Attendre 30 secondes                                      |
-| `mise-a-jour.log` : `Not possible to fast-forward`          | Des commits ont été faits sur la VM                      | `git status` pour les voir ; ne pas coder sur la VM       |
-| Une route de l'API en `500`                                 | Erreur dans le code (elle existe aussi en dev)           | La reproduire en dev et la corriger                       |
+| Symptôme                                                                                          | Cause                                                                                                                                | Solution                                                                                                         |
+| ------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------- |
+| `apt install` : série de `404 Not Found`                                                          | Liste des paquets pas à jour                                                                                                         | `sudo apt update` d'abord                                                                                        |
+| `apt install npm` : centaines de paquets                                                          | Node est inutile sur la VM                                                                                                           | Annuler : Node est dans les images                                                                               |
+| `docker` : `permission denied` … `docker.sock`                                                    | Groupe `docker` pas encore pris en compte                                                                                            | `exit`, puis se reconnecter en SSH                                                                               |
+| `git clone` ou `git pull` : `Permission denied (publickey)`                                       | Clé absente de GitHub, ou avec phrase de passe sous cron                                                                             | Section 3.1                                                                                                      |
+| `no configuration file provided`                                                                  | Commande lancée hors de `src/`                                                                                                       | `cd ~/apo-jesappellegraine/src`                                                                                  |
+| `env file …/src/.env not found`                                                                   | Pas de `.env` dans `src/`                                                                                                            | `cp .env.prod.example .env`                                                                                      |
+| Certbot : `Timeout during connect`                                                                | VM pas rendue publique (après un démarrage)                                                                                          | La rendre publique sur Kourou VM Cloud, relancer                                                                 |
+| Certbot : `Service busy; retry later.`                                                            | Serveur Let's Encrypt surchargé                                                                                                      | Relancer une ou deux minutes plus tard                                                                           |
+| Règle ajoutée au template Nginx sans effet                                                        | `nginx -s reload` ne relit pas le template                                                                                           | `docker compose -f docker-compose.prod.yml restart nginx`                                                        |
+| `502` ou `500` juste après une mise à jour                                                        | Les conteneurs redémarrent                                                                                                           | Attendre 30 secondes                                                                                             |
+| `mise-a-jour.log` : `Not possible to fast-forward`                                                | Des commits ont été faits sur la VM                                                                                                  | `git status` pour les voir ; ne pas coder sur la VM                                                              |
+| Photos des arbres absentes ; `/_next/image?url=…` en `500` (`internal response is invalid`)       | `API_URL` absent pendant `next build` : les `rewrites` de `next.config.ts` sont figés au build, `env_file` ne compte qu'au démarrage | `ARG API_URL` / `ENV API_URL` avant `npm run build` dans `front/Dockerfile.prod`, puis `up -d --build front`     |
+| Email non reçu ; logs de l'API : `Email non envoyé (SMTP_HOST absent)`                            | `SMTP_HOST` vide, ou `.env` modifié sans recréer le conteneur                                                                        | Remplir le `.env`, puis `docker compose -f docker-compose.prod.yml up -d api` (`restart` ne relit pas le `.env`) |
+| Email non reçu ; logs de l'API : `Email de confirmation non envoyé` avec `Invalid login` ou `535` | Mauvais mot de passe : celui du compte au lieu du mot de passe d'application, ou espaces                                             | Recopier les 16 lettres à la suite dans `SMTP_PASSWORD`, puis `up -d api`                                        |
+| Email reçu dans les spams                                                                         | Compte Gmail récent, sans réputation                                                                                                 | « Ce n'est pas du spam » et ajouter l'adresse aux contacts ; avant la démo, s'envoyer une ou deux commandes      |
+| Une route de l'API en `500`                                                                       | Erreur dans le code (elle existe aussi en dev)                                                                                       | La reproduire en dev et la corriger                                                                              |

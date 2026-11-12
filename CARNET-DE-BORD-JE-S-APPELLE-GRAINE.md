@@ -1,5 +1,73 @@
 # Carnet de bord — Je s’appelle Graine
 
+## 2026-11-09 — Sprint 3 : planning, panier en base, F6 côté client et front de la commande
+
+### Travail réalisé
+
+- **Sprint planning :** les cartes non terminées du sprint 2 passent en sprint 3. #104, #105, #160 et #162 sont terminées.
+- **Panier (F4)** par Loïc (PR #203 et #207) : le panier est enregistré dans la base avec `cartDatamapper`, avec la modification de la quantité, le retrait d'un arbre et le panier vidé, et 19 tests. Bouton panier animé commencé sur la branche `animateButton`.
+- **Commande (F5)** par Dimitry :
+  - corrections de l'étape 0 (PR #204) : texte de l'email pour un chèque, prénom et nom du client, test de l'email en mode chèque, `PAYMENT_*` dans `.env.example` ;
+  - plan de tests de F5 (PR #205, #108) ;
+  - pages récapitulatif, paiement et confirmation, et bouton « Ajouter au panier » qui envoie `treeId` (PR #210, #107, en relecture).
+- **Espace client (F6)** par Fabrice :
+  - back du compte (PR #201) ;
+  - back des commandes (PR #206) : historique `GET /api/orders` et annulation `PATCH /api/orders/:id/status`, avec 10 tests ;
+  - pages `/commandes` et `/commandes/[id]` (PR #208) : historique, détail et annulation d'une commande en attente ;
+  - page `/compte` en cours (#161).
+- **Admin comptes (F9)** par Mahamadou : liste et changement d'état sur tous les comptes, vrai rôle renvoyé, routes `/users` et `/users/:id`, sur sa branche.
+- **Admin catalogue (F7)** par Shanna, sur sa branche : les 6 routes admin des arbres (liste avec les arbres retirés, ajout, modification d'un ou plusieurs champs, suppression refusée si l'arbre a déjà été commandé, liste des disponibilités) et les premiers tests.
+- **`DEV` :** 139 tests de l'API passent.
+
+### Décisions
+
+- **Dernier administrateur :** 409 partout, dans F6 comme dans F9. Le client a le droit de supprimer son compte, c'est l'état de la base qui bloque.
+- **Annulation par le client :** `PATCH /api/orders/:id/status` n'accepte que `annulée`, et seulement pour une commande en attente. L'admin aura sa propre route dans F8, qui réutilisera `updateStatus`.
+- **Compte supprimé :** ses commandes restent en base pour la comptabilité, mais ne sont plus consultables, même en recréant un compte avec le même email (droit à l'effacement). La page `/compte` le dit avant la suppression.
+- **Page `/compte` (vue avec Shanna) :** une seule page, avec un menu (commandes, informations, mot de passe, suppression) qui mène à chaque bloc. « Bonjour X » mène à cette page.
+- **Panier :** les routes codées, `/api/cart/items/:treeId` et `GET /api/cart` renvoie un tableau.
+- **F8 Admin commandes :** elle fait partie du MVP (US46, emails de paiement reçu et d'annulation). Dimitry et Fabrice se la partagent, l'un le back, l'autre le front (répartition à décider ensemble), en écrivant d'abord le contrat ensemble.
+- **Pages privées (`/compte`, `/commandes`) :** `noindex`, donc un score SEO Lighthouse sous 90 accepté.
+
+### À poursuivre
+
+- Loïc : règles manquantes du panier (quantité maximum, arbre inconnu ou indisponible) et leurs tests, contrat #99, relecture de la PR #210, puis la page `/panier` (#101).
+- Dimitry : fusion du front de la commande (#107) après la relecture de Loïc, puis F8 avec Fabrice.
+- Fabrice : en-tête et PR de la page compte (#161), relecture de F9, puis F8 avec Dimitry.
+- Mahamadou : correction de la requête de liste, récupération de `DEV`, routes de désactivation et de suppression avec leurs tests (#164, #166), puis tests de F2 (#90, #94).
+- Shanna : tests du back de F7, longueurs maximum des champs, validation du contrat #95, puis PR relue par Mahamadou.
+- Tous : pousser chaque soir, gel des fonctionnalités jeudi 12 au soir.
+
+## 2026-11-06 — Commande et email dans `DEV`, photos corrigées en ligne, début des features du sprint 3
+
+### Travail réalisé
+
+- **Commande (F5)** par Dimitry :
+  - adresse de facturation demandée à la commande, routes `/orders` regroupées dans `indexRouter.ts` (PR #194) ;
+  - email de confirmation avec Nodemailer, affiché dans la console sans `SMTP_HOST`, sans annuler la commande en cas d'échec d'envoi (PR #196, #105) ;
+  - plan de tests de F2, F4 et F5, et cas manquants de F3 (PR #196, #108).
+- **Fiche arbre et page 404** par Loïc : titre de l'onglet selon l'arbre (PR #195). La carte #93 est terminée.
+- **Photos des arbres en ligne** par Dimitry (PR #197, dans `main`) : `API_URL` est maintenant fourni à la compilation du front, car les relais de `next.config.ts` sont figés à ce moment-là.
+- **Features du sprint 3 commencées en avance :**
+  - F4 Panier par Loïc ;
+  - F6 Espace client par Fabrice : `PATCH /api/users/me`, changement de mot de passe et suppression du compte, sur `feat/f6-compte-back` ;
+  - F9 Admin comptes par Mahamadou, sur `feat/9/admin/compte`.
+  - F7 Admin catalogue par Shanna, en cours sur sa branche.
+
+### Décisions
+
+- **Email de confirmation :** il ne vaut pas facture. Générer une vraie facture en PDF après réception du paiement pourrait être une évolution du projet.
+- **`deleteById` et `countActiveAdmins` :** écrites dans F6 (Fabrice) et réutilisées par F9 (Mahamadou), car le contrat #163 couvre tous les comptes, admins compris.
+- **Suivi :** les consignes de chacun sont mises à jour dans le document des challenges, chaque soir pour le lendemain.
+
+### À poursuivre
+
+- Dimitry : corrections de F5 (texte de l'email pour un chèque, test de l'email en mode chèque, commentaires sur la facture à préciser, `PAYMENT_*` dans `.env.example`, correction des photos à récupérer dans `DEV`), puis front de la commande (#107).
+- Loïc : back et front du panier (#100, #101, #102), avec `isConnected` en haut de `cartRouter.ts`.
+- Fabrice : PR de la partie compte de F6 et relecture. Ensuite, les commandes du client (#198, #199) et les pages compte et commandes (#161, #200).
+- Mahamadou : tests du filtre par catégorie (#90, #94), et F9 selon le contrat #163.
+- Shanna : continuer F7 sur sa branche, puis la relire avec Mahamadou.
+
 ## 2026-11-05 — F2 dans `main`, branche `DEV` et organisation du sprint 3
 
 ### Travail réalisé

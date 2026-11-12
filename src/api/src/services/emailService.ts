@@ -1,7 +1,11 @@
 // Service d'envoi d'emails (carte #105) : ni HTTP (contrôleur) ni BDD (datamapper),
 // seulement la mise en forme et l'envoi. Le contrôleur lui donne tout ce qu'il faut.
 import nodemailer from "nodemailer";
-import type { IAccountProfile, IOrder } from "../@types/index.d.ts";
+import type {
+  IAccountProfile,
+  IAdminOrder,
+  IOrder,
+} from "../@types/index.d.ts";
 import { config } from "../../config.ts";
 
 // instructions de paiement, calculées par le contrôleur (getPaymentInstructions)
@@ -51,7 +55,7 @@ export async function sendOrderConfirmation(
     .map((line) => {
       // le lieu de plantation peut être absent (null) : on ne l'écrit que s'il existe
       const location = line.plantingLocation
-        ? ` — planté à : ${line.plantingLocation}`
+        ? ` — Lieu de plantation : ${line.plantingLocation}`
         : "";
       return `- ${line.treeName} × ${line.quantity} : ${formatEuros(line.unitPrice * line.quantity)}${location}`;
     })
@@ -108,5 +112,74 @@ L'équipe Je s'appelle Graine`;
   }
 
   // production : envoi réel ; une erreur ici remonte au contrôleur, qui l'attrape (try…catch)
+  await transporter.sendMail(email);
+}
+
+// --------------------------------
+// email de changement de statut (F8) : paiement reçu (US25b), annulation (US25c) ou plantation (US25d)
+// --------------------------------
+// deux fonctions : l'une fabrique l'email, l'autre l'envoie
+// séparer les deux permet de tester le contenu sans rien envoyer ni espionner console.log
+
+// fabrique l'email à partir de la commande relue après le changement (findOrderByIdForAdmin)
+// fonction « pure » : elle ne fait que renvoyer un objet, sans rien envoyer ni afficher
+export function buildOrderStatusEmail(order: IAdminOrder) {
+  // montant : 50.7 → "50,70 €" (même écriture que l'email de confirmation)
+  const amount = `${order.totalAmount.toFixed(2).replace(".", ",")} €`;
+
+  // le message et l'objet dépendent du statut de la commande
+  // switch : un cas par statut et default pour le statut « plantée »
+  let message: string;
+  let subject: string;
+  switch (order.status) {
+    case "payée":
+      message =
+        "Votre paiement a bien été reçu. Merci ! Vos arbres seront bientôt plantés.";
+      subject = `Commande n° ${order.id} : paiement reçu`;
+      break;
+    case "annulée":
+      message = "Votre commande a été annulée faute de paiement sous 10 jours.";
+      subject = `Commande n° ${order.id} annulée`;
+      break;
+    default:
+      message =
+        "Bonne nouvelle : vos arbres ont été plantés ! Merci de participer à la reforestation.";
+      subject = `Commande n° ${order.id} : vos arbres sont plantés`;
+  }
+
+  // template literal : tout ce qui est entre les backticks fait partie du texte de l'email,
+  // espaces compris : les lignes sont collées à gauche pour que l'email n'ait pas de décalage
+  const text = `Bonjour ${order.buyerFirstname} ${order.buyerLastname},
+
+${message}
+
+Référence : commande n° ${order.id}
+Montant TTC : ${amount}
+
+L'équipe Je s'appelle Graine`;
+
+  // l'email, au format attendu par Nodemailer
+  return {
+    from: config.mail.from,
+    // l'adresse copiée dans la commande : l'email part même si le compte a été supprimé entre temps
+    to: order.buyerEmail,
+    subject,
+    text,
+  };
+}
+
+// envoie l'email fabriqué par buildOrderStatusEmail
+export async function sendOrderStatusEmail(order: IAdminOrder) {
+  const email = buildOrderStatusEmail(order);
+
+  // dev et tests : on affiche l'email au lieu de l'envoyer (comme sendOrderConfirmation)
+  if (!transporter) {
+    console.log(
+      `--- Email non envoyé (SMTP_HOST absent) ---\nÀ : ${email.to}\nObjet : ${email.subject}\n\n${email.text}\n---`,
+    );
+    return;
+  }
+
+  // production : envoi réel (si une erreur remonte elle est attrapée dans le try/catch du contrôleur)
   await transporter.sendMail(email);
 }

@@ -387,6 +387,72 @@ Vérifiés sur `feat/f6-compte-front` le 10/11/2026. Les 12 cas passent.
 | F6-MAN-22 | Mobile (360 px) et clavier                   | Manuel | rien ne déborde ; Tab atteint le menu, les champs et les boutons, focus visible                                                                                               | ✅     |
 | F6-MAN-23 | Lighthouse                                   | Manuel | accessibilité ≥ 90 ; SEO sous 90 attendu : `noindex` volontaire, page privée                                                                                                  | ✅     |
 
-## F7 à F9
+**## F7 · Admin catalogue (US41, US42, US43, US43b)**
+
+Tests d'intégration dans `src/api/src/controllers/adminTreeController.spec.test.ts`
+
+**### Tests d'intégration — routes admin des arbres**
+
+| N°        | Cas                                      | Type        | Attendu                                                       | Obtenu      |
+| --------- | ---------------------------------------- | ----------- | ------------------------------------------------------------- | ----------- |
+| F7-INT-1  | La liste contient un arbre retiré        | Intégration | `200`, l'arbre retiré apparaît dans la liste                  | ✅          |
+| F7-INT-2  | Création puis modification du prix seul  | Intégration | `POST` en `201`, `PATCH` en `200`, autres champs inchangés    | ✅          |
+| F7-INT-3  | Liste sans connexion                     | Intégration | `401`, « Vous devez être connecté. »                          | ✅          |
+| F7-INT-4  | Liste avec un compte client              | Intégration | `403`, « Accès réservé à l'administrateur. »                  | ✅          |
+| F7-INT-5  | Lecture d'un arbre inconnu               | Intégration | `404`                                                         | ✅          |
+| F7-INT-6  | Création valide                          | Intégration | `201`, l'arbre créé est renvoyé                               | ✅          |
+| F7-INT-7  | Création avec un nom vide                | Intégration | `400`, « Le nom est obligatoire. »                            | ✅          |
+| F7-INT-8  | Création avec un prix négatif            | Intégration | `400`, « Le prix doit être positif. »                         | ✅          |
+| F7-INT-9  | Création avec une URL de photo externe   | Intégration | `400`, chemin de photo invalide                               | ✅          |
+| F7-INT-10 | Création avec une catégorie inconnue     | Intégration | `400`, « Catégorie invalide. »                                | ✅          |
+| F7-INT-11 | Création avec une disponibilité inconnue | Intégration | `400`, « Disponibilité invalide. »                            | ✅          |
+| F7-INT-12 | Suppression d'un arbre jamais commandé   | Intégration | `204`, arbre supprimé                                         | ✅          |
+| F7-INT-13 | Suppression d'un arbre déjà commandé     | Intégration | `409`, suppression refusée                                    | ✅          |
+| F7-INT-14 | Liste des disponibilités                 | Intégration | `200`, les trois disponibilités sont présentes, triées par id | ✅          |
+| F7-INT-15 | Changement de disponibilité avec `PATCH` | Intégration | `200`, l'arbre reçoit la disponibilité demandée               | ⏳ à écrire |
+
+## F8 · Admin commandes (US46, US25b, US25c, US25d)
+
+Contrat d'API : carte #167. Tests de la carte #170, vérifiés sur `feat/f8-commandes-back` le 11/11/2026.
+
+### Tests d'intégration — routes admin des commandes
+
+Fichier : `src/api/src/controllers/adminOrderController.spec.test.ts`. Les 21 cas passent.
+
+| N°        | Cas                                            | Type        | Attendu                                                                                                | Obtenu |
+| --------- | ---------------------------------------------- | ----------- | ------------------------------------------------------------------------------------------------------ | ------ |
+| F8-INT-1  | Liste sans connexion                           | Intégration | `401`                                                                                                  | ✅     |
+| F8-INT-2  | Liste avec un compte client                    | Intégration | `403`                                                                                                  | ✅     |
+| F8-INT-3  | Liste de deux commandes                        | Intégration | `200`, la plus récente d'abord, exactement les 8 champs du contrat                                     | ✅     |
+| F8-INT-4  | Filtre `?status=payée`                         | Intégration | `200`, seulement la commande payée                                                                     | ✅     |
+| F8-INT-5  | Filtre avec un statut inconnu                  | Intégration | `400` « Statut invalide. »                                                                             | ✅     |
+| F8-INT-6  | Retard de paiement                             | Intégration | `isLate` vrai en attente depuis 11 jours ; faux en attente depuis 2 jours, et pour une commande payée  | ✅     |
+| F8-INT-7  | Détail d'une commande                          | Intégration | `200`, `billingAddress`, `paymentMethod`, `dueDate` au format `AAAA-MM-JJ`, `paidAt` à `null`, `lines` | ✅     |
+| F8-INT-8  | Détail d'une commande inconnue                 | Intégration | `404` « Commande introuvable. »                                                                        | ✅     |
+| F8-INT-9  | Détail avec un id invalide                     | Intégration | `400` (`validateId`)                                                                                   | ✅     |
+| F8-INT-10 | En attente → payée                             | Intégration | `200`, statut et `paid_at` enregistrés en BDD, commande relue en réponse                               | ✅     |
+| F8-INT-11 | Payée → plantée                                | Intégration | `200`, `plantedAt` rempli, `paidAt` gardé                                                              | ✅     |
+| F8-INT-12 | En attente → plantée                           | Intégration | `409` « Une commande « en attente » ne peut pas passer à « plantée ». », statut inchangé               | ✅     |
+| F8-INT-13 | Plantée → annulée                              | Intégration | `409`                                                                                                  | ✅     |
+| F8-INT-14 | Statut inconnu                                 | Intégration | `400` « Statut invalide. »                                                                             | ✅     |
+| F8-INT-15 | Changement sur une commande inconnue           | Intégration | `404` « Commande introuvable. »                                                                        | ✅     |
+| F8-INT-16 | Changement avec un id invalide                 | Intégration | `400` (`validateId`)                                                                                   | ✅     |
+| F8-INT-17 | Email au passage à payée                       | Intégration | un email, objet « Commande n° X : paiement reçu »                                                      | ✅     |
+| F8-INT-18 | Email au passage à annulée                     | Intégration | un email, objet « Commande n° X annulée »                                                              | ✅     |
+| F8-INT-19 | Email au passage à plantée                     | Intégration | `200`, un email, objet « Commande n° X : vos arbres sont plantés »                                     | ✅     |
+| F8-INT-20 | Échec de l'envoi de l'email                    | Intégration | `200`, statut enregistré, échec noté dans les logs (`console.error`)                                   | ✅     |
+| F8-INT-21 | Email après la suppression du compte du client | Intégration | `200`, l'email part à l'adresse copiée dans la commande                                                | ✅     |
+
+### Tests unitaires — contenu de l'email de changement de statut
+
+Fichier : `src/api/src/services/emailService.unit.test.ts`. Les 3 cas passent. `buildOrderStatusEmail` fabrique l'email sans l'envoyer : le contenu se vérifie sans BDD ni mock.
+
+| N°       | Cas                 | Type     | Attendu                                                                                       | Obtenu |
+| -------- | ------------------- | -------- | --------------------------------------------------------------------------------------------- | ------ |
+| F8-UNI-1 | Email de paiement   | Unitaire | destinataire, objet « paiement reçu », prénom et nom, message, référence, montant « 33,80 € » | ✅     |
+| F8-UNI-2 | Email d'annulation  | Unitaire | objet « annulée » et message d'annulation, sans le message de paiement                        | ✅     |
+| F8-UNI-3 | Email de plantation | Unitaire | objet « vos arbres sont plantés » et message de plantation                                    | ✅     |
+
+## F9
 
 À compléter au fil des sprints.
