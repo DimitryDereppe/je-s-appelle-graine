@@ -508,6 +508,31 @@ describe("adminOrderController", () => {
       }
     });
 
+    it("should send the status email to the new address if the customer changed it", async () => {
+      // Arrange : ALICE commande, puis change son email (la commande garde l'ancien dans buyer_email)
+      const orderId = await createOrder();
+      const newEmail = "alice.nouvelle@test.fr";
+      await pool.query("UPDATE account SET email = $1 WHERE email = $2", [
+        newEmail,
+        libTests.ALICE.email,
+      ]);
+      const cookie = await loginAsAdmin();
+      const consoleLog = mock.method(console, "log", () => {});
+
+      try {
+        // Act
+        const response = await patchStatus(orderId, "payée", cookie);
+
+        // Assert : l'email part à la nouvelle adresse, la commande garde l'ancienne
+        assert.strictEqual(response.status, 200);
+        assert.strictEqual(response.data.buyerEmail, libTests.ALICE.email);
+        const email = consoleLog.mock.calls[0].arguments[0];
+        assert.ok(email.includes(`À : ${newEmail}`));
+      } finally {
+        consoleLog.mock.restore();
+      }
+    });
+
     it("should keep the new status if the email fails", async () => {
       // Arrange : on simule un échec d'envoi (console.log, l'« envoi » en test, lève une erreur) ;
       // console.error est espionné pour vérifier la trace laissée par le catch du contrôleur

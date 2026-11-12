@@ -200,6 +200,8 @@ export interface IAdminOrder extends IAdminOrderSummary {
   paidAt: string | null; // null tant que la commande n'est pas payée
   plantedAt: string | null;
   cancelledAt: string | null;
+  // destinataire des emails de statut : l'email actuel du compte, ou buyerEmail si le compte est supprimé
+  notificationEmail: string;
   lines: IOrderLine[];
 }
 
