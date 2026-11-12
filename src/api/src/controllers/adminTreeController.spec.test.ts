@@ -75,7 +75,7 @@ describe("adminTreeController", () => {
   });
 
   // Test 2 : créer un arbre puis modifier son prix ne change pas ses autres champs.
-  describe("[POST et PATCH] /api/admin/trees", () => {
+  describe("[POST and PATCH] /api/admin/trees", () => {
     it("test 2 - should keep the other fields unchanged when updating only the price", async () => {
       // Prépare l'admin et les champs valides de l'arbre.
       const { headers, validTreeInput } = await prepareAdminAndTreeInput();
@@ -125,7 +125,7 @@ describe("adminTreeController", () => {
   });
 
   // Tests 3 et 4 : les routes admin refusent les personnes non autorisées.
-  describe("[GET] /api/admin/trees : accès", () => {
+  describe("[GET] /api/admin/trees : access", () => {
     // Compte client dédié au test 4.
     const CUSTOMER_TEST_ACCOUNT = {
       firstname: "Client",
