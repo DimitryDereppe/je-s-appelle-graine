@@ -256,7 +256,12 @@ export function AdminOrderDetail({ id }: AdminOrderDetailProps) {
             <button
               key={nextStatus}
               type="button"
-              className={styles.actionButton}
+              // annuler est définitif : en terracotta, comme sur la page client
+              className={
+                nextStatus === "annulée"
+                  ? styles.cancelButton
+                  : styles.actionButton
+              }
               onClick={() => handleStatusChange(nextStatus)}
               disabled={isUpdating}
             >

@@ -147,3 +147,26 @@
   opacity: 0.6;
   cursor: wait;
 }
+
+/* « Annuler la commande » : en terracotta, comme sur la page client */
+.cancelButton {
+  padding: 10px 16px;
+  border: 2px solid var(--color-terracotta);
+  border-radius: 8px;
+  background-color: white;
+  color: var(--color-terracotta);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.cancelButton:hover,
+.cancelButton:focus-visible {
+  background-color: var(--color-terracotta);
+  color: white;
+}
+
+.cancelButton:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
