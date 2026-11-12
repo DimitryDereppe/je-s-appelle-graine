@@ -225,8 +225,9 @@
   border: none;
   background: transparent;
   border-radius: 50%;
-  color: var(--color-border-input);
-  font-size: 0.8rem;
+  margin-top: 4px;
+  color: #145222;
+  font-size: 1rem;
   cursor: pointer;
   transition:
     color 0.15s,
@@ -409,6 +410,7 @@
     padding-bottom: 80px;
     min-height: 0;
     height: 120px;
+    margin-top: 10px;
     display: grid;
     grid-template-columns: 25% 50% 12.5% 12.5%;
     gap: 0px 0px;
