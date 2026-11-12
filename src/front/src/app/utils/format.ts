@@ -1,4 +1,4 @@
-import type { OrderStatus } from "../../@types";
+import type { OrderStatus, PaymentMethod } from "../../@types";
 
 // Écrit un montant en euros, à la française : 9.9 → « 9,90 € »
 export function formatEuros(amount: number): string {
@@ -31,4 +31,9 @@ export function formatOrderStatus(status: OrderStatus): string {
     case "annulée":
       return "Annulée";
   }
+}
+
+// Mode de paiement, tel qu'on l'affiche (la base stocke "virement" ou "chèque")
+export function formatPaymentMethod(method: PaymentMethod): string {
+  return method === "virement" ? "Virement bancaire" : "Chèque";
 }
