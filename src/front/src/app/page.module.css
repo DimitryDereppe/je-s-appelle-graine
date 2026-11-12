@@ -424,6 +424,26 @@
   }
 }
 
+@media (min-width: 600px) {
+  .commitmentsDesktop {
+    order: 2;
+  }
+
+  .commitmentsMobile {
+    order: 4;
+  }
+}
+/* À partir de 610 px : le bandeau revient entre la présentation et les arbres. */
+@media (min-width: 610px) {
+  .commitmentsDesktop {
+    display: block;
+  }
+
+  .commitmentsMobile {
+    display: none;
+  }
+}
+
 /* ===== Desktop (≥ 900px) ===== */
 @media (min-width: 900px) {
   .welcome {
@@ -451,33 +471,10 @@
   }
 }
 
-/* Par défaut, sous 610 px : le bandeau est placé après les arbres,
-   donc juste avant le footer global. */
 .commitmentsDesktop {
   display: none;
 }
 
 .commitmentsMobile {
   display: block;
-}
-
-/* À partir de 610 px : le bandeau revient entre la présentation et les arbres. */
-@media (min-width: 610px) {
-  .commitmentsDesktop {
-    display: block;
-  }
-
-  .commitmentsMobile {
-    display: none;
-  }
-}
-
-@media (min-width: 600px) {
-  .commitmentsDesktop {
-    order: 2;
-  }
-
-  .commitmentsMobile {
-    order: 4;
-  }
 }

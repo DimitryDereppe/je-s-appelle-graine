@@ -143,11 +143,10 @@ export function CartItems() {
           <span>Total TTC</span>
           <span>{total.toFixed(2).replace(".", ",")}€ TTC</span>
         </div>
+        <Link href="/commandes/nouvelle" className={styles.orderLink}>
+          Passer au paiement
+        </Link>
       </div>
-
-      <Link href="/commandes/nouvelle" className={styles.orderLink}>
-        Passer au paiement
-      </Link>
     </div>
   );
 }
