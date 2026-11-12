@@ -42,6 +42,7 @@ Suivi de mon travail sur Je s’appelle Graine. Les décisions notées ici ont �
 
 - Étape 7 : push de `feat/front-f8-#169` + PR vers `DEV`.
 - Décider si les commits `66e3a4a` et `19bdbc9` (F5) restent sur la branche #169 ou partent dans une PR à part.
+- Emails en production : passer une vraie commande sur le site et vérifier la réception (et les spams).
 - Proposer à Loïc `alt="Lieu de plantation"` sur l'icône de lieu (`TreeCard.tsx`, `arbres/[id]/page.tsx`), aujourd'hui `alt=""`.
 
 ## 2026-11-10 — Admin commandes (F8) : page liste `/admin/commandes`, filtre, « En retard », type du détail (#169), « Lieu de plantation » (#105, #107)
