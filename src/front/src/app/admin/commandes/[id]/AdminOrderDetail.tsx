@@ -3,7 +3,7 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import type { IAdminOrderDetail } from "../../../../@types";
+import type { IAdminOrderDetail, OrderStatus } from "../../../../@types";
 import { clientApi } from "../../../utils/clientApi";
 import {
   formatDate,
@@ -16,12 +16,41 @@ interface AdminOrderDetailProps {
   id: string; // id de la commande, lu dans l'URL par page.tsx
 }
 
+// Changements de statut autorisés (contrat carte #167), un bouton par statut suivant
+// Record<OrderStatus, OrderStatus[]> : un objet dont chaque clé est un statut,
+// et chaque valeur la liste des statuts suivants ([] = plus aucun changement possible)
+const NEXT_STATUSES: Record<OrderStatus, OrderStatus[]> = {
+  "en attente": ["payée", "annulée"],
+  payée: ["plantée"],
+  plantée: [],
+  annulée: [],
+};
+
+// Texte du bouton qui fait passer la commande au statut donné
+// default : "en attente" n'est jamais un statut suivant, mais la fonction doit toujours renvoyer un texte
+function getActionLabel(status: OrderStatus): string {
+  switch (status) {
+    case "payée":
+      return "Enregistrer le paiement";
+    case "plantée":
+      return "Marquer comme plantée";
+    case "annulée":
+      return "Annuler la commande";
+    default:
+      return `Passer à « ${formatOrderStatus(status)} »`;
+  }
+}
+
 // Détail d'une commande pour l'admin (GET /api/admin/orders/:id, contrat carte #167)
 export function AdminOrderDetail({ id }: AdminOrderDetailProps) {
   // null tant que la commande n'est pas chargée
   const [order, setOrder] = useState<IAdminOrderDetail | null>(null);
   // erreur de chargement : remplace tout le détail
   const [errorMessage, setErrorMessage] = useState("");
+  // message après un clic sur un bouton de statut (succès ou refus de l'API)
+  const [statusMessage, setStatusMessage] = useState("");
+  // désactive les boutons pendant l'envoi : évite un double clic
+  const [isUpdating, setIsUpdating] = useState(false);
   // pour changer de page depuis le code (redirection vers la connexion)
   const router = useRouter();
 
@@ -63,6 +92,60 @@ export function AdminOrderDetail({ id }: AdminOrderDetailProps) {
     loadOrder();
     // id change si on passe d'une commande à une autre sans quitter la page
   }, [id, router]);
+
+  // Au clic sur un bouton de statut (PATCH /api/admin/orders/:id/status)
+  async function handleStatusChange(newStatus: OrderStatus) {
+    // fenêtre de confirmation du navigateur (accessible au clavier) : un changement de statut est définitif
+    if (
+      !window.confirm(
+        `Passer la commande n° ${id} à « ${formatOrderStatus(newStatus)} » ? Un email sera envoyé au client.`,
+      )
+    ) {
+      return;
+    }
+
+    setIsUpdating(true);
+    // efface le message d'un essai précédent
+    setStatusMessage("");
+
+    try {
+      const response = await clientApi(`admin/orders/${id}/status`, "PATCH", {
+        status: newStatus,
+      });
+
+      // 409 : le statut a changé entre temps (ex. le client a annulé, ou un autre admin est passé avant)
+      // → on relit la commande pour afficher son vrai statut et les bons boutons
+      if (response.status === 409) {
+        const updated = await clientApi(`admin/orders/${id}`);
+        if (updated.ok) {
+          const currentOrder: IAdminOrderDetail = await updated.json();
+          setOrder(currentOrder);
+          setStatusMessage(
+            `Changement refusé : la commande est maintenant « ${formatOrderStatus(currentOrder.status)} ».`,
+          );
+          return;
+        }
+      }
+
+      // autre erreur, ou relecture impossible après le 409
+      if (!response.ok) {
+        setStatusMessage("Le changement de statut n’a pas fonctionné.");
+        return;
+      }
+
+      // l'API renvoie la commande à jour (même format que le GET) : statut, dates et boutons se mettent à jour
+      const savedOrder: IAdminOrderDetail = await response.json();
+      setOrder(savedOrder);
+      setStatusMessage(
+        `Commande passée à « ${formatOrderStatus(savedOrder.status)} ».`,
+      );
+    } catch {
+      setStatusMessage("Une erreur est survenue.");
+    } finally {
+      // dans tous les cas (succès, erreur, return) : les boutons redeviennent cliquables
+      setIsUpdating(false);
+    }
+  }
 
   // un seul affichage à la fois : erreur, chargement ou détail
   // titre neutre tant qu'on ne sait pas si la commande existe
@@ -191,7 +274,29 @@ export function AdminOrderDetail({ id }: AdminOrderDetailProps) {
         Total TTC : <strong>{formatEuros(order.totalAmount)}</strong>
       </p>
 
-      {/* boutons de changement de statut : étape 5c */}
+      {/* un bouton par statut suivant autorisé ; [] (plantée, annulée) → aucun bouton (l'API vérifie aussi) */}
+      {NEXT_STATUSES[order.status].length > 0 && (
+        <div className={styles.actions}>
+          {NEXT_STATUSES[order.status].map((nextStatus) => (
+            <button
+              key={nextStatus}
+              type="button"
+              className={styles.actionButton}
+              onClick={() => handleStatusChange(nextStatus)}
+              disabled={isUpdating}
+            >
+              {getActionLabel(nextStatus)}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* role="status" : le lecteur d'écran annonce le message sans couper l'utilisateur */}
+      {statusMessage && (
+        <p className={styles.subtitle} role="status">
+          {statusMessage}
+        </p>
+      )}
     </>
   );
 }

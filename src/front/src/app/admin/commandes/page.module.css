@@ -140,3 +140,34 @@
   margin: 16px 0;
   text-align: right;
 }
+
+/* boutons de changement de statut : côte à côte, passent à la ligne sur mobile */
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 16px 0;
+}
+
+.actionButton {
+  padding: 10px 16px;
+  border: 2px solid var(--color-green);
+  border-radius: 8px;
+  background-color: white;
+  color: var(--color-green);
+  /* un bouton n'hérite pas de la police du site par défaut */
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.actionButton:hover,
+.actionButton:focus-visible {
+  background-color: var(--color-green);
+  color: white;
+}
+
+.actionButton:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
