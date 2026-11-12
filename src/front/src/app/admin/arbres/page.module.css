@@ -1,0 +1,128 @@
+/* Espace les éléments de la page (bouton, messages et liste). */
+.listSection {
+  display: grid;
+  gap: 16px;
+}
+
+/* Place le nombre d'arbres et le bouton sur une même ligne si possible. */
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+/* Style du nombre d'arbres affiché au-dessus de la liste. */
+.treeCount {
+  margin: 0;
+  color: var(--color-muted);
+}
+
+/* Même taille minimale pour les liens et le bouton : facile à cliquer. */
+.addLink,
+.actionLink,
+.deleteButton {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 14px;
+  border: 2px solid var(--color-green);
+  border-radius: 8px;
+  font: inherit;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+/* Le lien principal et le lien de modification sont verts. */
+.addLink,
+.actionLink {
+  background: var(--color-green);
+  color: white;
+}
+
+/* Le bouton de suppression est rouge pour signaler son action. */
+.deleteButton {
+  border-color: var(--color-terracotta);
+  background: transparent;
+  color: var(--color-terracotta);
+}
+
+/* Affiche un contour visible au survol et quand on navigue au clavier. */
+.addLink:hover,
+.actionLink:hover,
+.deleteButton:hover,
+.addLink:focus-visible,
+.actionLink:focus-visible,
+.deleteButton:focus-visible {
+  outline: 2px solid var(--color-deep-green);
+  outline-offset: 2px;
+}
+
+/* Le bouton reste visible, mais indique qu'il est momentanément inactif. */
+.deleteButton:disabled {
+  cursor: wait;
+  opacity: 0.7;
+}
+
+/* Affiche les cartes en colonnes, avec une seule colonne sur petit écran. */
+.treeList {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+  gap: 16px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Apparence d'une carte d'arbre. */
+.treeCard {
+  padding: 20px;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  background: white;
+}
+
+/* Espace le nom de l'arbre de ses informations. */
+.treeCard h2 {
+  margin: 0 0 16px;
+  font-size: 20px;
+}
+
+/* Espace les informations de chaque arbre. */
+.details {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+}
+
+/* Les intitulés sont plus discrets que les valeurs. */
+.details dt {
+  color: var(--color-muted);
+  font-size: 14px;
+}
+
+/* Les valeurs ressortent sous leurs intitulés. */
+.details dd {
+  margin: 2px 0 0;
+  font-weight: 600;
+}
+
+/* Place les boutons d'action sous les informations. */
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 20px;
+}
+
+/* Couleur des messages d'erreur et de réussite. */
+.error {
+  color: var(--color-terracotta);
+}
+
+.success {
+  color: var(--color-green);
+}
