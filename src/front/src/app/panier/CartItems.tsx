@@ -87,7 +87,7 @@ export function CartItems() {
             />
             <div className={styles.itemInfo}>
               <span className={styles.treeName}>{item.name}</span>
-              <p className={styles.cardLocation}>
+              <div className={styles.cardLocation}>
                 <span className={styles.locationIcon}>
                   <Image
                     src="/assets/localisation.svg"
@@ -98,7 +98,7 @@ export function CartItems() {
                   />
                 </span>
                 <span className={styles.location}>{item.plantingLocation}</span>
-              </p>{" "}
+              </div>{" "}
               <span className={styles.unitPrice}>
                 {item.price.toFixed(0)}€ TTC
               </span>
@@ -126,14 +126,24 @@ export function CartItems() {
               </div>
             </div>
             <div className={styles.priceAndClosure}>
-              <button
-                type="button"
-                className={styles.deleteBtn}
-                aria-label={`Retirer ${item.name} du panier`}
-                onClick={() => handleDeleteItem(item.treeId)}
-              >
-                ✕
-              </button>
+              <div className={styles.deleteDiv}>
+                <button
+                  type="button"
+                  className={styles.deleteString}
+                  aria-label={`Retirer ${item.name} du panier`}
+                  onClick={() => handleDeleteItem(item.treeId)}
+                >
+                  supprimer
+                </button>
+                <button
+                  type="button"
+                  className={styles.deleteBtn}
+                  aria-label={`Retirer ${item.name} du panier`}
+                  onClick={() => handleDeleteItem(item.treeId)}
+                >
+                  ✕
+                </button>
+              </div>
               <p className={styles.lineTotal}>
                 {(item.price * item.quantity).toFixed(0)}€ TTC
               </p>
@@ -157,8 +167,6 @@ export function CartItems() {
         <Link href="/commandes/nouvelle" className={styles.orderLink}>
           Passer au paiement
         </Link>
-      </div>
-      <div className={styles.clearDiv}>
         <button
           className={styles.clearButton}
           onClick={() => handleClearCart()}
@@ -166,12 +174,15 @@ export function CartItems() {
           Vider le panier
         </button>
       </div>
-      <Link className={styles.backToCatalog} href="/arbres" passHref>
-        <button className={styles.catalogButton} type="button">
-          ← Continuer de découvrir nos arbres{" "}
-          <span className={styles.arrow}></span>
-        </button>
-      </Link>
+
+      <div className={styles.backToCatalogDiv}>
+        <Link className={styles.backToCatalog} href="/arbres" passHref>
+          <button className={styles.catalogButton} type="button">
+            ← Continuer de découvrir nos arbres{" "}
+            <span className={styles.arrow}></span>
+          </button>
+        </Link>
+      </div>
     </div>
   );
 }
