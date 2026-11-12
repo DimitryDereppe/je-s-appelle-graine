@@ -135,6 +135,12 @@ export const deleteCartItem = asyncHandler(
 
     const treeId = treeIdParamSchema.parse(req.params.treeId);
 
+    const tree = await treeDatamapper.findById(treeId);
+    if (!tree) {
+      res.status(404).json({ error: "Ligne introuvable" });
+      return;
+    }
+
     await cartDatamapper.deleteCartItem(user.id, treeId);
 
     res.status(204).end();
