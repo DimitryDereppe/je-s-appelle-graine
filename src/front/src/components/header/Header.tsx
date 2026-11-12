@@ -28,7 +28,7 @@ export default function Header() {
   const router = useRouter();
 
   // Compteur d'articles dans le panier (partagé via le Context)
-  const { itemCount } = useCartCount();
+  const { itemCount, refresh } = useCartCount();
 
   // État local du menu mobile (hamburger)
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -108,6 +108,8 @@ export default function Header() {
 
       setUser(null);
       setAlertMessage(null); // ← on efface aussi l'alerte à la déconnexion
+      // l'API répond 401 : le panier de la personne déconnectée disparaît (compteur et /panier)
+      await refresh();
       setIsMenuOpen(false);
       router.push("/");
     } catch {
