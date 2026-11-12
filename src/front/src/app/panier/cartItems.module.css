@@ -313,11 +313,12 @@
   .summary {
     grid-area: summary;
     width: 100%;
-    height: 100%;
+    height: 60%;
     display: flex;
     flex-direction: column;
   }
   .orderLink {
+    margin-top: 15%;
     min-width: 0;
   }
   .backToCatalog {
