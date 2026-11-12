@@ -2,7 +2,7 @@
 
 Suivi de mon travail sur Je s’appelle Graine. Les décisions notées ici ont été prises avec l'équipe sur Discord ; le suivi de l'équipe est dans le [[Apothéose/apo-jesappellegraine/CARNET-DE-BORD-JE-S-APPELLE-GRAINE|carnet de bord Je s’appelle Graine]].
 
-## 2026-11-12 — Admin commandes (F8) : back #168 arrivé, page détail `/admin/commandes/[id]` et changement de statut (#169), fix CSS du panier
+## 2026-11-12 — Admin commandes (F8) : back #168 arrivé, page détail `/admin/commandes/[id]` et changement de statut (#169), fix CSS du panier, emails en production
 
 ### Back #168 (Fabrice)
 
@@ -25,6 +25,14 @@ Suivi de mon travail sur Je s’appelle Graine. Les décisions notées ici ont �
 ### Fix hors #169 : erreur 500 sur tout le front
 
 - Une règle `p {}` vide dans `panier/cartItems.module.css` (sélecteur de balise seul, refusé par les CSS modules) faisait planter la compilation : retirée (commit `418026b`). Loïc est au courant.
+
+### Emails (Nodemailer) branchés sur la version déployée
+
+- Le code d'envoi (Nodemailer, `emailService.ts`) était déjà déployé, mais le `.env` du VPS n'avait aucun `SMTP_*` : les emails étaient seulement affichés dans les logs de l'API.
+- Ajout du bloc `SMTP_*` dans le `.env` du VPS, sur le modèle de `.env.prod.example` (Gmail de l'équipe, port 587, mot de passe d'application). Ancien fichier gardé dans `.env.avant-smtp`.
+- `up -d api` (un `restart` ne relit pas le `.env`), puis `restart nginx` : sans lui, 502 (Nginx visait encore l'ancien conteneur de l'API).
+- Vérifié : `printenv SMTP_HOST` → `smtp.gmail.com`, `transporter.verify()` → connexion Gmail acceptée, `/api/health` et la page d'accueil répondent.
+- En dev (Docker), rien ne change : sans `SMTP_HOST`, l'email reste affiché dans la console (choix de l'équipe, pas de vrais envois pendant les tests). Un essai pour brancher Gmail en local a été annulé.
 
 ### Avancement de #169 : environ 95 %
 
