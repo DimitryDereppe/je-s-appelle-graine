@@ -1,0 +1,134 @@
+# Routes admin des commandes (F8, contrat carte #167)
+# Prérequis : API lancée, et une commande récente « en attente » (passée sur le site juste avant)
+# ⚠️ Mot de passe admin : à saisir dans @password, ne jamais le commiter
+
+@host = http://localhost:4000/api
+@email = fabrice@graine.fr
+@password = A_REMPLIR
+
+### --------------------------------
+### 0. LOGIN ADMIN : pose le cookie accessToken (JWT)
+### attendu : 200 + le compte
+# @name login
+POST {{host}}/auth
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "password": "{{password}}"
+}
+
+###
+@cookie = {{login.response.headers.set-cookie}}
+
+# ---------- GET /api/admin/orders ----------
+
+### 1. toutes : attendu 200, la plus récente d'abord
+# @name list
+GET {{host}}/admin/orders
+Cookie: {{cookie}}
+
+###
+# id de la commande la plus récente : utilisé par le détail et les changements de statut
+@orderId = {{list.response.body.0.id}}
+
+### 2. en attente : attendu 200, seulement les commandes en attente
+GET {{host}}/admin/orders?status=en attente
+Cookie: {{cookie}}
+
+### 3. payées : attendu 200 ([] s'il n'y en a pas)
+GET {{host}}/admin/orders?status=payée
+Cookie: {{cookie}}
+
+### 4. plantées : attendu 200 ([] s'il n'y en a pas)
+GET {{host}}/admin/orders?status=plantée
+Cookie: {{cookie}}
+
+### 5. statut inconnu : attendu 400 « Statut invalide. »
+GET {{host}}/admin/orders?status=livrée
+Cookie: {{cookie}}
+
+# ---------- GET /api/admin/orders/:id ----------
+
+### 6. détail de la commande la plus récente : attendu 200, avec dueDate, billingAddress et lines
+GET {{host}}/admin/orders/{{orderId}}
+Cookie: {{cookie}}
+
+### 7. commande inconnue : attendu 404 « Commande introuvable. »
+GET {{host}}/admin/orders/999999
+Cookie: {{cookie}}
+
+### 8. id invalide : attendu 400
+GET {{host}}/admin/orders/abc
+Cookie: {{cookie}}
+
+# ---------- PATCH /api/admin/orders/:id/status ----------
+# À lancer dans l'ordre, sur la commande la plus récente, qui doit être « en attente »
+
+### 9. en attente → plantée : attendu 409 (pas encore payée)
+PATCH {{host}}/admin/orders/{{orderId}}/status
+Content-Type: application/json
+Cookie: {{cookie}}
+
+{
+  "status": "plantée"
+}
+
+### 10. en attente → payée : attendu 200, status « payée » et paidAt rempli
+PATCH {{host}}/admin/orders/{{orderId}}/status
+Content-Type: application/json
+Cookie: {{cookie}}
+
+{
+  "status": "payée"
+}
+
+### 11. payée → annulée : attendu 409
+PATCH {{host}}/admin/orders/{{orderId}}/status
+Content-Type: application/json
+Cookie: {{cookie}}
+
+{
+  "status": "annulée"
+}
+
+### 12. payée → plantée : attendu 200, status « plantée », plantedAt rempli, paidAt gardé
+PATCH {{host}}/admin/orders/{{orderId}}/status
+Content-Type: application/json
+Cookie: {{cookie}}
+
+{
+  "status": "plantée"
+}
+
+### 13. statut inconnu : attendu 400 « Statut invalide. »
+PATCH {{host}}/admin/orders/{{orderId}}/status
+Content-Type: application/json
+Cookie: {{cookie}}
+
+{
+  "status": "livrée"
+}
+
+### 14. commande inconnue : attendu 404 « Commande introuvable. »
+PATCH {{host}}/admin/orders/999999/status
+Content-Type: application/json
+Cookie: {{cookie}}
+
+{
+  "status": "payée"
+}
+
+### 15. id invalide : attendu 400
+PATCH {{host}}/admin/orders/abc/status
+Content-Type: application/json
+Cookie: {{cookie}}
+
+{
+  "status": "payée"
+}
+
+# ---------- Accès ----------
+
+### 16. sans connexion : attendu 401
+GET {{host}}/admin/orders
