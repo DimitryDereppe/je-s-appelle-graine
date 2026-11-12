@@ -132,13 +132,14 @@
 }
 
 /* --- Boutons --- */
+/* enregistrer : contour vert, rempli au survol (comme les boutons de l'admin des commandes) */
 .submitButton {
   align-self: flex-start;
   padding: 10px 16px;
-  border: none;
+  border: 2px solid var(--color-green);
   border-radius: 8px;
-  background-color: var(--color-green);
-  color: white;
+  background-color: white;
+  color: var(--color-green);
   /* un bouton n'hérite pas de la police du site par défaut */
   font: inherit;
   font-weight: 600;
@@ -147,7 +148,8 @@
 
 .submitButton:hover,
 .submitButton:focus-visible {
-  background-color: var(--color-deep-green);
+  background-color: var(--color-green);
+  color: white;
 }
 
 /* suppression : contour terracotta, rempli au survol */

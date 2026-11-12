@@ -5,7 +5,13 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import type { IOrderDetail, OrderStatus } from "../../../@types";
 import { clientApi } from "../../utils/clientApi";
-import { formatDate, formatEuros, formatOrderStatus } from "../../utils/format";
+import {
+  formatDate,
+  formatEuros,
+  formatOrderStatus,
+  formatPaymentMethod,
+} from "../../utils/format";
+import { OrderLines } from "../../../components/order/OrderLines";
 import styles from "../page.module.css";
 
 interface OrderDetailProps {
@@ -157,7 +163,7 @@ export function OrderDetail({ id }: OrderDetailProps) {
         <dt>Statut</dt>
         <dd>{formatOrderStatus(order.status)}</dd>
         <dt>Paiement</dt>
-        <dd>{order.paymentMethod}</dd>
+        <dd>{formatPaymentMethod(order.paymentMethod)}</dd>
         {/* la date limite ne compte que tant que la commande n'est pas payée */}
         {isPending && (
           <>
@@ -170,35 +176,7 @@ export function OrderDetail({ id }: OrderDetailProps) {
       </dl>
 
       <h2 className={styles.sectionTitle}>Arbres commandés</h2>
-      <ul className={styles.list}>
-        {order.lines.map((line) => (
-          // key : pas d'id dans une ligne de commande ; un arbre n'apparaît qu'une fois par commande
-          <li
-            key={`${line.treeName}-${line.unitPrice}`}
-            className={styles.line}
-          >
-            <span className={styles.reference}>{line.treeName}</span>
-            {/* total de la ligne, calculé ici : l'API ne le renvoie pas */}
-            <span className={styles.amount}>
-              {formatEuros(line.unitPrice * line.quantity)}
-            </span>
-            {/* && : n'affiche le lieu que s'il est renseigné (il peut être null) */}
-            {line.plantingLocation && (
-              <span className={styles.location}>
-                Lieu de plantation :
-                {/* "Forêt … — Landiras (33)" : une ligne pour le lieu, une pour la commune */}
-                {line.plantingLocation.split(" — ").map((part) => (
-                  <span key={part}>{part}</span>
-                ))}
-              </span>
-            )}
-            {/* quantité × prix : à droite, sous le total de la ligne */}
-            <span className={styles.quantity}>
-              {line.quantity} × {formatEuros(line.unitPrice)}
-            </span>
-          </li>
-        ))}
-      </ul>
+      <OrderLines lines={order.lines} />
 
       <p className={styles.total}>
         Total TTC : <strong>{formatEuros(order.totalAmount)}</strong>
