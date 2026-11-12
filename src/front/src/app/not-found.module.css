@@ -1,11 +1,25 @@
+:root {
+  /* Couleurs */
+  --color-bg: #f8f7f6;
+  --color-text: #18352e;
+  --color-primary: #245a46;
+  --color-text-muted: #53615b;
+  --color-surface: #e3e9df;
+  --color-accent: #b6532c;
+  --color-white: #f8f6f8;
+
+  /* Polices */
+  --font-serif: "Lora", Georgia, serif;
+}
+
 .main {
   width: 100%;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background-color: #f8f7f6;
-  font-family: "Lora", Georgia, serif;
-  color: #18352e;
+  background-color: var(--color-bg);
+  font-family: var(--font-serif);
+  color: var(--color-text);
 }
 
 /* --- Hero 404 --- */
@@ -13,7 +27,7 @@
   width: 100%;
   display: flex;
   flex-direction: column;
-  align-items: center; /* ← ajoute ça */
+  align-items: center;
   text-align: center;
 }
 
@@ -22,14 +36,14 @@
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #245a46;
+  color: var(--color-primary);
 }
 
 .title {
   font-size: 40px;
   font-weight: 700;
-  font-family: "Lora", Georgia, serif;
-  color: #18352e;
+  font-family: var(--font-serif);
+  color: var(--color-text);
   margin: 0 0 16px;
   line-height: 1.2;
 }
@@ -37,13 +51,13 @@
 .subtitle {
   font-size: 16px;
   line-height: 1.5;
-  color: #53615b;
+  color: var(--color-text-muted);
   margin: 0 0 24px;
 }
 
 .underline {
   text-decoration: underline;
-  text-decoration-color: #b6532c;
+  text-decoration-color: var(--color-accent);
   text-decoration-thickness: 2px;
   text-underline-offset: 4px;
 }
@@ -51,39 +65,39 @@
 /* --- Boutons --- */
 .ctaButton {
   width: 100%;
-  background-color: #245a46;
-  color: #f8f6f8;
+  background-color: var(--color-primary);
+  color: var(--color-white);
   border: none;
   border-radius: 12px;
   padding: 12px 24px;
   min-height: 44px;
   font-size: 16px;
   font-weight: 600;
-  font-family: "Lora", Georgia, serif;
+  font-family: var(--font-serif);
   cursor: pointer;
   transition: background-color 0.3s ease;
 }
 
 .ctaButton:hover {
-  background-color: #18352e;
+  background-color: var(--color-text);
 }
 
 .ctaButton:focus-visible {
-  outline: 3px solid #245a46;
+  outline: 3px solid var(--color-primary);
   outline-offset: 2px;
 }
 
 .secondaryButton {
   width: 100%;
   background-color: transparent;
-  color: #245a46;
-  border: 1px solid #245a46;
+  color: var(--color-primary);
+  border: 1px solid var(--color-primary);
   border-radius: 12px;
   padding: 12px 24px;
   min-height: 44px;
   font-size: 16px;
   font-weight: 600;
-  font-family: "Lora", Georgia, serif;
+  font-family: var(--font-serif);
   cursor: pointer;
   transition:
     background-color 0.3s ease,
@@ -91,12 +105,12 @@
 }
 
 .secondaryButton:hover {
-  background-color: #245a46;
-  color: #f8f6f8;
+  background-color: var(--color-primary);
+  color: var(--color-white);
 }
 
 .secondaryButton:focus-visible {
-  outline: 3px solid #245a46;
+  outline: 3px solid var(--color-primary);
   outline-offset: 2px;
 }
 
@@ -110,12 +124,12 @@
   min-height: 40vh;
   position: relative;
   border-radius: 12px;
-  background-color: #e3e9df;
+  background-color: var(--color-surface);
   display: flex;
   justify-content: center;
   align-items: center;
   height: 600px;
-  border: 1px solid black;
+  border: 1px solid var(--color-text);
   min-width: 75%;
 }
 
@@ -125,6 +139,7 @@
   color: inherit;
   text-decoration: underline;
 }
+
 /* ===== Desktop (≥ 600px) ===== */
 @media (min-width: 600px) {
   .hero {

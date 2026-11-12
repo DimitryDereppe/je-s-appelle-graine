@@ -1,11 +1,26 @@
+:root {
+  /* Couleurs */
+  --color-ivory: #f8f6f0;
+  --color-deep-green: #18352e;
+  --color-green: #245a46;
+  --color-muted: #53615b;
+  --color-sage: #e3e9df;
+  --color-border: #e4e1d9;
+  --color-terracotta: #b6532c;
+  --color-white: #fff;
+
+  /* Polices */
+  --font-lora: "Lora";
+}
+
 .catalogue {
   width: 100%;
   max-width: none;
   min-height: 60vh;
   margin: 0;
   padding: 1.5rem clamp(1rem, 2vw, 2rem) 3rem;
-  color: var(--color-deep-green, #18352e);
-  background-color: var(--color-ivory, #f8f6f0);
+  color: var(--color-deep-green);
+  background-color: var(--color-ivory);
 }
 
 .pageHeader {
@@ -18,7 +33,7 @@
 .desktopFilterTitle {
   align-self: end;
   margin: 0 0 0.4rem;
-  font-family: var(--font-lora, Georgia), Georgia, serif;
+  font-family: var(--font-lora), Georgia, serif;
   font-size: 1.25rem;
   font-weight: 700;
 }
@@ -44,11 +59,11 @@
 .breadcrumb li + li::before {
   content: "›";
   margin-right: 0.5rem;
-  color: var(--color-muted, #53615b);
+  color: var(--color-muted);
 }
 
 .breadcrumb a {
-  color: var(--color-muted, #53615b);
+  color: var(--color-muted);
   text-decoration: none;
 }
 
@@ -66,7 +81,7 @@
 
 .title {
   margin: 0;
-  font-family: var(--font-lora, Georgia), Georgia, serif;
+  font-family: var(--font-lora), Georgia, serif;
   font-size: clamp(2rem, 7vw, 3rem);
   line-height: 1.15;
 }
@@ -74,7 +89,7 @@
 .treeCount {
   flex: 0 0 auto;
   margin: 0;
-  color: var(--color-muted, #53615b);
+  color: var(--color-muted);
   font-size: 0.875rem;
 }
 
@@ -100,7 +115,7 @@
   margin: 0;
   padding: 0 0 0.6rem;
   border: 0;
-  border-bottom: 1px solid var(--color-border, #e4e1d9);
+  border-bottom: 1px solid var(--color-border);
 }
 
 .categoryFilters legend {
@@ -114,7 +129,7 @@
   gap: 0.5rem;
   min-height: 32px;
   padding: 0.125rem 0.25rem;
-  color: var(--color-deep-green, #18352e);
+  color: var(--color-deep-green);
   border-radius: 6px;
   cursor: pointer;
   font-size: 0.9375rem;
@@ -133,7 +148,7 @@
 }
 
 .categoryOption:focus-within {
-  outline: 3px solid var(--color-terracotta, #b6532c);
+  outline: 3px solid var(--color-terracotta);
   outline-offset: 2px;
 }
 
@@ -152,13 +167,11 @@
   list-style: none;
 }
 
-/* La carte remplit sa case : toutes les cartes d'une ligne ont la même hauteur */
 .treeItem {
   display: grid;
   min-width: 0;
 }
 
-/* Lu par les lecteurs d'écran, invisible à l'écran */
 .visuallyHidden {
   position: absolute;
   width: 1px;
@@ -174,8 +187,8 @@
 .treeCard {
   min-width: 0;
   overflow: hidden;
-  background-color: #fff;
-  border: 1px solid var(--color-border, #e4e1d9);
+  background-color: var(--color-white);
+  border: 1px solid var(--color-border);
   border-radius: 12px;
 }
 
@@ -184,7 +197,7 @@
   width: 100%;
   aspect-ratio: 2.6 / 1;
   overflow: hidden;
-  background-color: var(--color-sage, #e3e9df);
+  background-color: var(--color-sage);
 }
 
 .treeImageLink {
@@ -203,7 +216,7 @@
 
 .treeName {
   margin: 0;
-  font-family: var(--font-lora, Georgia), Georgia, serif;
+  font-family: var(--font-lora), Georgia, serif;
   font-size: 1.125rem;
   line-height: 1.25;
 }
@@ -221,13 +234,13 @@
 
 .treeImageLink:focus-visible,
 .treeNameLink:focus-visible {
-  outline: 3px solid var(--color-terracotta, #b6532c);
+  outline: 3px solid var(--color-terracotta);
   outline-offset: 3px;
 }
 
 .treeCategory {
   margin: 0.125rem 0;
-  color: var(--color-muted, #53615b);
+  color: var(--color-muted);
   font-size: 0.875rem;
 }
 
@@ -237,7 +250,7 @@
   gap: 0.35rem;
   min-height: 2.25rem;
   margin: 0.25rem 0 0;
-  color: var(--color-muted, #53615b);
+  color: var(--color-muted);
   font-size: 0.875rem;
   line-height: 1.35;
 }
@@ -247,7 +260,6 @@
   height: 1rem;
   flex: 0 0 1rem;
   margin-top: 0.125rem;
-  /* TODO : placer ici le pictogramme de localisation. */
 }
 
 .priceAndCart {
@@ -260,7 +272,7 @@
 
 .treePrice {
   margin: 0;
-  color: var(--color-terracotta, #b6532c);
+  color: var(--color-terracotta);
   font-size: 1rem;
   font-weight: 700;
 }
@@ -273,14 +285,14 @@
   height: 44px;
   flex: 0 0 44px;
   padding: 0;
-  background-color: var(--color-sage, #e3e9df);
+  background-color: var(--color-sage);
   border: 1px solid transparent;
   border-radius: 50%;
   cursor: pointer;
 }
 
 .addToCart:hover:not(:disabled) {
-  background-color: var(--color-border, #e4e1d9);
+  background-color: var(--color-border);
 }
 
 .addToCart:disabled {
@@ -290,21 +302,21 @@
 
 .addToCart:focus-visible,
 .breadcrumb a:focus-visible {
-  outline: 3px solid var(--color-terracotta, #b6532c);
+  outline: 3px solid var(--color-terracotta);
   outline-offset: 3px;
 }
 
 .errorMessage {
   padding: 1rem;
-  background-color: var(--color-sage, #e3e9df);
-  border-left: 4px solid var(--color-terracotta, #b6532c);
+  background-color: var(--color-sage);
+  border-left: 4px solid var(--color-terracotta);
   line-height: 1.5;
 }
 
 .cartMessage {
   min-height: 1.5rem;
   margin: 0.75rem 0 0;
-  color: var(--color-deep-green, #18352e);
+  color: var(--color-deep-green);
   font-size: 0.9375rem;
 }
 
@@ -335,13 +347,12 @@
     font-size: 1.75rem;
   }
 
-  /* Petit soulignement terre cuite du titre mobile. */
   .title::after {
     display: block;
     width: 48px;
     height: 3px;
     margin-top: 0.3rem;
-    background-color: var(--color-terracotta, #b6532c);
+    background-color: var(--color-terracotta);
     content: "";
   }
 
@@ -354,7 +365,6 @@
     min-width: 0;
   }
 
-  /* Le fond du bouton couvre la moitié de la largeur d’une carte. */
   .filterToggle {
     display: flex;
     flex: 0 0 auto;
@@ -366,8 +376,8 @@
     align-items: center;
     justify-content: center;
     padding: 0.25rem 1rem;
-    color: var(--color-deep-green, #18352e);
-    background-color: var(--color-sage, #e3e9df);
+    color: var(--color-deep-green);
+    background-color: var(--color-sage);
     border: 0;
     border-radius: 999px;
     cursor: pointer;
@@ -380,7 +390,7 @@
   }
 
   .filterToggle:focus-visible {
-    outline: 3px solid var(--color-terracotta, #b6532c);
+    outline: 3px solid var(--color-terracotta);
     outline-offset: 3px;
   }
 
@@ -389,8 +399,8 @@
     box-sizing: border-box;
     width: 100%;
     padding: 0.75rem;
-    background-color: var(--color-ivory, #f8f6f0);
-    border: 1px solid var(--color-border, #e4e1d9);
+    background-color: var(--color-ivory);
+    border: 1px solid var(--color-border);
     border-radius: 10px;
   }
 
