@@ -178,8 +178,58 @@ export interface IOrder {
   lines: IOrderLine[];
 }
 
+// une commande dans la liste admin (GET /api/admin/orders), contrat carte #167
+export interface IAdminOrderSummary {
+  id: number;
+  purchaseDate: string;
+  status: OrderStatus;
+  totalAmount: number;
+  buyerFirstname: string;
+  buyerLastname: string;
+  buyerEmail: string;
+  isLate: boolean; // en attente depuis plus de 10 jours
+}
+
+// une commande en détail (GET et PATCH /api/admin/orders/:id)
+// extends : reprend les champs de la liste, et en ajoute
+export interface IAdminOrder extends IAdminOrderSummary {
+  dueDate: string; // "AAAA-MM-JJ"
+  paymentMethod: PaymentMethod;
+  buyerOrganization: string | null;
+  billingAddress: string | null;
+  paidAt: string | null; // null tant que la commande n'est pas payée
+  plantedAt: string | null;
+  cancelledAt: string | null;
+  lines: IOrderLine[];
+}
+
 // Catégorie d'arbre (filtre du catalogue)
 export interface ICategory {
   id: number;
   name: string;
+}
+
+// Données complètes d’un arbre pour l’espace d’admin.
+// Récupere ITree et ajoute les id de catégorie et de disponibilité,
+export interface IAdminTree extends ITree {
+  categoryId: number;
+  availabilityId: number;
+}
+
+// Données envoyées pour créer ou modifier un arbre.
+// Les champs description, photo et lieu peuvent être vidés avec null.
+export interface ITreeInput {
+  name: string;
+  description: string | null;
+  price: number;
+  photoUrl: string | null;
+  plantingLocation: string | null;
+  categoryId: number;
+  availabilityId: number;
+}
+
+// Disponibilité proposée coté admin
+export interface IAvailability {
+  id: number;
+  name: ICatalogueTree["availabilityName"];
 }

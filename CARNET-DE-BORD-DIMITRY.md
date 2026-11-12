@@ -2,6 +2,103 @@
 
 Suivi de mon travail sur Je s’appelle Graine. Les décisions notées ici ont été prises avec l'équipe sur Discord ; le suivi de l'équipe est dans le [[Apothéose/apo-jesappellegraine/CARNET-DE-BORD-JE-S-APPELLE-GRAINE|carnet de bord Je s’appelle Graine]].
 
+## 2026-11-09 — Commande (F5) : corrections de l'étape 0, plan de tests (#108), front de la commande (#107)
+
+### Étape 0 « Corriger F5 » (PR #204, fusionnée dans `DEV`)
+
+- `emailService.ts` : « Paiement par chèque : » sans le `n°` en trop ; « Bonjour prénom nom ».
+- Nouveau test de l'email en mode chèque ; le test du virement vérifie aussi le prénom et le nom.
+- Commentaires « facture pour plus tard » (`ordersController.ts`, `ordersDatamapper.ts`) ; variables `PAYMENT_*` dans `src/api/.env.example`.
+
+### Panier : une seule source, la base (décision avec Loïc, à l'oral)
+
+- **Problème** : les routes du panier (`cartController.ts`) passaient par `cartStore` (panier en mémoire, un `Map`), alors que la commande lit `cart_item` avec `cartDatamapper` → panier vu vide à la commande.
+- **Décision** : option A, tout passe par la base. Le panier survit à un redémarrage, et le `ROLLBACK` de la transaction de commande remet le panier si elle échoue (un `ROLLBACK` ne peut rien annuler dans un `Map` JavaScript).
+- Loïc remet `cartDatamapper` dans `cartController.ts` (il lui manque `updateCartItem` et `deleteCartItem`). La commande ne change pas.
+- **Fait** : PR #207 de Loïc fusionnée dans `DEV`, `cartStore` supprimé. `PATCH`/`DELETE /api/cart/items/:treeId` prennent l'id de l'**arbre**, nouveau `DELETE /api/cart/items` (vider le panier). `GET /api/cart` renvoie toujours un tableau de lignes (pas encore `{ items, total }`).
+
+### Carte #108 — tests (PR #205, branche `tests/f5-#108`, fusionnée dans `DEV`)
+
+- Les cas de la carte étaient déjà couverts : F5-INT-1, 4, 6, 7, 12, 14.
+- [[Apothéose/apo-jesappellegraine/docs/tests/PLAN-DE-TESTS|PLAN-DE-TESTS.md]] : F5-INT-22 vérifie aussi « Bonjour prénom nom », nouvelle ligne F5-INT-24 (email du chèque), section email à 3 cas.
+- Tests de l'API : 114/116, les 2 échecs (`GET /api/cart`) existaient déjà sur `DEV`.
+
+### Carte #107 — front de la commande (branche `feat/front-f5-#107`)
+
+- Types front (`@types/index.d.ts`) : `PaymentMethod`, `IOrderLine`, `IOrder`, plus `PaymentInstructions` (virement **ou** chèque, avec `|`) et `IOrderWithInstructions extends IOrder` (réponse de `POST /api/orders` et `GET /api/orders/:id`).
+- Page `/commandes/nouvelle/paiement` : `page.tsx` + `PaymentForm.tsx` (modèle `LoginForm`) + `page.module.css`.
+  - radios `paymentMethod` dans un `<fieldset>`/`<legend>`, `<textarea>` adresse (`maxLength` 255), case d'engagement (`=== "on"` → booléen) ;
+  - `clientApi("orders", "POST", …)` : 401 → `/connexion?next=…`, 400/409 → message `error` de l'API dans `role="alert"`, 201 → `/commandes/${order.id}/confirmation`.
+- `tsc`, ESLint et Prettier OK (commit `0c6abfd`).
+- Page `/commandes/[id]/confirmation` (commit `949100d`) : `page.tsx` + `OrderConfirmation.tsx` (composant client, `GET /api/orders/:id` avec le cookie) : référence, montant TTC, date limite ; `"iban" in order.paymentInstructions` choisit le bloc virement (IBAN, référence dans le libellé) ou chèque (ordre, adresse, référence au dos). 401 → `/connexion?next=…`.
+- Page récapitulatif `/commandes/nouvelle` (commit `bd99151`) : `CartSummary.tsx` lit `GET /api/cart` (type `ICartItem`), total avec `reduce`, `some` repère un arbre plus disponible (la commande serait refusée en 409). Panier vide → « Votre panier est vide. ». Lignes en commentaire pour passer à `{ items, total }` quand Loïc changera la réponse.
+- Fix `AddToCartButton` (commit `16e5ecb`, #100, avec l'accord de Loïc) : le body envoyait `tree_id`, refusé par le schéma Zod de `POST /api/cart/items` → `{ treeId, quantity: 1 }`.
+- Fusion de `DEV` (commit `aa537f5`) : conflit dans `@types/index.d.ts` résolu en gardant `ICartItem` + types F5 de la branche, et le bloc F6 de `DEV` (`OrderStatus`, `IOrderSummary`, `IOrderDetail`) sans doubler les types F5.
+
+### Tests dans le navigateur : ce qui bloquait
+
+- Le récapitulatif restait vide : **aucun bouton « Ajouter au panier » n'était branché**. Ceux de `TreeCard.tsx` et `arbres/[id]/page.tsx` n'avaient pas de `onClick`, et `AddToCartButton` n'était affiché nulle part (import en commentaire dans `arbres/page.tsx`). Contournement pour tester : `fetch("/api/cart/items", { method: "POST", … })` dans la console du navigateur (cookie envoyé, même origine).
+- La validation répondait « panier vide » : le panier ajouté allait dans `cartStore` (mémoire) alors que la commande lit `cart_item`. Réglé par la PR #207.
+- `localhost:4000/` en 404 : normal, toutes les routes de l'API commencent par `/api/`. Tester depuis `localhost:3000` (le cookie de connexion n'est envoyé qu'à ce port).
+- Loïc branche les boutons (branche `animateButton`, en cours) : `AddToCartButton` déplacé dans `components/cartButton/`, props `iconOn` (icône dans `TreeCard`, texte sur la fiche) et `isOutOfStock`. Sa branche envoie encore `tree_id` : ma correction suivra le fichier déplacé à la fusion (vérifié par une fusion à blanc), à lui signaler.
+
+### Reste à faire
+
+- Tester le parcours complet : ajout au panier → récapitulatif → paiement (virement puis chèque) → confirmation → `/commandes` (F6) ; vérifier que `cart_item` est vidé ; tests manuels F5-MAN-1 à 4.
+- Pousser `feat/front-f5-#107`, PR vers `DEV` (relecteur Loïc, « Carte #107 »).
+- Kanban : #108 en « Terminé ».
+
+## 2026-11-06 — Déploiement : photos des arbres invisibles en production
+
+- **Symptôme** : sur le VPS, `/images/trees/pin-maritime.webp` répond `200`, mais `/_next/image?url=/images/trees/…` répond `500` (`"url" parameter is valid but internal response is invalid`) : aucune photo d'arbre ne s'affiche.
+- **Cause** : `<Image>` passe par l'optimiseur de Next.js, qui va chercher la photo **lui-même** en suivant les `rewrites` de `next.config.ts`. Ces `rewrites` sont **figés au `next build`**, alors que `API_URL` n'arrive qu'au démarrage du conteneur (`env_file`) : Next avait enregistré `http://localhost:4050`, qui ne répond pas dans le conteneur front.
+- **Correction** (branche `fix/deploiement-images`, commit `99936ed`) : `front/Dockerfile.prod` → `ARG API_URL=http://api:4000` + `ENV API_URL=$API_URL` avant `RUN npm run build` (sans `/` final : `next.config.ts` ajoute `/images/...`). Build testé en local : `routes-manifest.json` contient bien `http://api:4000/images/trees/:path*`.
+- Doc : [[Apothéose/apo-jesappellegraine/DEPLOIEMENT|DEPLOIEMENT.md]] (vérification n° 5 + ligne dans « Pièges rencontrés ») et commentaire dans `.env.prod.example`.
+
+### Reste à faire
+
+- Pousser `fix/deploiement-images`, PR vers `DEV` puis `main`, puis sur la VM : `git pull origin main` + `docker compose -f docker-compose.prod.yml up -d --build` (ou attendre le redémarrage de la VM).
+- Vérifier : `curl` de la section 4 de DEPLOIEMENT.md → `200 image/webp`.
+
+## 2026-11-06 — Commande (#104) : adresse de facturation en une seule chaîne, clients européens
+
+Branche `fix/back-f5`. Le matin : `a43db34` — adresse de facturation saisie à la commande, routes `/orders` regroupées dans `indexRouter`.
+
+### Adresse découpée en 4 colonnes : abandonnée
+
+- Essai (non commité) : `buyer_street`, `buyer_postal_code`, `buyer_city`, `buyer_country` + format du code postal vérifié par pays (`lib/countries.ts`).
+- **Décision** : retour à **une seule colonne `buyer_address`** (chaîne), plus simple pour la table et l'affichage sur la facture. Le pays et le code postal ne sont plus vérifiés.
+- Le travail est mis de côté dans `stash@{0}` (« adresse découpée en 4 colonnes »), récupérable fichier par fichier.
+
+### Travail réalisé (non commité)
+
+- Schéma Zod `billingAddressSchema` déplacé dans `controllers/utils.ts` (exporté), importé par `ordersController.ts` : `string` → `trim` → `min(1)` → `max(255)` (taille de la colonne).
+- **Clients européens** remis dans `02-seed.sql` (id 11 à 14, mot de passe `Client12345!`) et `test/index.ts` : `SHERLOCK` (GB), `POIROT` (BE), `EINSTEIN` (DE), `QUICHOTTE` (ES), avec une `billingAddress` en chaîne.
+- Tests de `POST /api/orders` :
+  - `createCustomerWithCart(account = ALICE)` accepte un autre compte ;
+  - boucle sur les 4 clients : l'adresse relue par `GET /orders/:id` est identique (accents, `ß`, code postal britannique) ;
+  - espaces autour de l'adresse retirés (`trim`) ;
+  - 256 caractères → `400` « L'adresse de facturation est trop longue. ».
+- Test `/health` : attend `"je s'appelle Graine 🌲"`, comme la route.
+- `tsc` sans erreur, **83/83 tests d'API** et 3/3 tests unitaires.
+
+### Reste à faire
+
+- Commiter le travail sur `fix/back-f5`.
+- Rejouer le seed sur la base de dev (comptes 11 à 14 pas encore vérifiés en base).
+- `buyer_address` est encore `NULL` autorisé dans `01-schema.sql` alors que Zod l'exige : décider d'un `NOT NULL`.
+- Supprimer `stash@{0}` quand il n'est plus utile.
+
+## 2026-11-05 — Suite du Header, clôture
+
+- `fix/header` était déjà poussée et fusionnée dans `main` (PR #150, 04/11) : le « reste à faire » du 04/11 sur ce point est caduc.
+- Test navigateur **OK** : inscription → connexion → retour à la page d'origine, Header à jour sans rechargement.
+- **Décision** : `alertMessage` n'est pas remis à `null`. Le Header restant monté d'une page à l'autre, le bandeau « compte désactivé » reste affiché en naviguant (même si on se reconnecte avec un autre compte) ; il disparaît à l'actualisation. Cas rare, accepté tel quel.
+
+### Reste à faire
+
+- Panier (#104, branche `back-f5`) : `cartDatamapper` commité en local (`8d85525`, typage + `findCartByUserId` + `addCartItem`) ; reste contrôleur et routeur.
+
 ## 2026-11-04 (après-midi) — Inscription → connexion, fusion dans `fix/header`, Header rafraîchi
 
 ### Inscription (branche `feat/inscription`, poussée)
@@ -152,7 +249,7 @@ Branche `feat/userRouter`, commits `204fb66` (suppression du `.gitkeep` de `midd
 
 ### Travail réalisé
 
-- **Email unique** (commit `d54a024`) : `accountDatamapper.findByEmail(email)` réutilisé ; `if (existingAccount) throw new ConflictError(...)`. `findByEmail` renvoie un compte ou `undefined`, et `undefined` est *falsy* : le `if` suffit.
+- **Email unique** (commit `d54a024`) : `accountDatamapper.findByEmail(email)` réutilisé ; `if (existingAccount) throw new ConflictError(...)`. `findByEmail` renvoie un compte ou `undefined`, et `undefined` est _falsy_ : le `if` suffit.
 - **Hachage** (non commité) : `const hashedPassword = await argon2.hash(password);`, placé **après** la vérification de l'email. `password` remis dans la déstructuration du résultat de Zod.
 - **`.gitkeep`** : supprimés de `controllers/` et `middlewares/`, qui contiennent maintenant des fichiers ; gardé dans `services/`, encore vide.
 
@@ -204,7 +301,7 @@ Branche `feat/userRouter` (partie de `back-F3`), commits `d0a63cd` et `3c68601` 
 
 ### Difficultés
 
-- **API plantée au démarrage** : `TypeError: argument handler is required` (`userRouter.ts:5`). Les lignes `router.get("/users/me")` n'avaient pas de fonction ; Express refuse une route sans *handler*. Solution : ne garder que la route qui a un controller, les autres en commentaire.
+- **API plantée au démarrage** : `TypeError: argument handler is required` (`userRouter.ts:5`). Les lignes `router.get("/users/me")` n'avaient pas de fonction ; Express refuse une route sans _handler_. Solution : ne garder que la route qui a un controller, les autres en commentaire.
 - **`tsx` n'a pas relancé le serveur** après la correction : le processus avait planté au démarrage. Solution : `docker restart src-api-1`, puis lire `docker logs --tail 10 src-api-1`.
 - **Branche créée depuis `front-F3`** (12 commits du front en trop) : rattrapé avant le premier commit avec `git stash -u`, `git switch back-F3`, `git branch -D`, `git switch -c`, `git stash pop`. Vérification : `git log --oneline back-F3..HEAD` vide.
 - **Schéma défini mais jamais appliqué** : tout passait en `200`, même un mot de passe de 5 caractères. Il manquait `parseAsync(req.body)`.

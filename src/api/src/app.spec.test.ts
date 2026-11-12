@@ -34,7 +34,7 @@ describe("app", () => {
   });
 
   // Test d'un body JSON mal écrit (SyntaxError de express.json() dans errorMiddleware.ts)
-  describe("[POST] JSON mal formé", () => {
+  describe("[POST] malformed JSON", () => {
     // Doit répondre 400 et non 500 si le JSON du body est mal écrit
     it("should return 400 if JSON is malformed", async () => {
       // Arrange : un JSON invalide (valeur manquante après "password":)
