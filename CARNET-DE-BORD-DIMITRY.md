@@ -2,6 +2,40 @@
 
 Suivi de mon travail sur Je s’appelle Graine. Les décisions notées ici ont été prises avec l'équipe sur Discord ; le suivi de l'équipe est dans le [[Apothéose/apo-jesappellegraine/CARNET-DE-BORD-JE-S-APPELLE-GRAINE|carnet de bord Je s’appelle Graine]].
 
+## 2026-11-12 — Admin commandes (F8) : back #168 arrivé, page détail `/admin/commandes/[id]` et changement de statut (#169), fix CSS du panier
+
+### Back #168 (Fabrice)
+
+- PR #220 fusionnée dans `DEV`. Fusion de `DEV` dans `feat/front-f8-#169` sans conflit (commit `51e67a1`).
+- Types du back (`IAdminOrderSummary`, `IAdminOrder`) relus : identiques aux types front, champ pour champ.
+
+### Carte #169 — page détail `/admin/commandes/[id]`
+
+- Chargement et erreurs (commit `368a208`) : `[id]/page.tsx` (fragment, lien « retour à la liste ») + `AdminOrderDetail.tsx` (composant client, `GET admin/orders/:id`). 401 → `/connexion?next=…`, 403 → « Cette page est réservée à l’administration. », 404 ou 400 → « Cette commande est introuvable. ».
+- Affichage complet (commit `7fd6851`) : statut + « En retard », dates (`paidAt`, `plantedAt`, `cancelledAt` affichées seulement si non `null`, avec `&&`), client (email en `mailto:`), adresse de facturation, lignes (arbre, prix, quantité, lieu), total. Styles repris de `/commandes`.
+- Changement de statut (commit `fcfbf41`) : `NEXT_STATUSES: Record<OrderStatus, OrderStatus[]>` donne les boutons autorisés pour chaque statut (aucun pour « plantée » et « annulée ») ; `getActionLabel` (switch) donne leur texte. `handleStatusChange` : `window.confirm`, `PATCH admin/orders/:id/status`, boutons désactivés pendant l'envoi (`isUpdating`, remis à `false` dans `finally`), message en `role="status"`.
+- 409 (statut changé entre temps, ex. un autre admin est passé avant) : on relit la commande pour afficher le vrai statut et les bons boutons, avec « Changement refusé : la commande est maintenant « … ». ».
+
+### Vérifications navigateur (étape 6)
+
+- 409 à l'écran : deux onglets sur la même commande, A → « payée », puis B → « Annuler » sans recharger → B affiche « Changement refusé : la commande est maintenant « payée ». » et les boutons de « payée ». OK.
+- Mobile (360 px), clavier (Tab : retour, email, boutons ; focus visible ; confirmation à Entrée), liste `/admin/commandes` (filtre, liste vide) : OK.
+- Base locale : `npm run db:seed` efface les commandes (le seed n'en contient pas) → commandes de test recréées par l'API (compte client du seed).
+
+### Fix hors #169 : erreur 500 sur tout le front
+
+- Une règle `p {}` vide dans `panier/cartItems.module.css` (sélecteur de balise seul, refusé par les CSS modules) faisait planter la compilation : retirée (commit `418026b`). Loïc est au courant.
+
+### Avancement de #169 : environ 95 %
+
+- Fait : étapes 1 à 6.
+
+### Reste à faire
+
+- Étape 7 : push de `feat/front-f8-#169` + PR vers `DEV`.
+- Décider si les commits `66e3a4a` et `19bdbc9` (F5) restent sur la branche #169 ou partent dans une PR à part.
+- Proposer à Loïc `alt="Lieu de plantation"` sur l'icône de lieu (`TreeCard.tsx`, `arbres/[id]/page.tsx`), aujourd'hui `alt=""`.
+
 ## 2026-11-10 — Admin commandes (F8) : page liste `/admin/commandes`, filtre, « En retard », type du détail (#169), « Lieu de plantation » (#105, #107)
 
 ### Carte #107 — front de la commande
