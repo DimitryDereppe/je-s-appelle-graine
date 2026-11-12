@@ -51,7 +51,12 @@ export function CartItems() {
     return (
       <div className={styles.container}>
         <h1 className={styles.title}>Mon panier</h1>
-        <p className={styles.empty}>Votre panier est vide.</p>
+        <div className={styles.emptyState}>
+          <p className={styles.empty}>Votre panier est vide.</p>
+          <Link href="/arbres" className={styles.emptyLink}>
+            ← Découvrir nos arbres
+          </Link>
+        </div>
       </div>
     );
   }
