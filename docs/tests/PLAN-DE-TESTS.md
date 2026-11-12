@@ -417,7 +417,7 @@ Contrat d'API : carte #167. Tests de la carte #170, vérifiés sur `feat/f8-comm
 
 ### Tests d'intégration — routes admin des commandes
 
-Fichier : `src/api/src/controllers/adminOrderController.spec.test.ts`. Les 21 cas passent.
+Fichier : `src/api/src/controllers/adminOrderController.spec.test.ts`. Les 22 cas passent.
 
 | N°        | Cas                                            | Type        | Attendu                                                                                                | Obtenu |
 | --------- | ---------------------------------------------- | ----------- | ------------------------------------------------------------------------------------------------------ | ------ |
@@ -442,6 +442,7 @@ Fichier : `src/api/src/controllers/adminOrderController.spec.test.ts`. Les 21 ca
 | F8-INT-19 | Email au passage à plantée                     | Intégration | `200`, un email, objet « Commande n° X : vos arbres sont plantés »                                     | ✅     |
 | F8-INT-20 | Échec de l'envoi de l'email                    | Intégration | `200`, statut enregistré, échec noté dans les logs (`console.error`)                                   | ✅     |
 | F8-INT-21 | Email après la suppression du compte du client | Intégration | `200`, l'email part à l'adresse copiée dans la commande                                                | ✅     |
+| F8-INT-22 | Email après un changement d'email du client    | Intégration | `200`, l'email part à la nouvelle adresse du compte, la commande garde l'ancienne (`buyerEmail`)       | ✅     |
 
 ### Tests unitaires — contenu de l'email de changement de statut
 
