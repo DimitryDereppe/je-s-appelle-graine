@@ -2,6 +2,33 @@
 
 Suivi de mon travail sur Je s’appelle Graine. Les décisions notées ici ont été prises avec l'équipe ; le suivi de l'équipe est dans le [carnet de bord Je s’appelle Graine](CARNET-DE-BORD-JE-S-APPELLE-GRAINE.md), que je tiens à jour.
 
+## 2026-11-12 — F8 terminée, emails en production et correctifs avant le gel
+
+### Travail réalisé
+
+- **F8 :** PR #220 fusionnée après la relecture de Dimitry ; #168, #169, #170 et #8 en Terminé.
+- **Emails en production** (#222) : compte Gmail de l'équipe (validation en deux étapes, mot de passe d'application) ; envoi réel vérifié (confirmation, paiement reçu, plantation) ; `DEPLOIEMENT.md` et `.env.prod.example` à jour (PR #223).
+- **Correctifs et factorisation :**
+  - composant `OrderLines` partagé, `formatPaymentMethod`, bouton d'annulation en terracotta, boutons de `/compte` (PR #225, #226) ;
+  - champs en 16px, plus de zoom sur mobile (PR #227) ;
+  - compteur du panier relu après une commande, une connexion et une déconnexion (PR #230) ;
+  - emails de statut envoyés à l'email actuel du compte, test F8-INT-22.
+- **Suivi de l'équipe :** tour des commits, point avec Loïc sur les règles du panier, point avec Mahamadou sur le front de F9.
+
+### Ce que j'ai appris
+
+- **SMTP** est le protocole d'envoi des emails. Nodemailer fabrique l'email (au format MIME) et le remet au serveur SMTP de Gmail, qui le livre.
+- Port 587 avec **STARTTLS** : la connexion commence en clair puis passe en chiffré ; le port 465 est chiffré dès le début.
+- Un **mot de passe d'application** fonctionne comme une clé API : donné à un programme, révocable, jamais dans le dépôt.
+- Un **Context React** partage une donnée entre composants (le compteur du panier) : un Provider dans le layout, un hook pour la lire, et `refresh()` à appeler après chaque action qui change le panier.
+- `LEFT JOIN` garde la ligne de gauche même sans correspondance (colonnes à `NULL`) ; `COALESCE` prend la première valeur non `NULL`.
+- Safari zoome sur un champ dont le texte fait moins de 16px.
+
+### À poursuivre
+
+- Relire le front de F9 ; fusionner `DEV` dans `main` après le gel.
+- Installer `helmet` et les solutions pour la photo d'un arbre à l'équipe.
+
 ## 2026-11-11 — F8 : back des commandes pour l'admin, tests et `helmet`
 
 ### Travail réalisé
