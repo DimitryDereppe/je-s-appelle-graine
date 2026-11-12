@@ -106,7 +106,8 @@
   background-color: #ffffff;
   color: var(--color-deep-green);
   font: inherit;
-  font-size: 14px;
+  /* 16px minimum : en dessous, Safari sur iPhone zoome sur le champ au focus */
+  font-size: 16px;
   resize: vertical;
 }
 
