@@ -33,6 +33,15 @@ export function CartItems() {
       setError("Impossible de retirer cet article.");
     }
   }
+  async function handleClearCart() {
+    try {
+      const response = await clientApi(`cart/items/`, "DELETE");
+      if (!response.ok) throw new Error("La suppression a échoué.");
+      await refresh();
+    } catch {
+      setError("Impossible de retirer cet article.");
+    }
+  }
 
   if (loading) {
     return <p className={styles.loading}>Chargement du panier…</p>;
@@ -55,8 +64,10 @@ export function CartItems() {
 
   return (
     <div className={styles.container}>
-      <h1 className={styles.title}>Mon panier</h1>
-      <p className={styles.subtitle}>Votre forêt de demain commence ici.</p>
+      <div className={styles.titles}>
+        <h1 className={styles.title}>Mon panier</h1>
+        <p className={styles.subtitle}>Votre forêt de demain commence ici.</p>
+      </div>
 
       {error && (
         <p className={styles.error} role="alert">
@@ -147,6 +158,20 @@ export function CartItems() {
           Passer au paiement
         </Link>
       </div>
+      <div className={styles.clearDiv}>
+        <button
+          className={styles.clearButton}
+          onClick={() => handleClearCart()}
+        >
+          Vider le panier
+        </button>
+      </div>
+      <Link className={styles.backToCatalog} href="/arbres" passHref>
+        <button className={styles.catalogButton} type="button">
+          ← Continuer de découvrir nos arbres{" "}
+          <span className={styles.arrow}></span>
+        </button>
+      </Link>
     </div>
   );
 }
