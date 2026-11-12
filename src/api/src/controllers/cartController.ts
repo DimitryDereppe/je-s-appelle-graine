@@ -2,6 +2,8 @@ import type { Response, NextFunction } from "express";
 import type { IAuthenticatedRequest } from "../@types/index.d.ts";
 import { getAuthenticatedUser } from "./utils.ts";
 import { cartDatamapper } from "../datamappers/cartDatamapper.ts";
+import { treeDatamapper } from "../datamappers/treeDatamapper.ts";
+
 import { z } from "zod";
 
 // --------------------------------
@@ -11,7 +13,7 @@ import { z } from "zod";
 
 const addCartItemSchema = z.object({
   treeId: z.coerce.number().int().positive(),
-  quantity: z.coerce.number().int().positive(),
+  quantity: z.coerce.number().int().positive().default(1),
 });
 
 const updateCartItemSchema = z.object({
@@ -56,12 +58,25 @@ export const getCart = asyncHandler(
 );
 
 const MAX_QUANTITY_PER_TREE = 100;
-
 export const addCartItem = asyncHandler(
   async (req: IAuthenticatedRequest, res: Response) => {
     const user = await getAuthenticatedUser(req);
 
     const { treeId, quantity } = addCartItemSchema.parse(req.body);
+
+    const tree = await treeDatamapper.findById(treeId);
+    if (!tree) {
+      res.status(404).json({ error: "Arbre introuvable" });
+      return;
+    }
+
+    if (
+      tree.availabilityName === "en rupture de stock" ||
+      tree.availabilityName === "retiré"
+    ) {
+      res.status(409).json({ error: "Cet arbre n'est pas disponible." });
+      return;
+    }
 
     const existingItem = await cartDatamapper.findCartItem(user.id, treeId);
     const currentQuantity = existingItem ? existingItem.quantity : 0;
@@ -106,7 +121,7 @@ export const updateCartItem = asyncHandler(
     );
 
     if (!updatedCartItem) {
-      res.status(404).json({ error: "Ligne du panier introuvable" });
+      res.status(404).json({ error: "Ligne introuvable" });
       return;
     }
 

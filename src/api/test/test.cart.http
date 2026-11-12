@@ -35,6 +35,7 @@ Cookie: {{cookie}}
 
 {
   "treeId": 1,
+  "quantity":1
 }
 
 ### --------------------------------
@@ -49,6 +50,54 @@ Cookie: {{cookie}}
   "quantity": 3
 }
 
+### --------------------------------
+### 3a. Ajouter un article SANS quantity (défaut = 1)
+### attendu : 201 + item créé avec quantity: 1
+POST {{host}}/api/cart/items
+Content-Type: application/json
+Cookie: {{cookie}}
+
+{
+  "treeId": 1
+}
+
+### --------------------------------
+### 3b. Ajouter un article avec un treeId inexistant
+### attendu : 404 "Arbre introuvable"
+POST {{host}}/api/cart/items
+Content-Type: application/json
+Cookie: {{cookie}}
+
+{
+  "treeId": 99999,
+  "quantity": 1
+}
+
+### --------------------------------
+### 3c. Ajouter un article "en rupture de stock"
+### attendu : 409 "Cet arbre n'est pas disponible."
+### (adapte le treeId à un arbre dont availabilityName = "en rupture de stock")
+POST {{host}}/api/cart/items
+Content-Type: application/json
+Cookie: {{cookie}}
+
+{
+  "treeId": 6,
+  "quantity": 1
+}
+
+### --------------------------------
+### 3d. Ajouter un article "retiré"
+### attendu : 409 "Cet arbre n'est pas disponible."
+### (adapte le treeId à un arbre dont availabilityName = "retiré")
+POST {{host}}/api/cart/items
+Content-Type: application/json
+Cookie: {{cookie}}
+
+{
+  "treeId": 7,
+  "quantity": 1
+}   
 ### --------------------------------
 ### 4. Modifier la quantité d'un article du panier (ex: treeId 1, nouvelle quantité 5)
 ### attendu : 200 + l'item mis à jour
