@@ -165,7 +165,7 @@ export default function TreeList() {
       )}
 
       {trees.length === 0 ? (
-        <p>Aucun arbre dans le catalogue.</p>
+        <p className={styles.emptyState}>Aucun arbre dans le catalogue.</p>
       ) : (
         <ul className={styles.treeList}>
           {trees.map((tree) => (
