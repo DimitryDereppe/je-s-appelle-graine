@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { AdminOrderDetail } from "./AdminOrderDetail";
+import styles from "../page.module.css";
 
 export const metadata: Metadata = {
   title: "Détail d’une commande — Administration",
@@ -22,7 +23,7 @@ export default async function AdminOrderPage({ params }: AdminOrderPageProps) {
 
   return (
     <>
-      <p>
+      <p className={styles.backLink}>
         <Link href="/admin/commandes">← Toutes les commandes</Link>
       </p>
       <AdminOrderDetail id={id} />

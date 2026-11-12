@@ -5,6 +5,11 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import type { IAdminOrderDetail } from "../../../../@types";
 import { clientApi } from "../../../utils/clientApi";
+import {
+  formatDate,
+  formatEuros,
+  formatOrderStatus,
+} from "../../../utils/format";
 import styles from "../page.module.css";
 
 interface AdminOrderDetailProps {
@@ -82,6 +87,111 @@ export function AdminOrderDetail({ id }: AdminOrderDetailProps) {
     );
   }
 
-  // détail complet : étape 5b (acheteur, adresse, lignes, dates)
-  return <h1 className={styles.title}>Commande n° {order.id}</h1>;
+  return (
+    <>
+      <h1 className={styles.title}>Commande n° {order.id}</h1>
+
+      {/* dl : une liste « intitulé → valeur », lue comme telle par les lecteurs d'écran */}
+      <dl className={styles.summary}>
+        <dt>Statut</dt>
+        <dd>
+          {formatOrderStatus(order.status)}
+          {/* écrit en toutes lettres, comme dans la liste */}
+          {order.isLate && <span className={styles.late}> — En retard</span>}
+        </dd>
+        <dt>Commandée le</dt>
+        <dd>{formatDate(order.purchaseDate)}</dd>
+        {/* la date limite ne compte que tant que la commande n'est pas payée */}
+        {order.status === "en attente" && (
+          <>
+            <dt>À payer avant le</dt>
+            <dd>{formatDate(order.dueDate)}</dd>
+          </>
+        )}
+        <dt>Paiement</dt>
+        <dd>{order.paymentMethod}</dd>
+        {/* chaque date de changement de statut vaut null tant qu'il n'a pas eu lieu : && n'affiche rien */}
+        {order.paidAt && (
+          <>
+            <dt>Payée le</dt>
+            <dd>{formatDate(order.paidAt)}</dd>
+          </>
+        )}
+        {order.plantedAt && (
+          <>
+            <dt>Plantée le</dt>
+            <dd>{formatDate(order.plantedAt)}</dd>
+          </>
+        )}
+        {order.cancelledAt && (
+          <>
+            <dt>Annulée le</dt>
+            <dd>{formatDate(order.cancelledAt)}</dd>
+          </>
+        )}
+      </dl>
+
+      <h2 className={styles.sectionTitle}>Client</h2>
+      <dl className={styles.summary}>
+        <dt>Nom</dt>
+        <dd>
+          {order.buyerFirstname} {order.buyerLastname}
+        </dd>
+        <dt>Email</dt>
+        {/* mailto: un clic ouvre la messagerie de l'admin, adresse déjà remplie */}
+        <dd>
+          <a href={`mailto:${order.buyerEmail}`}>{order.buyerEmail}</a>
+        </dd>
+        {/* organisation et adresse peuvent être null (non renseignées) */}
+        {order.buyerOrganization && (
+          <>
+            <dt>Organisation</dt>
+            <dd>{order.buyerOrganization}</dd>
+          </>
+        )}
+        {order.billingAddress && (
+          <>
+            <dt>Adresse de facturation</dt>
+            <dd>{order.billingAddress}</dd>
+          </>
+        )}
+      </dl>
+
+      <h2 className={styles.sectionTitle}>Arbres commandés</h2>
+      <ul className={styles.list}>
+        {order.lines.map((line) => (
+          // key : pas d'id dans une ligne de commande ; un arbre n'apparaît qu'une fois par commande
+          <li
+            key={`${line.treeName}-${line.unitPrice}`}
+            className={styles.line}
+          >
+            <span className={styles.reference}>{line.treeName}</span>
+            {/* total de la ligne, calculé ici : l'API ne le renvoie pas */}
+            <span className={styles.amount}>
+              {formatEuros(line.unitPrice * line.quantity)}
+            </span>
+            {/* le lieu peut être null : && ne l'affiche que s'il est renseigné */}
+            {line.plantingLocation && (
+              <span className={styles.location}>
+                Lieu de plantation :
+                {/* "Forêt … — Landiras (33)" : une ligne pour le lieu, une pour la commune */}
+                {line.plantingLocation.split(" — ").map((part) => (
+                  <span key={part}>{part}</span>
+                ))}
+              </span>
+            )}
+            <span className={styles.quantity}>
+              {line.quantity} × {formatEuros(line.unitPrice)}
+            </span>
+          </li>
+        ))}
+      </ul>
+
+      <p className={styles.total}>
+        Total TTC : <strong>{formatEuros(order.totalAmount)}</strong>
+      </p>
+
+      {/* boutons de changement de statut : étape 5c */}
+    </>
+  );
 }
