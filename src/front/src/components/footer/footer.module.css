@@ -1,5 +1,7 @@
 .footer {
   width: 100%;
+  min-width: 340px;
+
   color: var(--color-deep-green, #18352e);
   background-color: var(--color-ivory, #f8f6f0);
 }

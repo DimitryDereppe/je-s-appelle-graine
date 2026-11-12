@@ -84,7 +84,7 @@ export function CartSummary() {
               </p>
               {item.plantingLocation && (
                 <p className={styles.detail}>
-                  Planté à : {item.plantingLocation}
+                  Lieu de plantation : {item.plantingLocation}
                 </p>
               )}
               {item.availabilityName !== "disponible" && (

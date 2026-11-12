@@ -178,6 +178,31 @@ export interface IOrder {
   lines: IOrderLine[];
 }
 
+// une commande dans la liste admin (GET /api/admin/orders), contrat carte #167
+export interface IAdminOrderSummary {
+  id: number;
+  purchaseDate: string;
+  status: OrderStatus;
+  totalAmount: number;
+  buyerFirstname: string;
+  buyerLastname: string;
+  buyerEmail: string;
+  isLate: boolean; // en attente depuis plus de 10 jours
+}
+
+// une commande en détail (GET et PATCH /api/admin/orders/:id)
+// extends : reprend les champs de la liste, et en ajoute
+export interface IAdminOrder extends IAdminOrderSummary {
+  dueDate: string; // "AAAA-MM-JJ"
+  paymentMethod: PaymentMethod;
+  buyerOrganization: string | null;
+  billingAddress: string | null;
+  paidAt: string | null; // null tant que la commande n'est pas payée
+  plantedAt: string | null;
+  cancelledAt: string | null;
+  lines: IOrderLine[];
+}
+
 // Catégorie d'arbre (filtre du catalogue)
 export interface ICategory {
   id: number;

@@ -110,6 +110,30 @@ export interface IOrderDetail extends IOrderWithInstructions {
   status: OrderStatus;
 }
 
+//---------------------------------
+// Gestion des commandes (F8, contrat carte #167)
+//---------------------------------
+export interface IAdminOrderSummary extends IOrderSummary {
+  buyerFirstname: string;
+  buyerLastname: string;
+  buyerEmail: string;
+  isLate: boolean; // true si la commande est « en attente » depuis plus de 10 jours (calculé par l'API)
+}
+
+// une commande en détail pour l'admin (GET /api/admin/orders/:id et réponse du PATCH du statut)
+// extends : les champs de la liste, plus ceux du détail
+export interface IAdminOrderDetail extends IAdminOrderSummary {
+  dueDate: string; // "AAAA-MM-JJ" : date de commande + 10 jours
+  paymentMethod: PaymentMethod;
+  buyerOrganization: string | null; // null si non renseignée
+  billingAddress: string | null; // null si non renseignée
+  // date et heure (ISO) de chaque changement de statut, null tant qu'il n'a pas eu lieu
+  paidAt: string | null;
+  plantedAt: string | null;
+  cancelledAt: string | null;
+  lines: IOrderLine[]; // même format que GET /api/orders/:id
+}
+
 // --------------------------------
 // Compte du client (F6, contrat carte #159)
 // --------------------------------
