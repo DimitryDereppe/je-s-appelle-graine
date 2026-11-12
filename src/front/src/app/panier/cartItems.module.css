@@ -407,7 +407,7 @@
     border-left: none;
     border-top: var(--color-text);
     border-radius: 0;
-    padding-bottom: 80px;
+    padding-bottom: 10px;
     min-height: 0;
     height: 120px;
     margin-top: 10px;
@@ -418,7 +418,7 @@
       "itemImage treeName . ."
       "itemImage location qtyControl lineTotal"
       "itemImage unitPrice . ."
-      "itemImage deleteDiv . .";
+      "itemImage  . . deleteDiv";
   }
 
   .itemInfo {
@@ -456,16 +456,14 @@
     margin: 0;
   }
 
-  .deleteDiv {
-    grid-area: deleteDiv;
-  }
-
   .deleteBtn {
     display: none;
   }
 
   .deleteString {
     display: inline;
+    text-align: end;
+    grid-area: deleteDiv;
   }
 
   .summary {
