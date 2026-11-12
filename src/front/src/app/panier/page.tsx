@@ -1,9 +1,8 @@
 import { CartItems } from "./CartItems";
-
+import styles from "./cartItems.module.css";
 export default function CartPage() {
   return (
-    <main>
-      <h1>Mon panier</h1>
+    <main className={styles.basketContainer}>
       <CartItems />
     </main>
   );

@@ -1,5 +1,7 @@
 .commitments {
   width: 100%;
+  min-width: 340px;
+
   color: var(--color-deep-green, #18352e);
   background-color: var(--color-sage, #e3e9df);
 }

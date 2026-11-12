@@ -30,7 +30,10 @@ export function AddToCartButton({
 
   // ─── Handler : POST /api/cart/items puis refresh du compteur ───────────────
   async function handleAddToCart() {
-    if (isOutOfStock) return;
+    if (isOutOfStock) {
+      setCartMessage("Article indisponible en ce moment");
+      return;
+    }
 
     setIsAdding(true);
     setCartMessage("");
@@ -72,7 +75,7 @@ export function AddToCartButton({
         className={iconOn ? styles.iconOn : styles.basketButton}
         type="button"
         aria-label={`Ajouter ${treeName} au panier`}
-        disabled={isAdding || isOutOfStock}
+        disabled={isAdding}
         onClick={handleAddToCart}
       >
         {iconOn ? (
