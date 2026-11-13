@@ -1,4 +1,14 @@
-/* ===== Espace admin — commun aux pages de F7, F8 et F9 (dans un sous-dossier : import de "../page.module.css") ===== */
+:root {
+  /* Couleurs */
+  --color-deep-green: #18352e;
+  --color-ivory: #f8f6f0;
+  --color-green: #2c5e4a;
+  --color-white: #fff;
+  --color-muted: #53615b;
+  --color-terracotta: #b6532c;
+}
+
+/* ===== Espace admin — commun aux pages de F7, F8 et F9 ===== */
 .main {
   padding: 16px 16px 32px;
   background-color: var(--color-ivory);
@@ -48,7 +58,7 @@
   border: 2px solid var(--color-green);
   border-radius: 8px;
   background-color: var(--color-green);
-  color: white;
+  color: var(--color-white);
   font-weight: 600;
   text-decoration: none;
 }
@@ -61,7 +71,7 @@
   outline-offset: 2px;
 }
 
-/* rubrique ouverte : vert foncé et soulignée, pas seulement une couleur */
+/* rubrique ouverte : vert foncé et soulignée */
 .menuLinkActive {
   border-color: var(--color-deep-green);
   background-color: var(--color-deep-green);

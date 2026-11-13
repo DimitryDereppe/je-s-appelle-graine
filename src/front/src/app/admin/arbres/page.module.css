@@ -1,3 +1,13 @@
+:root {
+  /* Couleurs */
+  --color-deep-green: #18352e;
+  --color-green: #2c5e4a;
+  --color-white: #fff;
+  --color-border: #e4e1d9;
+  --color-muted: #53615b;
+  --color-terracotta: #b6532c;
+}
+
 /* Espace les éléments de la page (bouton, messages et liste). */
 .listSection {
   display: grid;
@@ -40,7 +50,7 @@
 .addLink,
 .actionLink {
   background: var(--color-green);
-  color: white;
+  color: var(--color-white);
 }
 
 /* Le bouton de suppression est rouge pour signaler son action. */
@@ -82,7 +92,7 @@
   padding: 20px;
   border: 1px solid var(--color-border);
   border-radius: 12px;
-  background: white;
+  background: var(--color-white);
 }
 
 /* Espace le nom de l'arbre de ses informations. */
