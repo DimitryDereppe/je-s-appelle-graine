@@ -7,7 +7,6 @@
   list-style: none;
 }
 
-/* une ligne de commande : même carte que la liste des commandes, sans lien */
 .line {
   display: grid;
   grid-template-columns: 1fr auto;
@@ -15,7 +14,7 @@
   padding: 12px 16px;
   border: 1px solid var(--color-border);
   border-radius: 8px;
-  background-color: white;
+  background-color: var(--color-white);
   font-size: 14px;
 }
 
@@ -28,13 +27,11 @@
   text-align: right;
 }
 
-/* lieu de plantation : intitulé, lieu et commune les uns sous les autres */
 .location {
   display: flex;
   flex-direction: column;
 }
 
-/* quantité × prix : toujours dans la colonne de droite, même sans lieu de plantation */
 .quantity {
   grid-column: 2;
   text-align: right;
