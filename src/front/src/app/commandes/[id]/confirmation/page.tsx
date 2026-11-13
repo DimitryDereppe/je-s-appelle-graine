@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { OrderConfirmation } from "./OrderConfirmation";
 import styles from "./page.module.css";
@@ -9,6 +10,12 @@ interface ConfirmationPageProps {
 
 // Page serveur : elle récupère l'id dans l'URL, puis laisse un composant client
 // charger la commande (le navigateur envoie le cookie de connexion, le serveur Next non)
+export const metadata: Metadata = {
+  title: "Commande confirmée",
+  // page privée : les moteurs de recherche ne l'indexent pas
+  robots: { index: false },
+};
+
 export default async function ConfirmationPage({
   params,
 }: ConfirmationPageProps) {

@@ -5,7 +5,7 @@ import commonStyles from "@/components/infoPage/infoPage.module.css";
 import styles from "./page.module.css";
 
 export const metadata: Metadata = {
-  title: "Qui sommes-nous — Je s’appelle Graine",
+  title: "Qui sommes-nous",
   description:
     "La mission de Je s’appelle Graine : contribuer à la reforestation en offrant un arbre à une forêt française.",
 };

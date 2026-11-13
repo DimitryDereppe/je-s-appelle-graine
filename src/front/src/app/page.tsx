@@ -10,9 +10,9 @@ import type { Metadata } from "next";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
-  title: "Je s'appelle Graine",
+  title: "Je s’appelle Graine",
   description:
-    "Aidez-nous à réparer nos forêts. Les arbres que vous achetez sont plantés dans le lieu que vous avez choisis",
+    "Aidez-nous à réparer nos forêts. Les arbres que vous achetez sont plantés dans le lieu que vous avez choisi",
 };
 
 async function FeaturedTrees() {
@@ -116,6 +116,8 @@ export default async function Home() {
             className={styles.heroImg}
             fill
             sizes="(min-width: 600px) 45vw, 100vw"
+            // image principale de l'accueil : chargée tout de suite, pas en différé (LCP)
+            preload
           />
         </div>
       </section>

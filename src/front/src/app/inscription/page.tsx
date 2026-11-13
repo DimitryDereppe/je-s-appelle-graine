@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 // Pas de "use client" ici : la page reste un composant serveur pour pouvoir
 // lire "searchParams" (comme connexion/page.tsx). Le formulaire, lui,
 // est déjà un composant client (RegisterForm.tsx).
@@ -9,6 +10,12 @@ interface RegisterPageProps {
   // Paramètres de l'URL (?next=...), fournis par Next.js sous forme de promesse
   searchParams: Promise<{ next?: string }>;
 }
+
+export const metadata: Metadata = {
+  title: "Créer un compte",
+  description:
+    "Créez votre compte pour commander des arbres et suivre leur plantation.",
+};
 
 export default async function RegisterPage({
   searchParams,

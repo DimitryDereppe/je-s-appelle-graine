@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { LoginForm } from "./LoginForm";
@@ -6,6 +7,12 @@ import styles from "./page.module.css";
 interface LoginPageProps {
   searchParams: Promise<{ next?: string }>;
 }
+
+export const metadata: Metadata = {
+  title: "Connexion",
+  description:
+    "Connectez-vous pour commander vos arbres et suivre vos commandes.",
+};
 
 export default async function LoginPage({ searchParams }: LoginPageProps) {
   const { next } = await searchParams;
