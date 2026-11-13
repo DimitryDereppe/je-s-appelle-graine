@@ -10,6 +10,54 @@ Ce document liste, feature par feature, les cas à vérifier, leur type et le r�
 - **Statuts** : ✅ conforme · ❌ non conforme (un problème à corriger, avec sa carte) · ⏳ pas encore testable.
 - Pour ajouter une feature : copier un tableau, garder les mêmes colonnes, numéroter les cas `F<n>-<type>-<numéro>` (`UNI`, `INT`, `MAN`, `AUD`).
 
+## Synthèse (13/11/2026, code de `main`)
+
+`npm test` dans `src/api/` : **230 tests d'intégration et 6 tests unitaires, tous passent** (`node:test` compte à part chaque cas généré par une boucle, par exemple chaque champ trop long : d'où un total plus grand que la somme ci-dessous).
+
+| Fichier de tests                                | Feature                     | Cas écrits |
+| ----------------------------------------------- | --------------------------- | ---------- |
+| `app.spec.test.ts`                              | API (santé, route inconnue) | 3          |
+| `treeController.spec.test.ts`                   | F1 Accueil, F2 Catalogue    | 33         |
+| `authController.spec.test.ts`                   | F3 Connexion                | 11         |
+| `userController.spec.test.ts`                   | F3 Inscription, F6 Compte   | 42         |
+| `cartController.spec.test.ts`                   | F4 Panier                   | 34         |
+| `ordersController.spec.test.ts`                 | F5 Commande, F6 Commandes   | 34         |
+| `adminTreeController.spec.test.ts`              | F7 Admin catalogue          | 14         |
+| `adminOrderController.spec.test.ts`             | F8 Admin commandes          | 22         |
+| `adminUserController.spec.test.ts`              | F9 Admin comptes            | 23         |
+| `isConnectedMiddleware.unit.test.ts` (unitaire) | F3 Droits                   | 3          |
+| `emailService.unit.test.ts` (unitaire)          | F8 Emails de statut         | 3          |
+
+### Audit Lighthouse final — site en ligne
+
+Lighthouse 12, le 13/11/2026, sur la version de `main` déployée (`https://fsenycouty-server.eddi.cloud`), en mode mobile. Pour l'accueil et la fiche arbre : résultat de 3 passages.
+
+| N°    | Page                | Performance | Accessibilité | Bonnes pratiques | SEO | Obtenu |
+| ----- | ------------------- | ----------- | ------------- | ---------------- | --- | ------ |
+| AUD-1 | `/`                 | 94          | 100           | 93               | 100 | ✅     |
+| AUD-2 | `/arbres`           | 81          | 100           | 96               | 100 | ✅     |
+| AUD-3 | `/arbres/1`         | 80          | 100           | 93               | 100 | ✅     |
+| AUD-4 | `/connexion`        | 88          | 100           | 93               | 100 | ✅     |
+| AUD-5 | `/inscription`      | 90          | 100           | 93               | 100 | ✅     |
+| AUD-6 | `/qui-sommes-nous`  | 93          | 100           | 93               | 100 | ✅     |
+| AUD-7 | `/mentions-legales` | 89          | 100           | 93               | 100 | ✅     |
+
+- **Objectif de la carte #45 atteint :** accessibilité et SEO à 100 sur toutes les pages publiques (titres, descriptions, `robots.txt`, `sitemap.xml`, `noindex` sur les pages privées).
+- **Bonnes pratiques à 93 :** deux réponses `401` dans la console pour un visiteur non connecté (l'en-tête demande `/api/users/me` et `/api/cart`) : comportement voulu.
+- **Performance :** la photo principale de `/arbres` et de la fiche arbre est chargée en différé, et les photos du catalogue sont plus grandes que leur cadre (pistes d'amélioration du README).
+
+### Vérifications dans un navigateur (13/11/2026)
+
+Chromium piloté par Playwright, ordinateur (1400 × 900) et mobile (390 × 844).
+
+| N°    | Cas                                                                                              | Attendu                                                                                                                                         | Obtenu |
+| ----- | ------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| NAV-1 | Connexion par le formulaire, puis accueil et catalogue                                           | le pied de page ne recouvre pas le contenu, sans rafraîchir (PR #256)                                                                           | ✅     |
+| NAV-2 | 11 pages (accueil, catalogue, fiche, panier, compte, commandes, pages légales, inscription, 404) | aucun contenu sous le pied de page, pied de page en bas des pages courtes, pas de défilement horizontal                                         | ✅     |
+| NAV-3 | Accueil → panier → accueil → catalogue                                                           | mêmes couleurs sur toutes les pages (variables dans `globals.css`, PR #256)                                                                     | ✅     |
+| NAV-4 | Titres des onglets                                                                               | « Nos arbres \| Je s’appelle Graine » ; admin : « Commandes \| Administration », « Catalogue \| Administration », « Comptes \| Administration » | ✅     |
+| NAV-5 | En-têtes de sécurité (`helmet`)                                                                  | `Content-Security-Policy`, `X-Frame-Options`, HSTS ; pas de `X-Powered-By`                                                                      | ✅     |
+
 ## F1 · Accueil (US01)
 
 Critères d'acceptation : voir l'issue #1. Première vérification le 30/10/2026 sur le VPS ; revérifié le 10/11/2026 en local, sur le code de `DEV`.
@@ -18,15 +66,14 @@ Critères d'acceptation : voir l'issue #1. Première vérification le 30/10/2026
 
 Fichier : `src/api/src/controllers/treeController.spec.test.ts` (branche `back`, PR #78). Les 6 cas passent.
 
-| N°       | Cas                                             | Type        | Attendu                                                                                                | Obtenu      |
-| -------- | ----------------------------------------------- | ----------- | ------------------------------------------------------------------------------------------------------ | ----------- |
-| F1-INT-1 | 4 arbres disponibles en base                    | Intégration | `200`, 3 arbres seulement                                                                              | ✅          |
-| F1-INT-2 | 2 disponibles, 1 en rupture, 1 retiré           | Intégration | `200`, seulement les 2 disponibles                                                                     | ✅          |
-| F1-INT-3 | 3 arbres disponibles                            | Intégration | `200`, triés par `id` décroissant                                                                      | ✅          |
-| F1-INT-4 | 4 arbres disponibles                            | Intégration | les 3 plus récents, le plus ancien est exclu                                                           | ✅          |
-| F1-INT-5 | Aucun arbre en base                             | Intégration | `200` et `[]`                                                                                          | ✅          |
-| F1-INT-6 | Aucun arbre disponible (1 en rupture, 1 retiré) | Intégration | `200` et `[]`                                                                                          | ✅          |
-| F1-INT-7 | Format d'une vignette                           | Intégration | `price` en nombre ; `photoUrl`, `categoryName`, `plantingLocation` en camelCase ; pas de `description` | ⏳ à écrire |
+| N°       | Cas                                             | Type        | Attendu                                      | Obtenu |
+| -------- | ----------------------------------------------- | ----------- | -------------------------------------------- | ------ |
+| F1-INT-1 | 4 arbres disponibles en base                    | Intégration | `200`, 3 arbres seulement                    | ✅     |
+| F1-INT-2 | 2 disponibles, 1 en rupture, 1 retiré           | Intégration | `200`, seulement les 2 disponibles           | ✅     |
+| F1-INT-3 | 3 arbres disponibles                            | Intégration | `200`, triés par `id` décroissant            | ✅     |
+| F1-INT-4 | 4 arbres disponibles                            | Intégration | les 3 plus récents, le plus ancien est exclu | ✅     |
+| F1-INT-5 | Aucun arbre en base                             | Intégration | `200` et `[]`                                | ✅     |
+| F1-INT-6 | Aucun arbre disponible (1 en rupture, 1 retiré) | Intégration | `200` et `[]`                                | ✅     |
 
 Tests communs à toute l'API (`src/api/src/app.spec.test.ts`) : `GET /api/health` en `200`, route inconnue en `404` avec `{ error: "Ressource introuvable", status: 404 }`. Les 2 cas passent.
 
@@ -46,7 +93,7 @@ Revérifiés le 10/11/2026 : page servie en local, Chromium (mobile 412 px et bu
 | F1-MAN-8  | Affichage mobile                           | Manuel | lisible, pas de défilement horizontal                 | ✅ largeur de page = largeur d'écran (412 px)                                                                            |
 | F1-MAN-9  | Navigation au clavier (touche Tab)         | Manuel | tous les liens et boutons atteignables, focus visible | ✅ le 30/10 : ordre logique, contour de 3 px                                                                             |
 | F1-MAN-10 | Langue de la page                          | Manuel | `<html lang="fr">`                                    | ✅ `lang="fr"`                                                                                                           |
-| F1-MAN-11 | Liens de l'en-tête et du pied de page      | Manuel | pas d'erreur 404                                      | ⏳ seul `/panier` répond encore 404 (page de la F4, carte #101)                                                          |
+| F1-MAN-11 | Liens de l'en-tête et du pied de page      | Manuel | pas d'erreur 404                                      | ✅ le 13/11 : `/panier` existe (F4), tous les liens répondent                                                            |
 
 ### Audit Lighthouse
 
@@ -63,12 +110,11 @@ Corrigé depuis le 30/10 : titre et description de la page, `lang="fr"`, ordre e
 
 Reste à corriger :
 
-- **Accessibilité** — le lien du logo dans le pied de page a toujours `aria-label="Je m’appelle Graine, accueil"` (faute : « m’appelle ») : le nom lu par un lecteur d'écran ne correspond pas au texte affiché (`Footer.tsx`, ligne 21).
+- ✅ **Accessibilité** — `aria-label` du logo du pied de page : « Je m’appelle » corrigé en « Je s’appelle » (PR #242).
 - **Accessibilité** — la grande image d'accueil a `alt="Pin maritime"`, alors qu'elle montre des mains qui plantent une jeune pousse : `alt=""` si elle est décorative, ou un texte qui la décrit.
 - **HTML** — `<Link>` contient un `<button>` (« Voir nos arbres », et les liens vers le catalogue des messages d'erreur et de liste vide) : mettre la classe du bouton directement sur le `<Link>`.
-- **Bonnes pratiques** — l'icône « Des arbres sélectionnés » (`arbres-selectionnes.png`) est toujours déformée ; `/favicon.ico` répond 404 (erreur dans la console sur toutes les pages).
-- **Textes** — description de la page : « que vous avez choisis » → « choisi » ; messages : « Chercher votre bonheur » → « Cherchez votre bonheur ».
-- **Test** — F1-INT-7 (format d'une vignette) reste à écrire.
+- **Bonnes pratiques** — l'icône « Des arbres sélectionnés » (`arbres-selectionnes.png`) est toujours déformée. ✅ Favicon déclaré dans les metadata (PR #242) : plus de 404 dans la console.
+- **Textes** — ✅ description de la page : « choisis » → « choisi » (PR #242) ; messages : « Chercher votre bonheur » → « Cherchez votre bonheur ».
 
 ## F3 · Authentification (US06, US07, US20, US21)
 
@@ -125,13 +171,13 @@ Fichier : `src/api/src/controllers/userController.spec.test.ts`. Les 4 cas passe
 
 ### Tests d'intégration — droits
 
-| N°        | Cas                                           | Type        | Attendu                                                                 | Obtenu |
-| --------- | --------------------------------------------- | ----------- | ----------------------------------------------------------------------- | ------ |
-| F3-INT-18 | Route `/api/admin/...` sans être connecté     | Intégration | `401`, « Vous devez être connecté. »                                    | ✅     |
-| F3-INT-19 | Route `/api/admin/...` avec un client         | Intégration | `403`, « Accès réservé à l'administrateur. »                            | ✅     |
-| F3-INT-20 | Route `/api/admin/...` avec un administrateur | Intégration | passe `isConnected` et `checkRoles` (aucune route admin encore : `404`) | ✅     |
+| N°        | Cas                                           | Type        | Attendu                                                                                 | Obtenu |
+| --------- | --------------------------------------------- | ----------- | --------------------------------------------------------------------------------------- | ------ |
+| F3-INT-18 | Route `/api/admin/...` sans être connecté     | Intégration | `401`, « Vous devez être connecté. »                                                    | ✅     |
+| F3-INT-19 | Route `/api/admin/...` avec un client         | Intégration | `403`, « Accès réservé à l'administrateur. »                                            | ✅     |
+| F3-INT-20 | Route `/api/admin/...` avec un administrateur | Intégration | passe `isConnected` et `checkRoles` (test écrit avant les routes admin de F7, F8 et F9) | ✅     |
 
-Fichier : `src/api/src/controllers/userController.spec.test.ts`. Le routeur `adminRouter.ts` est vide en attendant F7, F8 et F9 : le test « administrateur » vérifie seulement que les deux middlewares le laissent passer.
+Fichier : `src/api/src/controllers/userController.spec.test.ts`. Écrit quand `adminRouter.ts` était encore vide : le test « administrateur » vérifie que les deux middlewares le laissent passer. Les droits de chaque route admin sont testés dans F7, F8 et F9.
 
 ### Tests unitaires — middleware `checkRoles`
 
@@ -171,7 +217,7 @@ Fichier : `src/api/src/controllers/treeController.spec.test.ts`. Les 3 cas passe
 
 ### Tests d'intégration — recherche par nom `GET /api/trees?search=`
 
-Même fichier. Les 7 cas passent.
+Même fichier. Les 9 cas passent.
 
 | N°        | Cas                                        | Type        | Attendu                                                      | Obtenu |
 | --------- | ------------------------------------------ | ----------- | ------------------------------------------------------------ | ------ |
@@ -182,21 +228,48 @@ Même fichier. Les 7 cas passent.
 | F2-INT-8  | Recherche `%`                              | Intégration | `%` cherché comme un caractère, pas comme « n'importe quoi » | ✅     |
 | F2-INT-9  | Recherche vide (`?search=`)                | Intégration | tout le catalogue                                            | ✅     |
 | F2-INT-10 | `search` répété (`?search=a&search=b`)     | Intégration | `400` (`validateSearchQuery`)                                | ✅     |
+| F2-INT-15 | Recherche de plus de 100 caractères        | Intégration | `400`                                                        | ✅     |
+| F2-INT-16 | Recherche d'exactement 100 caractères      | Intégration | `200` (la limite est acceptée)                               | ✅     |
 
 ### Tests d'intégration — fiche arbre `GET /api/trees/:id`
 
+Même fichier. Les 7 cas passent.
+
+| N°        | Cas                       | Type        | Attendu                                                                                          | Obtenu |
+| --------- | ------------------------- | ----------- | ------------------------------------------------------------------------------------------------ | ------ |
+| F2-INT-11 | Arbre disponible          | Intégration | `200`, avec sa `description`                                                                     | ✅     |
+| F2-INT-12 | Arbre retiré              | Intégration | `404`                                                                                            | ✅     |
+| F2-INT-13 | Id inconnu                | Intégration | `404`                                                                                            | ✅     |
+| F2-INT-14 | Id invalide               | Intégration | `400`, « Identifiant invalide »                                                                  | ✅     |
+| F2-INT-17 | Id trop grand             | Intégration | `400` (pas d'erreur `500` de PostgreSQL)                                                         | ✅     |
+| F2-INT-18 | Champs de la fiche        | Intégration | tous les champs du contrat (#89) : nom, description, prix, photo, catégorie, disponibilité, lieu | ✅     |
+| F2-INT-19 | Arbre en rupture de stock | Intégration | `200` : la fiche reste visible                                                                   | ✅     |
+
+### Tests d'intégration — filtre par catégorie `GET /api/trees?category=` (carte #90)
+
+Même fichier. Les 8 cas passent (le cas « catégorie invalide » est répété pour 5 valeurs).
+
+| N°        | Cas                                              | Type        | Attendu                                               | Obtenu |
+| --------- | ------------------------------------------------ | ----------- | ----------------------------------------------------- | ------ |
+| F2-INT-20 | Arbres de deux catégories                        | Intégration | seulement ceux de la catégorie demandée               | ✅     |
+| F2-INT-21 | Arbre retiré de la catégorie                     | Intégration | exclu                                                 | ✅     |
+| F2-INT-22 | Catégorie qui n'existe pas                       | Intégration | `200` et `[]`                                         | ✅     |
+| F2-INT-23 | Catégorie `abc`, `1.5`, `0`, `-1`, `99999999999` | Intégration | `400` pour chacune (pas d'erreur `500` de PostgreSQL) | ✅     |
+
+### Tests d'intégration — liste des catégories `GET /api/categories` (carte #94)
+
 Même fichier. Les 4 cas passent.
 
-| N°        | Cas              | Type        | Attendu                         | Obtenu |
-| --------- | ---------------- | ----------- | ------------------------------- | ------ |
-| F2-INT-11 | Arbre disponible | Intégration | `200`, avec sa `description`    | ✅     |
-| F2-INT-12 | Arbre retiré     | Intégration | `404`                           | ✅     |
-| F2-INT-13 | Id inconnu       | Intégration | `404`                           | ✅     |
-| F2-INT-14 | Id invalide      | Intégration | `400`, « Identifiant invalide » | ✅     |
+| N°        | Cas                      | Type        | Attendu                         | Obtenu |
+| --------- | ------------------------ | ----------- | ------------------------------- | ------ |
+| F2-INT-24 | Ordre des catégories     | Intégration | triées par `id`                 | ✅     |
+| F2-INT-25 | Champs d'une catégorie   | Intégration | `id` et `name`                  | ✅     |
+| F2-INT-26 | Doublons                 | Intégration | chaque catégorie une seule fois | ✅     |
+| F2-INT-27 | Aucune catégorie en base | Intégration | `200` et `[]`                   | ✅     |
 
 ## F4 · Panier (US05, US22, US23)
 
-Critères d'acceptation : voir l'issue #4 ; contrat d'API : carte #99. Tests de la carte #102, vérifiés sur `DEV` le 06/11/2026. Seule la lecture du panier existe pour l'instant (ajout, modification et suppression : carte #100).
+Critères d'acceptation : voir l'issue #4 ; contrat d'API : carte #99. Tests de la carte #102 : lecture vérifiée sur `DEV` le 06/11/2026 ; ajout, modification et suppression le 13/11/2026 (PR #234 et #251). Les 34 cas passent.
 
 ### Tests d'intégration — lire son panier `GET /api/cart`
 
@@ -210,6 +283,55 @@ Fichier : `src/api/src/controllers/cartController.spec.test.ts`. Les 6 cas passe
 | F4-INT-4 | Sans être connecté                  | Intégration | `401`, « Vous devez être connecté. »                                                                       | ✅     |
 | F4-INT-5 | Cookie avec un jeton faux           | Intégration | `401`, même message                                                                                        | ✅     |
 | F4-INT-6 | Compte désactivé après la connexion | Intégration | `403`                                                                                                      | ✅     |
+
+### Tests d'intégration — ajouter un arbre `POST /api/cart/items`
+
+Même fichier. Les 12 cas passent.
+
+| N°        | Cas                           | Type        | Attendu                                                                | Obtenu |
+| --------- | ----------------------------- | ----------- | ---------------------------------------------------------------------- | ------ |
+| F4-INT-7  | Nouvel arbre                  | Intégration | `201`, une nouvelle ligne                                              | ✅     |
+| F4-INT-8  | Arbre déjà dans le panier     | Intégration | les quantités s'additionnent (une seule ligne par arbre)               | ✅     |
+| F4-INT-9  | Sans `quantity`               | Intégration | quantité 1 par défaut                                                  | ✅     |
+| F4-INT-10 | Arbre inconnu                 | Intégration | `404`, « Arbre introuvable. »                                          | ✅     |
+| F4-INT-11 | Arbre en rupture de stock     | Intégration | `409`, « Cet arbre n'est pas disponible. »                             | ✅     |
+| F4-INT-12 | Arbre retiré                  | Intégration | `409`, même message                                                    | ✅     |
+| F4-INT-13 | 90 dans le panier, 15 ajoutés | Intégration | `400`, « La quantité totale ne peut pas dépasser 100 pour cet arbre. » | ✅     |
+| F4-INT-14 | Quantité 0                    | Intégration | `400`, « quantity doit être supérieur à 0. »                           | ✅     |
+| F4-INT-15 | Quantité négative             | Intégration | `400`, même message                                                    | ✅     |
+| F4-INT-16 | Sans `treeId`                 | Intégration | `400`                                                                  | ✅     |
+| F4-INT-17 | `treeId` à 0                  | Intégration | `400`, « treeId doit être supérieur à 0. »                             | ✅     |
+| F4-INT-18 | Sans être connecté            | Intégration | `401`                                                                  | ✅     |
+
+### Tests d'intégration — changer la quantité `PATCH /api/cart/items/:treeId`
+
+Même fichier. Les 8 cas passent.
+
+| N°        | Cas                              | Type        | Attendu                                       | Obtenu |
+| --------- | -------------------------------- | ----------- | --------------------------------------------- | ------ |
+| F4-INT-19 | Nouvelle quantité                | Intégration | `200`, quantité mise à jour                   | ✅     |
+| F4-INT-20 | Quantité d'exactement 100        | Intégration | `200` (la limite est acceptée)                | ✅     |
+| F4-INT-21 | Arbre absent du panier           | Intégration | `404`, « Ligne introuvable. »                 | ✅     |
+| F4-INT-22 | Quantité au-dessus de 100        | Intégration | `400`, « quantity ne peut pas dépasser 100. » | ✅     |
+| F4-INT-23 | Quantité 0                       | Intégration | `400`, « quantity doit être supérieur à 0. »  | ✅     |
+| F4-INT-24 | Quantité négative                | Intégration | `400`, même message                           | ✅     |
+| F4-INT-25 | `treeId` qui n'est pas un nombre | Intégration | `400`                                         | ✅     |
+| F4-INT-26 | Sans être connecté               | Intégration | `401`                                         | ✅     |
+
+### Tests d'intégration — retirer un arbre `DELETE /api/cart/items/:treeId`, vider le panier `DELETE /api/cart/items`
+
+Même fichier. Les 8 cas passent.
+
+| N°        | Cas                                      | Type        | Attendu                       | Obtenu |
+| --------- | ---------------------------------------- | ----------- | ----------------------------- | ------ |
+| F4-INT-27 | Retirer un arbre du panier               | Intégration | `204`, la ligne a disparu     | ✅     |
+| F4-INT-28 | Arbre qui n'existe pas                   | Intégration | `404`, « Ligne introuvable. » | ✅     |
+| F4-INT-29 | Arbre qui existe mais pas dans le panier | Intégration | `204` (rien à retirer)        | ✅     |
+| F4-INT-30 | `treeId` qui n'est pas un nombre         | Intégration | `400`                         | ✅     |
+| F4-INT-31 | Retirer sans être connecté               | Intégration | `401`                         | ✅     |
+| F4-INT-32 | Vider le panier                          | Intégration | `204`, plus aucune ligne      | ✅     |
+| F4-INT-33 | Vider un panier déjà vide                | Intégration | `204`                         | ✅     |
+| F4-INT-34 | Vider sans être connecté                 | Intégration | `401`                         | ✅     |
 
 ## F5 · Commande (US24, US25)
 
@@ -387,29 +509,30 @@ Vérifiés sur `feat/f6-compte-front` le 10/11/2026. Les 12 cas passent.
 | F6-MAN-22 | Mobile (360 px) et clavier                   | Manuel | rien ne déborde ; Tab atteint le menu, les champs et les boutons, focus visible                                                                                               | ✅     |
 | F6-MAN-23 | Lighthouse                                   | Manuel | accessibilité ≥ 90 ; SEO sous 90 attendu : `noindex` volontaire, page privée                                                                                                  | ✅     |
 
-**## F7 · Admin catalogue (US41, US42, US43, US43b)**
+## F7 · Admin catalogue (US41, US42, US43, US43b)
 
-Tests d'intégration dans `src/api/src/controllers/adminTreeController.spec.test.ts`
+Contrat d'API : carte #95.
 
-**### Tests d'intégration — routes admin des arbres**
+### Tests d'intégration — routes admin des arbres
 
-| N°        | Cas                                      | Type        | Attendu                                                       | Obtenu      |
-| --------- | ---------------------------------------- | ----------- | ------------------------------------------------------------- | ----------- |
-| F7-INT-1  | La liste contient un arbre retiré        | Intégration | `200`, l'arbre retiré apparaît dans la liste                  | ✅          |
-| F7-INT-2  | Création puis modification du prix seul  | Intégration | `POST` en `201`, `PATCH` en `200`, autres champs inchangés    | ✅          |
-| F7-INT-3  | Liste sans connexion                     | Intégration | `401`, « Vous devez être connecté. »                          | ✅          |
-| F7-INT-4  | Liste avec un compte client              | Intégration | `403`, « Accès réservé à l'administrateur. »                  | ✅          |
-| F7-INT-5  | Lecture d'un arbre inconnu               | Intégration | `404`                                                         | ✅          |
-| F7-INT-6  | Création valide                          | Intégration | `201`, l'arbre créé est renvoyé                               | ✅          |
-| F7-INT-7  | Création avec un nom vide                | Intégration | `400`, « Le nom est obligatoire. »                            | ✅          |
-| F7-INT-8  | Création avec un prix négatif            | Intégration | `400`, « Le prix doit être positif. »                         | ✅          |
-| F7-INT-9  | Création avec une URL de photo externe   | Intégration | `400`, chemin de photo invalide                               | ✅          |
-| F7-INT-10 | Création avec une catégorie inconnue     | Intégration | `400`, « Catégorie invalide. »                                | ✅          |
-| F7-INT-11 | Création avec une disponibilité inconnue | Intégration | `400`, « Disponibilité invalide. »                            | ✅          |
-| F7-INT-12 | Suppression d'un arbre jamais commandé   | Intégration | `204`, arbre supprimé                                         | ✅          |
-| F7-INT-13 | Suppression d'un arbre déjà commandé     | Intégration | `409`, suppression refusée                                    | ✅          |
-| F7-INT-14 | Liste des disponibilités                 | Intégration | `200`, les trois disponibilités sont présentes, triées par id | ✅          |
-| F7-INT-15 | Changement de disponibilité avec `PATCH` | Intégration | `200`, l'arbre reçoit la disponibilité demandée               | ⏳ à écrire |
+Fichier : `src/api/src/controllers/adminTreeController.spec.test.ts`. Les 14 cas écrits passent ; F7-INT-15 et F7-INT-16 restent à écrire.
+
+| N°        | Cas                                      | Type        | Attendu                                                       | Obtenu |
+| --------- | ---------------------------------------- | ----------- | ------------------------------------------------------------- | ------ |
+| F7-INT-1  | La liste contient un arbre retiré        | Intégration | `200`, l'arbre retiré apparaît dans la liste                  | ✅     |
+| F7-INT-2  | Création puis modification du prix seul  | Intégration | `POST` en `201`, `PATCH` en `200`, autres champs inchangés    | ✅     |
+| F7-INT-3  | Liste sans connexion                     | Intégration | `401`, « Vous devez être connecté. »                          | ✅     |
+| F7-INT-4  | Liste avec un compte client              | Intégration | `403`, « Accès réservé à l'administrateur. »                  | ✅     |
+| F7-INT-5  | Lecture d'un arbre inconnu               | Intégration | `404`                                                         | ✅     |
+| F7-INT-6  | Création valide                          | Intégration | `201`, l'arbre créé est renvoyé                               | ✅     |
+| F7-INT-7  | Création avec un nom vide                | Intégration | `400`, « Le nom est obligatoire. »                            | ✅     |
+| F7-INT-8  | Création avec un prix négatif            | Intégration | `400`, « Le prix doit être positif. »                         | ✅     |
+| F7-INT-9  | Création avec une URL de photo externe   | Intégration | `400`, chemin de photo invalide                               | ✅     |
+| F7-INT-10 | Création avec une catégorie inconnue     | Intégration | `400`, « Catégorie invalide. »                                | ✅     |
+| F7-INT-11 | Création avec une disponibilité inconnue | Intégration | `400`, « Disponibilité invalide. »                            | ✅     |
+| F7-INT-12 | Suppression d'un arbre jamais commandé   | Intégration | `204`, arbre supprimé                                         | ✅     |
+| F7-INT-13 | Suppression d'un arbre déjà commandé     | Intégration | `409`, suppression refusée                                    | ✅     |
+| F7-INT-14 | Liste des disponibilités                 | Intégration | `200`, les trois disponibilités sont présentes, triées par id | ✅     |
 
 ## F8 · Admin commandes (US46, US25b, US25c, US25d)
 
@@ -454,6 +577,36 @@ Fichier : `src/api/src/services/emailService.unit.test.ts`. Les 3 cas passent. `
 | F8-UNI-2 | Email d'annulation  | Unitaire | objet « annulée » et message d'annulation, sans le message de paiement                        | ✅     |
 | F8-UNI-3 | Email de plantation | Unitaire | objet « vos arbres sont plantés » et message de plantation                                    | ✅     |
 
-## F9
+## F9 · Admin comptes (US45)
 
-À compléter au fil des sprints.
+Contrat d'API : carte #163. Tests de la carte #166.
+
+### Tests d'intégration — routes admin des comptes
+
+Fichier : `src/api/src/controllers/adminUserController.spec.test.ts`. Les 23 cas passent.
+
+| N°        | Cas                                                  | Type        | Attendu                                                        | Obtenu |
+| --------- | ---------------------------------------------------- | ----------- | -------------------------------------------------------------- | ------ |
+| F9-INT-1  | Sans être connecté                                   | Intégration | `401`                                                          | ✅     |
+| F9-INT-2  | Compte client                                        | Intégration | `403`, « Accès réservé à l'administrateur. »                   | ✅     |
+| F9-INT-3  | Liste des comptes                                    | Intégration | `200`, tous les comptes, admins compris, triés par nom         | ✅     |
+| F9-INT-4  | Mot de passe dans la liste                           | Intégration | jamais envoyé                                                  | ✅     |
+| F9-INT-5  | Rôle et état de chaque compte                        | Intégration | `role` et `isActive` présents                                  | ✅     |
+| F9-INT-6  | Détail d'un compte                                   | Intégration | `200`, sans mot de passe                                       | ✅     |
+| F9-INT-7  | Détail d'un compte inconnu                           | Intégration | `404`, « Compte introuvable. »                                 | ✅     |
+| F9-INT-8  | Détail avec un id qui n'est pas un nombre            | Intégration | `400`                                                          | ✅     |
+| F9-INT-9  | Désactiver un compte                                 | Intégration | `200`, `isActive: false`                                       | ✅     |
+| F9-INT-10 | Connexion d'un compte désactivé                      | Intégration | `403`                                                          | ✅     |
+| F9-INT-11 | Connexion d'un compte réactivé                       | Intégration | `200`                                                          | ✅     |
+| F9-INT-12 | Désactiver un autre admin                            | Intégration | `200`, le vrai rôle (`admin`) renvoyé                          | ✅     |
+| F9-INT-13 | Sans `isActive`                                      | Intégration | `400`, « État du compte invalide. »                            | ✅     |
+| F9-INT-14 | `isActive` qui n'est pas un booléen                  | Intégration | `400`, même message                                            | ✅     |
+| F9-INT-15 | Changer l'état d'un compte inconnu                   | Intégration | `404`                                                          | ✅     |
+| F9-INT-16 | Désactiver le dernier admin actif                    | Intégration | `409`, « Impossible de désactiver le dernier administrateur. » | ✅     |
+| F9-INT-17 | Désactiver un admin quand l'autre est déjà désactivé | Intégration | `409`                                                          | ✅     |
+| F9-INT-18 | Supprimer un compte                                  | Intégration | `204`, compte supprimé                                         | ✅     |
+| F9-INT-19 | Commandes d'un compte supprimé                       | Intégration | gardées, avec l'identité de l'acheteur et sans propriétaire    | ✅     |
+| F9-INT-20 | Supprimer un compte inconnu                          | Intégration | `404`                                                          | ✅     |
+| F9-INT-21 | Supprimer avec un id qui n'est pas un nombre         | Intégration | `400`                                                          | ✅     |
+| F9-INT-22 | Supprimer le dernier admin actif                     | Intégration | `409`, « Impossible de supprimer le dernier administrateur. »  | ✅     |
+| F9-INT-23 | Supprimer un admin quand un autre admin actif reste  | Intégration | `204`                                                          | ✅     |
