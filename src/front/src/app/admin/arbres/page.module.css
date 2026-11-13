@@ -1,10 +1,20 @@
+:root {
+  /* Couleurs */
+  --color-deep-green: #18352e;
+  --color-green: #2c5e4a;
+  --color-white: #fff;
+  --color-border: #e4e1d9;
+  --color-muted: #53615b;
+  --color-terracotta: #b6532c;
+}
+
 /* Espace les éléments de la page (bouton, messages et liste). */
 .listSection {
   display: grid;
   gap: 16px;
 }
 
-/* Place le nombre d'arbres et le bouton sur une même ligne si possible. */
+/* Place le compteur et le bouton d'ajout sur une même ligne si possible. */
 .toolbar {
   display: flex;
   flex-wrap: wrap;
@@ -13,13 +23,13 @@
   gap: 12px;
 }
 
-/* Style du nombre d'arbres affiché au-dessus de la liste. */
+/* Style du nombre d'arbres. */
 .treeCount {
   margin: 0;
   color: var(--color-muted);
 }
 
-/* Même taille minimale pour les liens et le bouton : facile à cliquer. */
+/* Style commun des liens et du bouton. */
 .addLink,
 .actionLink,
 .deleteButton {
@@ -36,24 +46,44 @@
   cursor: pointer;
 }
 
-/* Le lien principal et le lien de modification sont verts. */
-.addLink,
-.actionLink {
+/* Le bouton d'ajout est vert plein. */
+.addLink {
   background: var(--color-green);
-  color: white;
+  color: var(--color-white);
 }
 
-/* Le bouton de suppression est rouge pour signaler son action. */
+/* Le lien Modifier est transparent au repos. */
+.actionLink {
+  background: transparent;
+  color: var(--color-green);
+}
+
+/* Supprimer est transparent et rouge au repos. */
 .deleteButton {
   border-color: var(--color-terracotta);
   background: transparent;
   color: var(--color-terracotta);
 }
 
-/* Affiche un contour visible au survol et quand on navigue au clavier. */
-.addLink:hover,
-.actionLink:hover,
-.deleteButton:hover,
+/* Le bouton d'ajout devient vert foncé au survol. */
+.addLink:hover {
+  border-color: var(--color-deep-green);
+  background: var(--color-deep-green);
+}
+
+/* Modifier devient vert plein au survol. */
+.actionLink:hover {
+  background: var(--color-green);
+  color: white;
+}
+
+/* Supprimer devient rouge plein au survol. */
+.deleteButton:hover {
+  background: var(--color-terracotta);
+  color: white;
+}
+
+/* Affiche un contour quand on navigue au clavier. */
 .addLink:focus-visible,
 .actionLink:focus-visible,
 .deleteButton:focus-visible {
@@ -61,13 +91,13 @@
   outline-offset: 2px;
 }
 
-/* Le bouton reste visible, mais indique qu'il est momentanément inactif. */
+/* Indique que le bouton Supprimer est momentanément désactivé. */
 .deleteButton:disabled {
   cursor: wait;
   opacity: 0.7;
 }
 
-/* Affiche les cartes en colonnes, avec une seule colonne sur petit écran. */
+/* Dispose les cartes en colonnes, adaptées à la largeur de l'écran. */
 .treeList {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
@@ -82,7 +112,15 @@
   padding: 20px;
   border: 1px solid var(--color-border);
   border-radius: 12px;
-  background: white;
+  background: var(--color-white);
+}
+
+/* Met en évidence la carte au survol ou quand un de ses éléments est sélectionné au clavier. */
+.treeCard:hover,
+.treeCard:focus-within {
+  border-color: var(--color-green);
+  outline: 2px solid var(--color-green);
+  outline-offset: 2px;
 }
 
 /* Espace le nom de l'arbre de ses informations. */
@@ -91,7 +129,17 @@
   font-size: 20px;
 }
 
-/* Espace les informations de chaque arbre. */
+/* La photo remplit la carte sans modifier sa largeur. */
+.treePhoto {
+  display: block;
+  width: 100%;
+  height: 160px;
+  margin-bottom: 16px;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+/* Espace les informations de l'arbre. */
 .details {
   display: grid;
   gap: 12px;
@@ -104,13 +152,13 @@
   font-size: 14px;
 }
 
-/* Les valeurs ressortent sous leurs intitulés. */
+/* Met les valeurs en évidence. */
 .details dd {
   margin: 2px 0 0;
   font-weight: 600;
 }
 
-/* Place les boutons d'action sous les informations. */
+/* Place les boutons sous les informations. */
 .actions {
   display: flex;
   flex-wrap: wrap;
@@ -118,11 +166,21 @@
   margin-top: 20px;
 }
 
-/* Couleur des messages d'erreur et de réussite. */
+/* Couleurs des messages. */
 .error {
   color: var(--color-terracotta);
 }
 
 .success {
   color: var(--color-green);
+}
+
+/* Présente le message quand la liste ne contient aucun arbre. */
+.emptyState {
+  margin: 0;
+  padding: 16px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  color: var(--color-muted);
+  text-align: center;
 }

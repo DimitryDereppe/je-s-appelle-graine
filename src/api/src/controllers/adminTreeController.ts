@@ -7,6 +7,7 @@ import {
   ConflictError,
   NotFoundError,
 } from "../lib/errors.ts";
+import { readdir } from "node:fs/promises";
 
 const treeBodySchema = z.object({
   name: z
@@ -38,6 +39,8 @@ const treeBodySchema = z.object({
   categoryId: z.number().int({ error: "Catégorie invalide." }),
   availabilityId: z.number().int({ error: "Disponibilité invalide." }),
 });
+// Le dossier des photos, situé à côté du dossier controllers.
+const treePhotosDirectory = new URL("../public/images/trees/", import.meta.url);
 
 // Pour le PATCH, tous les champs deviennent facultatifs.
 const patchTreeBodySchema = treeBodySchema.partial();
@@ -68,7 +71,28 @@ export async function findAllAvailabilities(
   const availabilities = await adminTreeDatamapper.findAllAvailabilities();
   res.status(200).json(availabilities);
 }
+// GET /api/admin/tree-photos
+export async function findAllPhotos(
+  _req: Request,
+  res: Response,
+): Promise<void> {
+  // Lit les fichiers du dossier des photos.
+  const files = await readdir(treePhotosDirectory, { withFileTypes: true });
 
+  // Garde les fichiers image et prépare le chemin enregistré pour chaque arbre.
+  const photos = files
+    .filter(
+      (file) =>
+        file.isFile() && /\.(avif|gif|jpe?g|png|webp)$/i.test(file.name),
+    )
+    .map((file) => ({
+      name: file.name,
+      photoUrl: `/images/trees/${encodeURIComponent(file.name)}`,
+    }))
+    .sort((first, second) => first.name.localeCompare(second.name, "fr"));
+
+  res.status(200).json(photos);
+}
 // POST /api/admin/trees
 export async function create(req: Request, res: Response): Promise<void> {
   // Vérifie les champs reçus dans le body.
