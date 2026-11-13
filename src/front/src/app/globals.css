@@ -54,7 +54,16 @@
 
 body {
   font-family: var(--font-lora), Georgia, serif;
-  height: 100%;
+  /* pied de page collé en bas sur les pages courtes :
+     au moins la hauteur de l'écran (min-height, jamais height : le contenu doit pouvoir dépasser) */
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* la page prend la place restante : le pied de page est poussé en bas */
+body > main {
+  flex: 1;
 }
 .addToCartButton {
   width: 44px;

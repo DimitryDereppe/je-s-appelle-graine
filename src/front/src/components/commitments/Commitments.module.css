@@ -59,9 +59,3 @@
     border-left: 1px solid #b8c3b7;
   }
 }
-
-@media (min-width: 600px) {
-  .commitments {
-    order: 2;
-  }
-}

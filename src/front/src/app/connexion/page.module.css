@@ -1,13 +1,3 @@
-html {
-  height: 100%;
-}
-
-body {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-}
-
 /* ===== Page connexion — mobile-first (maquette v7, page 4) ===== */
 .main {
   height: 100%;
