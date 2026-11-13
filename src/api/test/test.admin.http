@@ -1,4 +1,7 @@
 @api = http://localhost:4000/api
+# ⚠️ Mot de passe admin : à saisir dans @adminPassword, ne jamais le commiter
+@adminEmail = mahamadou@graine.fr
+@adminPassword = A_REMPLIR
 
 # =============================================================================
 # F9 · US45 · Admin : gestion des comptes
@@ -52,8 +55,8 @@ POST {{api}}/auth
 content-type: application/json
 
 {
-  "email": "mahamadou@graine.fr",
-  "password": "Admin123456!"
+  "email": "{{adminEmail}}",
+  "password": "{{adminPassword}}"
 }
 
 
@@ -71,7 +74,7 @@ GET {{api}}/admin/users/6
 ### 200 · un admin (Loïc) : l'admin voit tous les comptes
 GET {{api}}/admin/users/2
 
-### 404 · compte inexistant → "Compte introuvable"
+### 404 · compte inexistant → "Compte introuvable."
 GET {{api}}/admin/users/999
 
 ### 400 · id qui n'est pas un nombre (validateId)
@@ -207,8 +210,8 @@ POST {{api}}/auth
 content-type: application/json
 
 {
-  "email": "mahamadou@graine.fr",
-  "password": "TON_MOT_DE_PASSE"
+  "email": "{{adminEmail}}",
+  "password": "{{adminPassword}}"
 }
 
 ### 200 · réactiver Alice
