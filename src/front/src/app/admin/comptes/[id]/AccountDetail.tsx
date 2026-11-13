@@ -7,6 +7,8 @@ import type { IAdminAccount } from "@/@types";
 import { clientApi } from "@/app/utils/clientApi";
 // styles de la page admin des commandes (F8) : mêmes classes (summary, actions…)
 import styles from "../../commandes/page.module.css";
+// styles propres aux comptes (fond blanc du détail)
+import accountStyles from "../page.module.css";
 
 interface AccountDetailProps {
   id: string; // id du compte, lu dans l'URL par page.tsx
@@ -134,7 +136,8 @@ export function AccountDetail({ id }: AccountDetailProps) {
       </h1>
 
       {/* dl : une liste « intitulé → valeur », lue comme telle par les lecteurs d'écran */}
-      <dl className={styles.summary}>
+      {/* deux classes : la mise en page de F8 (summary) + le fond blanc des comptes (detailCard) */}
+      <dl className={`${styles.summary} ${accountStyles.detailCard}`}>
         <dt>Email</dt>
         <dd>{account.email}</dd>
 
@@ -167,8 +170,7 @@ export function AccountDetail({ id }: AccountDetailProps) {
           href={`/admin/comptes/${id}/modifier`}
           className={styles.actionButton}
         >
-          {" "}
-          Gérer l’état du comptes
+          Gérer l’état du compte
         </Link>
 
         {/* destructif : en terracotta, comme « Annuler la commande » (F8) */}

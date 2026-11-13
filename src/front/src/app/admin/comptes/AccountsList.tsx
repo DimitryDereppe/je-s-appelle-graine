@@ -5,7 +5,8 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import type { IAdminAccount } from "@/@types";
 import { clientApi } from "@/app/utils/clientApi";
-import styles from "../page.module.css";
+// mêmes styles que la liste admin des commandes (F8) : list, card…
+import styles from "../commandes/page.module.css";
 
 // Liste de tous les comptes, pour l'admin (GET /api/admin/users)
 export function AccountsList() {
@@ -60,40 +61,28 @@ export function AccountsList() {
     return <p className={styles.subtitle}>Aucun compte.</p>;
   }
 
-  // Liste : un tableau, une ligne par compte ; le nom mène au détail
+  // Liste : une carte par compte, entièrement cliquable vers le détail (comme les commandes)
   return (
-    <table>
-      {/* le titre du tableau, lu en premier par les lecteurs d'écran */}
-      <caption>Liste des comptes</caption>
-
-      {/* les titres des colonnes, écrits une seule fois */}
-      <thead>
-        <tr>
-          {/* scope="col" : le lecteur d'écran sait que c'est le titre de la colonne */}
-          <th scope="col">Nom</th>
-          <th scope="col">Email</th>
-          <th scope="col">Rôle</th>
-          <th scope="col">État</th>
-        </tr>
-      </thead>
-
-      {/* les données : une ligne <tr> par compte */}
-      <tbody>
-        {accounts.map((account) => (
-          // key : identifiant unique, React s'en sert pour suivre chaque ligne
-          <tr key={account.id}>
-            <td>
-              <Link href={`/admin/comptes/${account.id}`}>
-                {account.firstname} {account.lastname}
-              </Link>
-            </td>
-            <td>{account.email}</td>
-            <td>{account.role}</td>
-            {/* booléen → texte : React n'affiche ni true ni false */}
-            <td>{account.isActive ? "Actif" : "Désactivé"}</td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
+    <ul className={styles.list}>
+      {accounts.map((account) => (
+        // key : identifiant unique, React s'en sert pour suivre chaque élément de la liste
+        <li key={account.id}>
+          {/* carte sur 2 colonnes : nom et état, puis email et rôle */}
+          <Link href={`/admin/comptes/${account.id}`} className={styles.card}>
+            <span className={styles.reference}>
+              {account.firstname} {account.lastname}
+            </span>
+            {/* booléen → texte ; « Désactivé » en terracotta, mais écrit en toutes lettres */}
+            {account.isActive ? (
+              <span className={styles.status}>Actif</span>
+            ) : (
+              <span className={styles.late}>Désactivé</span>
+            )}
+            <span className={styles.date}>{account.email}</span>
+            <span className={styles.status}>{account.role}</span>
+          </Link>
+        </li>
+      ))}
+    </ul>
   );
 }

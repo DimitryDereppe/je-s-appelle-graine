@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { AccountsList } from "./AccountsList";
-import styles from "../page.module.css";
+// mêmes styles que la page admin des commandes (F8)
+import styles from "../commandes/page.module.css";
 
 export const metadata: Metadata = {
   title: "Comptes",
