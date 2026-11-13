@@ -13,7 +13,8 @@
 
 /* Donne aux zones de saisie une taille confortable. */
 .field input,
-.field textarea {
+.field textarea,
+.field select {
   width: 100%;
   min-height: 44px;
   padding: 10px;

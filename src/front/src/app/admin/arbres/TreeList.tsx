@@ -8,6 +8,7 @@ import type { IAdminTree } from "@/@types";
 import { clientApi } from "@/app/utils/clientApi";
 import { formatEuros } from "@/app/utils/format";
 import styles from "./page.module.css";
+import Image from "next/image";
 
 // Lit le message d'erreur envoyé par l'API.
 // Par exemple : { "error": "Cet arbre a déjà été commandé." }
@@ -165,12 +166,23 @@ export default function TreeList() {
       )}
 
       {trees.length === 0 ? (
-        <p>Aucun arbre dans le catalogue.</p>
+        <p className={styles.emptyState}>Aucun arbre dans le catalogue.</p>
       ) : (
         <ul className={styles.treeList}>
           {trees.map((tree) => (
             <li className={styles.treeCard} key={tree.id}>
               <article aria-labelledby={`tree-${tree.id}`}>
+                {/* Affiche la photo si l'arbre en a une. */}
+                {tree.photoUrl && (
+                  <Image
+                    src={tree.photoUrl}
+                    alt={`Photo de ${tree.name}`}
+                    width={600}
+                    height={400}
+                    className={styles.treePhoto}
+                    unoptimized
+                  />
+                )}
                 <h2 id={`tree-${tree.id}`}>{tree.name}</h2>
 
                 {/* Les détails sont présentés en paires : intitulé et valeur. */}
