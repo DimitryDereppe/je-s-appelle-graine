@@ -1,13 +1,30 @@
+:root {
+  /* Couleurs */
+  --color-bg: #f8f6f8;
+  --color-text: #18352e;
+  --color-primary: #245a46;
+  --color-text-muted: #53615b;
+  --color-surface: #e3e9df;
+  --color-border: #e4e1d9;
+  --color-accent: #b6532c;
+  --color-surface-hover: #d0dacc;
+  --color-error: #b00020;
+
+  /* Polices */
+  --font-serif: "Lora", Georgia, serif;
+}
+
 /* ===== Mobile-first ===== */
 
 .main {
   width: 100%;
   min-height: 100vh;
+  min-width: 350px;
   display: flex;
   flex-direction: column;
-  background-color: #f8f6f8;
-  font-family: "Lora", Georgia, serif;
-  color: #18352e;
+  background-color: var(--color-bg);
+  font-family: var(--font-serif);
+  color: var(--color-text);
 }
 
 /* --- Welcome --- */
@@ -21,11 +38,10 @@
   padding: 40px 16px 0;
 }
 
-/* --- Texte justifié dans .welcomeContent --- */
 .welcomeTagline {
   font-size: 3.5vw;
   text-transform: uppercase;
-  color: #245a46;
+  color: var(--color-primary);
   text-align: center;
   text-wrap: nowrap;
   margin-bottom: 4%;
@@ -33,8 +49,8 @@
 
 .welcomeTitle {
   font-size: 7vw;
-  font-family: "Lora", Georgia, serif;
-  color: #18352e;
+  font-family: var(--font-serif);
+  color: var(--color-text);
   text-align: left;
   width: 100%;
   margin-bottom: 4%;
@@ -43,7 +59,7 @@
 .welcomeSubtitle {
   font-size: 4.5vw;
   line-height: 1.5;
-  color: #53615b;
+  color: var(--color-text-muted);
   margin: 0 0 24px;
   text-align: justify;
 }
@@ -59,25 +75,25 @@
 
 .ctaButton {
   width: 100%;
-  background-color: #245a46;
-  color: #f8f6f8;
+  background-color: var(--color-primary);
+  color: var(--color-bg);
   border: none;
   border-radius: 12px;
   padding: 12px 24px;
   min-height: 44px;
   font-size: 16px;
   font-weight: 600;
-  font-family: "Lora", Georgia, serif;
+  font-family: var(--font-serif);
   cursor: pointer;
   transition: background-color 0.3s ease;
 }
 
 .ctaButton:hover {
-  background-color: #18352e;
+  background-color: var(--color-text);
 }
 
 .ctaButton:focus-visible {
-  outline: 3px solid #245a46;
+  outline: 3px solid var(--color-primary);
   outline-offset: 2px;
 }
 
@@ -86,7 +102,7 @@
   margin-left: 8px;
 }
 
-/* --- Photo hero : même hauteur que .card --- */
+/* --- Photo hero --- */
 .heroImage {
   width: 100%;
   height: 182px;
@@ -94,7 +110,7 @@
   overflow: hidden;
   border-radius: 12px;
   margin-top: 24px;
-  background-color: #e3e9df;
+  background-color: var(--color-surface);
 }
 
 .heroImg {
@@ -103,7 +119,7 @@
 
 .underline {
   text-decoration: underline;
-  text-decoration-color: #b6532c;
+  text-decoration-color: var(--color-accent);
   text-decoration-thickness: 2px;
   text-underline-offset: 4px;
 }
@@ -117,8 +133,8 @@
 .sectionTitle {
   font-size: 22px;
   font-weight: 700;
-  font-family: "Lora", Georgia, serif;
-  color: #18352e;
+  font-family: var(--font-serif);
+  color: var(--color-text);
   margin: 0 0 24px;
 }
 
@@ -130,8 +146,8 @@
 }
 
 .card {
-  background-color: #f8f6f8;
-  border: 1px solid #e4e1d9;
+  background-color: var(--color-bg);
+  border: 1px solid var(--color-border);
   border-radius: 12px;
   overflow: hidden;
   transition: filter 0.3s ease;
@@ -144,18 +160,17 @@
 }
 
 .card:focus-within {
-  outline: 3px solid #245a46;
+  outline: 3px solid var(--color-primary);
   outline-offset: 2px;
 }
 
-/* --- Image carte : hauteur divisée par 2, même ratio --- */
 .cardImage {
   width: 100%;
   aspect-ratio: 4 / 12;
   max-height: 120px;
   position: relative;
   overflow: hidden;
-  background-color: #e3e9df;
+  background-color: var(--color-surface);
   display: flex;
   justify-content: center;
 }
@@ -164,7 +179,6 @@
   object-fit: cover;
 }
 
-/* --- Corps de carte : padding réduit proportionnellement --- */
 .cardBody {
   padding: 8px;
   display: flex;
@@ -176,21 +190,21 @@
 .cardTitle {
   font-size: 20px;
   font-weight: 600;
-  font-family: "Lora", Georgia, serif;
-  color: #18352e;
+  font-family: var(--font-serif);
+  color: var(--color-text);
   margin: 0;
 }
 
 .cardScientific {
   font-size: 14px;
   font-style: italic;
-  color: #53615b;
+  color: var(--color-text-muted);
   margin: 4px;
 }
 
 .cardLocation {
   font-size: 14px;
-  color: #53615b;
+  color: var(--color-text-muted);
   margin: 0;
   display: flex;
   align-items: center;
@@ -206,7 +220,6 @@
   font-size: 14px;
 }
 
-/* --- Footer carte --- */
 .cardFooter {
   display: flex;
   align-items: center;
@@ -218,17 +231,17 @@
 .cardPrice {
   font-size: 14px;
   font-weight: 700;
-  color: #b6532c;
+  color: var(--color-accent);
   margin: 0;
 }
 
-/* --- Bouton panier : margin-left 2% --- */
+/* --- Bouton panier --- */
 .basketButton {
   width: 44px;
   height: 44px;
   border-radius: 50%;
-  background-color: #e3e9df;
-  border: 1px solid #e4e1d9;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -239,15 +252,15 @@
 }
 
 .basketButton:hover {
-  background-color: #d0dacc;
+  background-color: var(--color-surface-hover);
 }
 
 .basketButton:focus-visible {
-  outline: 3px solid #245a46;
+  outline: 3px solid var(--color-primary);
   outline-offset: 2px;
 }
 
-/* --- Badges (bas de page) --- */
+/* --- Badges --- */
 .badges {
   width: 100%;
   display: flex;
@@ -257,7 +270,7 @@
 
 .badge {
   width: 100%;
-  background-color: #e3e9df;
+  background-color: var(--color-surface);
   border-radius: 0;
   padding: 12px 16px;
   border: none;
@@ -273,7 +286,7 @@
 .badgeText {
   font-size: 14px;
   font-weight: 500;
-  color: #18352e;
+  color: var(--color-text);
   margin: 0;
 }
 
@@ -285,18 +298,19 @@
 
 .errorMessage {
   font-size: 1.1rem;
-  color: #b00020;
+  color: var(--color-error);
   text-align: center;
 }
 
 .buttonError {
   border: none;
   background-color: transparent;
-  color: #b00020;
+  color: var(--color-error);
   text-align: center;
   font-size: 1.4rem;
   text-decoration: underline;
 }
+
 .treeCardSkeleton {
   display: flex;
   flex-direction: column;
@@ -423,60 +437,49 @@
   }
 }
 
-/* ===== Desktop (≥ 900px) ===== */
-@media (min-width: 900px) {
-  .welcome {
-    padding: 56px 32px 40px;
+@media (min-width: 600px) {
+  .commitmentsDesktop {
+    order: 2;
   }
-
-  .welcomeContent {
-    width: 35%;
-  }
-
-  .heroImage {
-    width: 65%;
-  }
-
-  .homepage {
-    padding: 40px 32px;
-  }
-
-  .sectionTitle {
-    font-size: 32px;
-  }
-
-  .cardsGrid {
-    grid-template-columns: repeat(3, 1fr);
+  .commitmentsMobile {
+    order: 4;
   }
 }
 
-/* Par défaut, sous 610 px : le bandeau est placé après les arbres,
-   donc juste avant le footer global. */
-.commitmentsDesktop {
-  display: none;
-}
-
-.commitmentsMobile {
-  display: block;
-}
-
-/* À partir de 610 px : le bandeau revient entre la présentation et les arbres. */
 @media (min-width: 610px) {
   .commitmentsDesktop {
     display: block;
   }
-
   .commitmentsMobile {
     display: none;
   }
 }
 
-@media (min-width: 600px) {
-  .commitmentsDesktop {
-    order: 2;
+/* ===== Desktop (≥ 900px) ===== */
+@media (min-width: 900px) {
+  .welcome {
+    padding: 56px 32px 40px;
   }
+  .welcomeContent {
+    width: 35%;
+  }
+  .heroImage {
+    width: 65%;
+  }
+  .homepage {
+    padding: 40px 32px;
+  }
+  .sectionTitle {
+    font-size: 32px;
+  }
+  .cardsGrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
 
-  .commitmentsMobile {
-    order: 4;
-  }
+.commitmentsDesktop {
+  display: none;
+}
+.commitmentsMobile {
+  display: block;
 }

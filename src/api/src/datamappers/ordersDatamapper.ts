@@ -4,6 +4,8 @@ import type {
   ICartItem,
   IOrder,
   IOrderSummary,
+  IAdminOrderSummary,
+  IAdminOrder,
   OrderStatus,
   PaymentMethod,
 } from "../@types/index.d.ts";
@@ -169,5 +171,102 @@ export const ordersDatamapper = {
        WHERE id = $1`,
       [id, status],
     );
+  },
+
+  // --------------------------------
+  // Liste admin : toutes les commandes, de tous les clients, la plus récente d'abord (contrat #167)
+  // pas de WHERE sur account_id : l'admin voit tout (la route est réservée à l'admin dans indexRouter)
+  // --------------------------------
+  // status facultatif (?) : sans statut, toutes les commandes
+  async findAllOrdersForAdmin(
+    status?: OrderStatus,
+  ): Promise<IAdminOrderSummary[]> {
+    const result = await pool.query(
+      `SELECT id,
+              purchase_date AS "purchaseDate",
+              status,
+              -- NUMERIC arrive en texte dans Node : CAST le change en nombre
+              CAST(total_amount AS FLOAT) AS "totalAmount",
+              -- identité de l'acheteur copiée à la commande : reste lisible même si le compte est supprimé
+              buyer_firstname AS "buyerFirstname",
+              buyer_lastname AS "buyerLastname",
+              buyer_email AS "buyerEmail",
+              -- en retard : en attente ET commandée il y a plus de 10 jours → true ou false
+              -- now() - INTERVAL '10 days' : la date d'il y a 10 jours
+              -- calculé à chaque requête plutôt qu'enregistré : une colonne is_late serait fausse dès le lendemain
+              (status = 'en attente' AND purchase_date < now() - INTERVAL '10 days') AS "isLate"
+       FROM purchase
+       -- sans filtre ($1 vaut NULL) : toutes les commandes ; sinon, seulement ce statut
+       WHERE (CAST($1 AS VARCHAR) IS NULL OR status = $1)
+       ORDER BY purchase_date DESC, id DESC`,
+      // ?? null : sans statut, on envoie NULL à PostgreSQL
+      [status ?? null],
+    );
+    return result.rows;
+  },
+
+  // --------------------------------
+  // Détail admin : une commande de n'importe quel client, avec ses lignes (contrat #167)
+  // retourne null si elle n'existe pas
+  // --------------------------------
+  async findOrderByIdForAdmin(id: number): Promise<IAdminOrder | null> {
+    const orderResult = await pool.query(
+      `SELECT purchase.id,
+              purchase.purchase_date AS "purchaseDate",
+              purchase.status,
+              CAST(purchase.total_amount AS FLOAT) AS "totalAmount",
+              purchase.buyer_firstname AS "buyerFirstname",
+              purchase.buyer_lastname AS "buyerLastname",
+              purchase.buyer_email AS "buyerEmail",
+              (purchase.status = 'en attente' AND purchase.purchase_date < now() - INTERVAL '10 days') AS "isLate",
+              -- même calcul que findOrderByIdAndAccountId : date limite en texte "AAAA-MM-JJ"
+              TO_CHAR(purchase.purchase_date + INTERVAL '10 days', 'YYYY-MM-DD') AS "dueDate",
+              purchase.payment_method AS "paymentMethod",
+              purchase.buyer_organization AS "buyerOrganization",
+              -- même nom que dans GET /api/orders/:id (contrat #167)
+              purchase.buyer_address AS "billingAddress",
+              -- null tant que le statut n'a pas été atteint
+              purchase.paid_at AS "paidAt",
+              purchase.planted_at AS "plantedAt",
+              purchase.cancelled_at AS "cancelledAt",
+              -- destinataire des emails (pour les changements de statut) : le client a pu changer son email entre temps dans ses infos personnelles (account.email),
+              -- sinon celui copié à l'achat (purchase.buyer_email)
+              -- (COALESCE prend la 1re valeur : account.email, si le client a supprimé son compte, c'est la 2è valeur purchase.buyer_email)
+              COALESCE(account.email, purchase.buyer_email) AS "notificationEmail"
+       FROM purchase
+       -- ajoute à la commande le compte du client : la ligne de account dont l'id vaut purchase.account_id
+       -- LEFT (pas JOIN seul) : garde la commande même sans compte (supprimé → account_id NULL),
+       -- ses colonnes account valent alors NULL (JOIN seul ferait disparaître la commande)
+       LEFT JOIN account ON account.id = purchase.account_id
+       -- pas de filtre sur account_id : l'admin voit les commandes de tous les clients
+       WHERE purchase.id = $1`,
+      [id],
+    );
+
+    // aucune ligne : la commande n'existe pas (le contrôleur répondra 404)
+    if (orderResult.rows.length === 0) {
+      return null;
+    }
+
+    // les arbres de la commande sont dans une autre table (purchase_line) : deuxième requête
+    // même requête que pour le client (findOrderByIdAndAccountId) : même format pour le front
+    const linesResult = await pool.query(
+      // nom, prix et lieu copiés à l'achat
+      `SELECT tree_name AS "treeName",
+              CAST(unit_price AS FLOAT) AS "unitPrice",
+              quantity,
+              planting_location AS "plantingLocation"
+       FROM purchase_line
+       -- seulement les lignes de cette commande
+       WHERE purchase_id = $1
+       -- dans l'ordre où elles ont été enregistrées
+       ORDER BY id`,
+      [id],
+    );
+
+    // la commande, avec ses lignes dans une propriété "lines"
+    // ... (spread) : recopie toutes les propriétés de la commande, puis on ajoute le tableau des lignes
+    // → { id, status, totalAmount, ..., lines: [{ treeName, unitPrice, quantity, plantingLocation }] }
+    return { ...orderResult.rows[0], lines: linesResult.rows };
   },
 };

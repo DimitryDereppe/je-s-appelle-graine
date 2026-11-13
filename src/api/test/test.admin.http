@@ -1,0 +1,231 @@
+@api = http://localhost:4000/api
+# ⚠️ Mot de passe admin : à saisir dans @adminPassword, ne jamais le commiter
+@adminEmail = mahamadou@graine.fr
+@adminPassword = A_REMPLIR
+
+# =============================================================================
+# F9 · US45 · Admin : gestion des comptes
+# Exécuter DE HAUT EN BAS : chaque connexion remplace le cookie
+# ⚠️ Ne jamais faire de PATCH ou DELETE sur l'id 4 (mon propre compte)
+# =============================================================================
+
+
+# -----------------------------------------------------------------------------
+# 1. SANS CONNEXION → 401
+# -----------------------------------------------------------------------------
+
+### Se déconnecter d'abord (204, ou 401 si personne n'était connecté)
+DELETE {{api}}/auth
+
+### 401 · liste sans être connecté
+GET {{api}}/admin/users
+
+
+# -----------------------------------------------------------------------------
+# 2. CONNECTÉ EN CLIENT → 403
+# -----------------------------------------------------------------------------
+
+### 200 · connexion alice (cliente)
+POST {{api}}/auth
+content-type: application/json
+
+{
+  "email": "alice@test.fr",
+  "password": "Client12345!"
+}
+
+### 403 · une cliente n'a pas accès à la liste
+GET {{api}}/admin/users
+
+### 403 · une cliente ne peut pas désactiver un compte
+PATCH {{api}}/admin/users/8
+content-type: application/json
+
+{
+  "isActive": false
+}
+
+
+# -----------------------------------------------------------------------------
+# 3. CONNECTÉ EN ADMIN
+# -----------------------------------------------------------------------------
+
+### 200 · connexion mahamadou (admin)
+POST {{api}}/auth
+content-type: application/json
+
+{
+  "email": "{{adminEmail}}",
+  "password": "{{adminPassword}}"
+}
+
+
+# ---------- GET /admin/users ----------
+
+### 200 · liste : tous les comptes (admins compris), triés par nom, sans password
+GET {{api}}/admin/users
+
+
+# ---------- GET /admin/users/:id ----------
+
+### 200 · un client (Alice)
+GET {{api}}/admin/users/6
+
+### 200 · un admin (Loïc) : l'admin voit tous les comptes
+GET {{api}}/admin/users/2
+
+### 404 · compte inexistant → "Compte introuvable."
+GET {{api}}/admin/users/999
+
+### 400 · id qui n'est pas un nombre (validateId)
+GET {{api}}/admin/users/abc
+
+### 400 · id négatif (validateId)
+GET {{api}}/admin/users/-3
+
+
+# ---------- PATCH /admin/users/:id ----------
+
+### 200 · désactiver Alice → isActive: false
+PATCH {{api}}/admin/users/6
+content-type: application/json
+
+{
+  "isActive": false
+}
+
+### 200 · réactiver Bob (désactivé dans le seed) → isActive: true
+PATCH {{api}}/admin/users/7
+content-type: application/json
+
+{
+  "isActive": true
+}
+
+### 200 · désactiver un autre admin (Loïc) : autorisé, il en reste d'autres → role: "admin"
+PATCH {{api}}/admin/users/2
+content-type: application/json
+
+{
+  "isActive": false
+}
+
+### 200 · réactiver Loïc (remettre la base en état)
+PATCH {{api}}/admin/users/2
+content-type: application/json
+
+{
+  "isActive": true
+}
+
+### 400 · isActive absent → "État du compte invalide."
+PATCH {{api}}/admin/users/6
+content-type: application/json
+
+{}
+
+### 400 · isActive en texte au lieu d'un booléen
+PATCH {{api}}/admin/users/6
+content-type: application/json
+
+{
+  "isActive": "false"
+}
+
+### 400 · isActive à null
+PATCH {{api}}/admin/users/6
+content-type: application/json
+
+{
+  "isActive": null
+}
+
+### 404 · compte inexistant
+PATCH {{api}}/admin/users/999
+content-type: application/json
+
+{
+  "isActive": false
+}
+
+### 400 · id invalide (validateId)
+PATCH {{api}}/admin/users/abc
+content-type: application/json
+
+{
+  "isActive": false
+}
+
+### 415 · body qui n'est pas du JSON (validateContentType)
+PATCH {{api}}/admin/users/6
+content-type: text/plain
+
+isActive=false
+
+
+# ---------- DELETE /admin/users/:id ----------
+
+### 204 · supprimer le compte 14 ⚠️ suppression réelle : npm run db:reset pour le retrouver
+DELETE {{api}}/admin/users/14
+
+### 404 · le même, une 2e fois : il n'existe plus
+DELETE {{api}}/admin/users/14
+
+### 404 · compte inexistant
+DELETE {{api}}/admin/users/999
+
+### 400 · id invalide (validateId)
+DELETE {{api}}/admin/users/abc
+
+
+# -----------------------------------------------------------------------------
+# 4. EFFET DE LA DÉSACTIVATION SUR LA CONNEXION
+# -----------------------------------------------------------------------------
+
+### 403 · Alice est désactivée (section 3) : elle ne peut plus se connecter
+POST {{api}}/auth
+content-type: application/json
+
+{
+  "email": "alice@test.fr",
+  "password": "Client12345!"
+}
+
+### 200 · Bob a été réactivé (section 3) : il peut se connecter
+POST {{api}}/auth
+content-type: application/json
+
+{
+  "email": "bob@test.fr",
+  "password": "Client12345!"
+}
+
+
+# -----------------------------------------------------------------------------
+# 5. REMETTRE LA BASE EN ÉTAT (reconnexion admin)
+# -----------------------------------------------------------------------------
+
+### 200 · connexion mahamadou (admin)
+POST {{api}}/auth
+content-type: application/json
+
+{
+  "email": "{{adminEmail}}",
+  "password": "{{adminPassword}}"
+}
+
+### 200 · réactiver Alice
+PATCH {{api}}/admin/users/6
+content-type: application/json
+
+{
+  "isActive": true
+}
+
+### 200 · redésactiver Bob (comme dans le seed)
+PATCH {{api}}/admin/users/7
+content-type: application/json
+
+{
+  "isActive": false
+}

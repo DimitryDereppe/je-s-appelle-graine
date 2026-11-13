@@ -9,7 +9,7 @@ import TreeCard from "@/components/treeCard/TreeCard";
 
 // Titre de l'onglet et description pour les moteurs de recherche
 export const metadata: Metadata = {
-  title: "Nos arbres | Je s’appelle Graine",
+  title: "Nos arbres",
   description:
     "Choisissez votre arbre parmi notre large sélection. Nos stocks comprennent des résineux, des feuillages caducs et des feuillages persistants.",
 };

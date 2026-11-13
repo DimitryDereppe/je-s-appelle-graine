@@ -16,3 +16,5 @@ dist/
 /data/
 /public/
 
+#divers
+cookies.txt 

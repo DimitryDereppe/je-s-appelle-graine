@@ -18,7 +18,7 @@ export default function Footer() {
         <Link
           className={styles.brand}
           href="/"
-          aria-label="Je m’appelle Graine, accueil"
+          aria-label="Je s’appelle Graine, accueil"
         >
           <Image
             src="/assets/graine-2-germination.ico"

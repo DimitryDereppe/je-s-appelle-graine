@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import styles from "@/components/infoPage/infoPage.module.css";
 
 export const metadata: Metadata = {
-  title: "Mentions légales — Je s’appelle Graine",
+  title: "Mentions légales",
   description:
     "Éditeur, direction de la publication, hébergement et propriété intellectuelle du site Je s’appelle Graine.",
 };

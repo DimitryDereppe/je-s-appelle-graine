@@ -2,9 +2,11 @@
 @email = alice@test.fr
 @password = Client12345!
 
+# Prérequis : base remise à zéro (npm run db:reset), API lancée (npm run dev)
+
 ### --------------------------------
 ### 0. LOGIN : pose le cookie accessToken (JWT)
-### réponse attendue : 200 + le compte { id, firstname, ... }
+### attendu : 200 + le compte
 # @name login
 POST {{host}}/api/auth/
 Content-Type: application/json
@@ -15,36 +17,90 @@ Content-Type: application/json
 }
 
 ###
-# Set-Cookie complet de la réponse du login ("accessToken=...; Path=/; HttpOnly...")
-# cookie-parser lit la première paire nom=valeur, les attributs restants sont ignorés
 @cookie = {{login.response.headers.set-cookie}}
 
 ### --------------------------------
-### 1. READ : panier du compte connecté
-### première visite attendue : 200 + [ ]
+### 1. Récupérer le panier (vide initialement)
+### attendu : 200 + items: [], total: 0
 GET {{host}}/api/cart
 Cookie: {{cookie}}
 
 ### --------------------------------
-### 2. CREATE : ajouter 2 Chêne pédonculé (treeId 1)
-### attendu : 201 + la ligne { "id": 1, "accountId": ..., "treeId": 1, "quantity": 2, ... }
-# @name createItem
+### 2. Ajouter un article au panier (treeId 1, quantité 1)
+### attendu : 201 + le nouvel item créé
+# @name addItem
 POST {{host}}/api/cart/items
 Content-Type: application/json
 Cookie: {{cookie}}
 
 {
   "treeId": 1,
-  "quantity": 2
+  "quantity": 1
 }
 
-###
-# id de la ligne créée, réutilisé par PATCH et DELETE
-@itemId = {{createItem.response.body.id}}
+### --------------------------------
+### 2a. Ajouter avec une quantité qui dépasse le max (cumul > 100)
+### (après test 3 : quantity est à 4 ; on ajoute 97 → 101 > 100)
+### attendu : 400 "La quantité doit être comprise entre 1 et 100."
+POST {{host}}/api/cart/items
+Content-Type: application/json
+Cookie: {{cookie}}
+
+{
+  "treeId": 1,
+  "quantity": 97
+}
 
 ### --------------------------------
-### 3. CREATE (déjà présent) : cumul de quantité
-### attendu : 201 + la même ligne avec "quantity": 5
+### 2b. Ajouter avec quantity = 0 (rejeté par .positive())
+### attendu : 400 (erreur Zod)
+POST {{host}}/api/cart/items
+Content-Type: application/json
+Cookie: {{cookie}}
+
+{
+  "treeId": 1,
+  "quantity": 0
+}
+
+### --------------------------------
+### 2c. Ajouter avec quantity négative
+### attendu : 400 (erreur Zod)
+POST {{host}}/api/cart/items
+Content-Type: application/json
+Cookie: {{cookie}}
+
+{
+  "treeId": 1,
+  "quantity": -3
+}
+
+### --------------------------------
+### 2d. Ajouter avec treeId manquant
+### attendu : 400 (erreur Zod)
+POST {{host}}/api/cart/items
+Content-Type: application/json
+Cookie: {{cookie}}
+
+{
+  "quantity": 1
+}
+
+### --------------------------------
+### 2e. Ajouter avec treeId = 0 (rejeté par .positive())
+### attendu : 400 (erreur Zod)
+POST {{host}}/api/cart/items
+Content-Type: application/json
+Cookie: {{cookie}}
+
+{
+  "treeId": 0,
+  "quantity": 1
+}
+
+### --------------------------------
+### 3. Ajouter le même article (test de cumul / ON CONFLICT)
+### attendu : 201 + mise à jour de la quantité (1 + 3 = 4)
 POST {{host}}/api/cart/items
 Content-Type: application/json
 Cookie: {{cookie}}
@@ -55,35 +111,56 @@ Cookie: {{cookie}}
 }
 
 ### --------------------------------
-### 4. CREATE : un deuxième arbre
-### attendu : 201 + une nouvelle ligne (treeId 2)
+### 3a. Ajouter un article SANS quantity (défaut = 1)
+### attendu : 201 + item créé avec quantity: 1 (cumul: 4 + 1 = 5)
 POST {{host}}/api/cart/items
 Content-Type: application/json
 Cookie: {{cookie}}
 
 {
-  "treeId": 2,
-  "quantity": 1
+  "treeId": 1
 }
 
 ### --------------------------------
-### 5. READ : panier complet, 2 lignes
-GET {{host}}/api/cart
-Cookie: {{cookie}}
-
-### --------------------------------
-### 6. UPDATE : quantité de la ligne créé au test 2
-### attendu : 200 + "quantity": 10
-PATCH {{host}}/api/cart/items/{{itemId}}
+### 3b. Ajouter un article avec un treeId inexistant
+### attendu : 404 "Arbre introuvable"
+POST {{host}}/api/cart/items
 Content-Type: application/json
 Cookie: {{cookie}}
 
 {
-  "quantity": 10
+  "treeId": 99999,
+  "quantity": 1
 }
 
-###6bis
-PATCH {{host}}/api/cart/items/2
+### --------------------------------
+### 3c. Ajouter un article "en rupture de stock"
+### attendu : 409 "Cet arbre n'est pas disponible."
+POST {{host}}/api/cart/items
+Content-Type: application/json
+Cookie: {{cookie}}
+
+{
+  "treeId": 6,
+  "quantity": 1
+}
+
+### --------------------------------
+### 3d. Ajouter un article "retiré"
+### attendu : 409 "Cet arbre n'est pas disponible."
+POST {{host}}/api/cart/items
+Content-Type: application/json
+Cookie: {{cookie}}
+
+{
+  "treeId": 7,
+  "quantity": 1
+}
+
+### --------------------------------
+### 4. Modifier la quantité d'un article du panier (treeId 1, nouvelle quantité 5)
+### attendu : 200 + l'item mis à jour
+PATCH {{host}}/api/cart/items/1
 Content-Type: application/json
 Cookie: {{cookie}}
 
@@ -92,60 +169,131 @@ Cookie: {{cookie}}
 }
 
 ### --------------------------------
-### 7. DELETE : retirer la ligne
-### attendu : 204, corps vide
-DELETE {{host}}/api/cart/items/{{itemId}}
+### 4a. Modifier avec quantity = 0 (rejeté par .positive())
+### attendu : 400 (erreur Zod)
+PATCH {{host}}/api/cart/items/1
+Content-Type: application/json
 Cookie: {{cookie}}
 
-### clearCart : vider tout le panier du compte
+{
+  "quantity": 0
+}
+
+### --------------------------------
+### 4b. Modifier avec quantity = 100 (borne max, doit passer)
+### attendu : 200 + item mis à jour
+PATCH {{host}}/api/cart/items/1
+Content-Type: application/json
+Cookie: {{cookie}}
+
+{
+  "quantity": 100
+}
+
+### --------------------------------
+### 4c. Modifier avec un treeId non numérique
+### attendu : 400 (erreur Zod sur le param)
+PATCH {{host}}/api/cart/items/abc
+Content-Type: application/json
+Cookie: {{cookie}}
+
+{
+  "quantity": 2
+}
+
+### --------------------------------
+### 5. Modifier avec une quantité supérieure au maximum (> 100)
+### attendu : 400 "La quantité doit être comprise entre 1 et 100."
+PATCH {{host}}/api/cart/items/1
+Content-Type: application/json
+Cookie: {{cookie}}
+
+{
+  "quantity": 105
+}
+
+### --------------------------------
+### 6. Modifier une ligne du panier introuvable
+### attendu : 404 "Ligne introuvable"
+PATCH {{host}}/api/cart/items/99999
+Content-Type: application/json
+Cookie: {{cookie}}
+
+{
+  "quantity": 2
+}
+
+### --------------------------------
+### 7. Supprimer un article spécifique du panier (treeId 1)
+### attendu : 204 No Content
+DELETE {{host}}/api/cart/items/1
+Cookie: {{cookie}}
+
+### --------------------------------
+### 7a. Supprimer un arbre qui n'existe pas
+### attendu : 404 "Ligne introuvable"
+DELETE {{host}}/api/cart/items/9999
+Cookie: {{cookie}}
+
+### --------------------------------
+### 7b. Supprimer un arbre qui existe mais n'est PAS dans le panier
+### attendu : 204 No Content
+DELETE {{host}}/api/cart/items/2
+Cookie: {{cookie}}
+
+### --------------------------------
+### 7c. Supprimer avec un treeId non numérique
+### attendu : 400 (erreur Zod sur le param)
+DELETE {{host}}/api/cart/items/xyz
+Cookie: {{cookie}}
+
+### --------------------------------
+### 8. Vider entièrement le panier
+### attendu : 204 No Content
 DELETE {{host}}/api/cart/items
 Cookie: {{cookie}}
 
-### Vérification : le panier est bien vide
-GET {{host}}/api/cart/
+### --------------------------------
+### 8a. Vider un panier déjà vide
+### attendu : 204 No Content
+DELETE {{host}}/api/cart/items
 Cookie: {{cookie}}
 
 ### --------------------------------
-### 8. READ : panier vide ou ligne restante
-GET {{host}}/api/cart/
-Cookie: {{cookie}}
-
-### --------------------------------
-### Cas d'erreur : non authentifié
-### attendu : 401 { "error":"Vous devez être connecté." }
+### si echec car connexion : le cookie posé par le login (test 0) est stocké dans le cookie jar du client et est automatiquement renvoyé sur les requêtes suivantes vers le même domaine, même si tu ne l'indiques pas explicitement dans le test.
+### Vérification rapide : ouvre le DevTools de ton navigateur, va sur http://localhost:4000/api/cart dans un onglet en navigation privée (sans cookie)
+### 9. Sans connexion (accès au panier)
+### attendu : 401
 GET {{host}}/api/cart
+Cookie: accessToken=invalid
 
 ### --------------------------------
-### Cas d'erreur : body invalide (Zod arrête avant le store)
-### attendu : 400 message personalisé zod
+### 9a. Sans connexion (ajouter au panier)
+### attendu : 401
 POST {{host}}/api/cart/items
 Content-Type: application/json
-Cookie: {{cookie}}
 
 {
   "treeId": 1,
-  "quantity": -2
-}
-
-### --------------------------------
-### Cas d'erreur : treeId inexistant
-### attendu : 404 { "error": "Ressource introuvable" }
-POST {{host}}/api/cart/items/9999
-Content-Type: application/json
-Cookie: {{cookie}}
-
-{
-  "treeId": 9999,
   "quantity": 1
 }
 
 ### --------------------------------
-### Cas d'erreur : ligne d'un autre compte
-### attendu : 404 { "error": "Ressource introuvable" }
-PATCH {{host}}/api/cart/items/9999
+### 9b. Sans connexion (modifier)
+### attendu : 401
+PATCH {{host}}/api/cart/items/1
 Content-Type: application/json
-Cookie: {{cookie}}
 
 {
-  "quantity": 1
+  "quantity": 2
 }
+
+### --------------------------------
+### 9c. Sans connexion (supprimer)
+### attendu : 401
+DELETE {{host}}/api/cart/items/1
+
+### --------------------------------
+### 9d. Sans connexion (vider)
+### attendu : 401
+DELETE {{host}}/api/cart/items   

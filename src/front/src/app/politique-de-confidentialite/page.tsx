@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import styles from "@/components/infoPage/infoPage.module.css";
 
 export const metadata: Metadata = {
-  title: "Politique de confidentialité — Je s’appelle Graine",
+  title: "Politique de confidentialité",
   description:
     "Les données utilisées par Je s’appelle Graine, leur durée de conservation, le cookie de connexion et vos droits.",
 };

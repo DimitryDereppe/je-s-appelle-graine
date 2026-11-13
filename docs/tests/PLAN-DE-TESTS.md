@@ -12,7 +12,7 @@ Ce document liste, feature par feature, les cas à vérifier, leur type et le r�
 
 ## F1 · Accueil (US01)
 
-Critères d'acceptation : voir l'issue #1. Vérifications du 30/10/2026 sur <https://dimitrydereppe-server.eddi.cloud/>.
+Critères d'acceptation : voir l'issue #1. Première vérification le 30/10/2026 sur le VPS ; revérifié le 10/11/2026 en local, sur le code de `DEV`.
 
 ### Tests d'intégration — `GET /api/trees/featured`
 
@@ -32,40 +32,43 @@ Tests communs à toute l'API (`src/api/src/app.spec.test.ts`) : `GET /api/health
 
 ### Tests manuels — page `/`
 
-Navigateur : Firefox 157 (bureau 1280 px et mobile 375 px).
+Revérifiés le 10/11/2026 : page servie en local, Chromium (mobile 412 px et bureau 1350 px).
 
-| N°        | Cas                                          | Type   | Attendu                                                                                  | Obtenu                                                                                                                                   |
-| --------- | -------------------------------------------- | ------ | ---------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| F1-MAN-1  | Ouvrir l'accueil                             | Manuel | les 3 arbres de `/api/trees/featured` : Chêne vert, Filaire à larges feuilles, Arbousier | ❌ Pin maritime, Pin sylvestre, Pin d'Alep (les 3 plus anciens du catalogue)                                                             |
-| F1-MAN-2  | Ordre des vignettes                          | Manuel | le plus récent en premier                                                                | ❌ le plus ancien en premier                                                                                                             |
-| F1-MAN-3  | Arbre en rupture ou retiré                   | Manuel | jamais affiché sur l'accueil                                                             | ❌ possible : l'accueil lit le catalogue, qui contient les arbres en rupture                                                             |
-| F1-MAN-4  | Contenu d'une vignette                       | Manuel | photo avec texte alternatif, nom, catégorie, prix TTC                                    | ❌ pas de catégorie ; prix affiché `9.9 TTC` (sans `€` ni 2 décimales)                                                                   |
-| F1-MAN-5  | Présentation et bouton « Voir le catalogue » | Manuel | texte de présentation, bouton qui mène au catalogue                                      | ❌ présentation OK ; le bouton « Voir nos arbres » est un `<button>` sans lien                                                           |
-| F1-MAN-6  | API en panne                                 | Manuel | message d'erreur lisible sur la page                                                     | ❌ la page lance une erreur (`throw new Error`) : page d'erreur de Next.js                                                               |
-| F1-MAN-7  | Aucun arbre disponible                       | Manuel | message « aucun arbre disponible »                                                       | ❌ pas de message ; avec moins de 3 arbres, `treesAll[i]` vaut `undefined` et la page plante                                             |
-| F1-MAN-8  | Affichage mobile (375 px)                    | Manuel | lisible, pas de défilement horizontal                                                    | ✅ largeur de page = largeur d'écran                                                                                                     |
-| F1-MAN-9  | Navigation au clavier (touche Tab)           | Manuel | tous les liens et boutons atteignables, focus visible                                    | ✅ ordre logique (en-tête, bouton, paniers, pied de page), contour de 3 px                                                               |
-| F1-MAN-10 | Langue de la page                            | Manuel | `<html lang="fr">`                                                                       | ❌ `lang="en"` : un lecteur d'écran lit le texte avec l'accent anglais                                                                   |
-| F1-MAN-11 | Liens de l'en-tête et du pied de page        | Manuel | pas d'erreur 404                                                                         | ⏳ `/qui-sommes-nous`, `/connexion`, `/panier`, `/mentions-legales`, `/politique-de-confidentialite` en 404 (pages des sprints suivants) |
+| N°        | Cas                                        | Type   | Attendu                                               | Obtenu                                                                                                                   |
+| --------- | ------------------------------------------ | ------ | ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| F1-MAN-1  | Ouvrir l'accueil                           | Manuel | les 3 arbres de `/api/trees/featured`                 | ✅ Chêne vert, Filaire à larges feuilles, Arbousier                                                                      |
+| F1-MAN-2  | Ordre des vignettes                        | Manuel | le plus récent en premier                             | ✅ du plus récent au plus ancien (id 20, 19, 16)                                                                         |
+| F1-MAN-3  | Arbre en rupture ou retiré                 | Manuel | jamais affiché sur l'accueil                          | ✅ l'accueil lit `/api/trees/featured`, qui ne renvoie que les arbres disponibles (F1-INT-2)                             |
+| F1-MAN-4  | Contenu d'une vignette                     | Manuel | photo avec texte alternatif, nom, catégorie, prix TTC | ✅ photo, nom, catégorie, lieu de plantation, prix « 19,50 € TTC »                                                       |
+| F1-MAN-5  | Présentation et bouton « Voir nos arbres » | Manuel | texte de présentation, bouton qui mène au catalogue   | ✅ mène à `/arbres`. À corriger : un `<button>` est placé dans le lien (deux éléments cliquables l'un dans l'autre)      |
+| F1-MAN-6  | API en panne                               | Manuel | message d'erreur lisible sur la page                  | ✅ dans le code : « Impossible de charger les arbres pour le moment. » et lien vers le catalogue (non provoqué en local) |
+| F1-MAN-7  | Aucun arbre disponible                     | Manuel | message « aucun arbre disponible »                    | ✅ dans le code : « Aucun arbre n'est disponible pour le moment. » ; l'API renvoie `[]` (F1-INT-5, F1-INT-6)             |
+| F1-MAN-8  | Affichage mobile                           | Manuel | lisible, pas de défilement horizontal                 | ✅ largeur de page = largeur d'écran (412 px)                                                                            |
+| F1-MAN-9  | Navigation au clavier (touche Tab)         | Manuel | tous les liens et boutons atteignables, focus visible | ✅ le 30/10 : ordre logique, contour de 3 px                                                                             |
+| F1-MAN-10 | Langue de la page                          | Manuel | `<html lang="fr">`                                    | ✅ `lang="fr"`                                                                                                           |
+| F1-MAN-11 | Liens de l'en-tête et du pied de page      | Manuel | pas d'erreur 404                                      | ⏳ seul `/panier` répond encore 404 (page de la F4, carte #101)                                                          |
 
 ### Audit Lighthouse
 
-Lighthouse 12.8.2, Chromium 156, le 30/10/2026. Objectif de la carte #45 : accessibilité et SEO à 90 ou plus.
+Lighthouse 13.6.0, le 10/11/2026, en local. Objectif de la carte #45 : accessibilité et SEO à 90 ou plus.
 
-| N°       | Catégorie        | Mobile | Bureau | Attendu | Obtenu             |
-| -------- | ---------------- | ------ | ------ | ------- | ------------------ |
-| F1-AUD-1 | Accessibilité    | 96     | 96     | ≥ 90    | ✅                 |
-| F1-AUD-2 | SEO              | 82     | 82     | ≥ 90    | ❌                 |
-| F1-AUD-3 | Bonnes pratiques | 93     | 93     | —       | ✅                 |
-| F1-AUD-4 | Performance      | 83     | 100    | —       | mobile à améliorer |
+| N°       | Catégorie        | Mobile | Bureau | Attendu | Obtenu                                                                                           |
+| -------- | ---------------- | ------ | ------ | ------- | ------------------------------------------------------------------------------------------------ |
+| F1-AUD-1 | Accessibilité    | 100    | 100    | ≥ 90    | ✅                                                                                               |
+| F1-AUD-2 | SEO              | 100    | 100    | ≥ 90    | ✅ (82 le 30/10 : titre et description ajoutés depuis)                                           |
+| F1-AUD-3 | Bonnes pratiques | 92     | 92     | —       | ✅                                                                                               |
+| F1-AUD-4 | Performance      | 47     | 97     | —       | à mesurer sur le VPS : en local, le mode développement de Next.js ne compresse pas le JavaScript |
 
-Problèmes relevés :
+Corrigé depuis le 30/10 : titre et description de la page, `lang="fr"`, ordre et choix des arbres, catégorie et prix en euros sur les vignettes, messages d'erreur et de liste vide, bouton qui mène au catalogue.
 
-- **SEO et accessibilité** — pas de `<title>` ni de `<meta name="description">` : `layout.tsx` n'exporte pas d'objet `metadata`. C'est ce qui fait perdre le plus de points.
-- **Accessibilité** — le lien du logo dans le pied de page a `aria-label="Je m’appelle Graine, accueil"` (faute : « m’appelle »), alors que le texte visible est « Je s’appelle Graine ». Le nom lu par un lecteur d'écran ne correspond plus au texte affiché (`Footer.tsx`, ligne 20).
-- **Accessibilité** — la grande image d'accueil a `alt="Arbre"` : un texte plus précis aiderait (« Pin maritime », ou `alt=""` si elle est décorative).
-- **Bonnes pratiques** — l'icône « Des arbres sélectionnés » (`arbres-selectionnes.png`, 200 × 263) est affichée en 24 × 24, donc déformée ; erreurs 404 dans la console (liens ci-dessus).
-- **Performance mobile** — la grande image d'accueil est chargée en différé (`loading="lazy"`), alors que c'est le plus gros élément visible : affichage complet en 4,7 s. Images des vignettes plus grandes que nécessaire (environ 570 Kio de trop).
+Reste à corriger :
+
+- **Accessibilité** — le lien du logo dans le pied de page a toujours `aria-label="Je m’appelle Graine, accueil"` (faute : « m’appelle ») : le nom lu par un lecteur d'écran ne correspond pas au texte affiché (`Footer.tsx`, ligne 21).
+- **Accessibilité** — la grande image d'accueil a `alt="Pin maritime"`, alors qu'elle montre des mains qui plantent une jeune pousse : `alt=""` si elle est décorative, ou un texte qui la décrit.
+- **HTML** — `<Link>` contient un `<button>` (« Voir nos arbres », et les liens vers le catalogue des messages d'erreur et de liste vide) : mettre la classe du bouton directement sur le `<Link>`.
+- **Bonnes pratiques** — l'icône « Des arbres sélectionnés » (`arbres-selectionnes.png`) est toujours déformée ; `/favicon.ico` répond 404 (erreur dans la console sur toutes les pages).
+- **Textes** — description de la page : « que vous avez choisis » → « choisi » ; messages : « Chercher votre bonheur » → « Cherchez votre bonheur ».
+- **Test** — F1-INT-7 (format d'une vignette) reste à écrire.
 
 ## F3 · Authentification (US06, US07, US20, US21)
 
@@ -145,12 +148,12 @@ Fichier : `src/api/src/middlewares/isConnectedMiddleware.unit.test.ts`. Les 3 ca
 | N°       | Cas                                                         | Type   | Attendu                                                                 | Obtenu                                       |
 | -------- | ----------------------------------------------------------- | ------ | ----------------------------------------------------------------------- | -------------------------------------------- |
 | F3-MAN-1 | Visiteur qui clique sur « Ajouter au panier » (US05)        | Manuel | redirigé vers `/connexion`, avec un lien vers l'inscription             | reporté à la F4                              |
-| F3-MAN-2 | Connexion réussie après une redirection (US06)              | Manuel | retour sur la page d'origine                                            | ⏳ à tester                                  |
-| F3-MAN-3 | Mauvais identifiants, compte désactivé                      | Manuel | message d'erreur lisible, annoncé aux lecteurs d'écran (`role="alert"`) | ⏳ à tester                                  |
-| F3-MAN-4 | En-tête après connexion, puis après rechargement de la page | Manuel | « Bonjour <prénom> » et « Déconnexion »                                 | ⏳ à tester (`GET /api/users/me` disponible) |
-| F3-MAN-5 | Déconnexion depuis l'en-tête                                | Manuel | retour à l'état visiteur                                                | ⏳ à tester                                  |
-| F3-MAN-6 | Inscription depuis la page `/inscription`                   | Manuel | compte créé, messages 400 et 409 affichés                               | ⏳ page en cours (carte #121)                |
-| F3-MAN-7 | Formulaires au clavier et en mobile (375 px)                | Manuel | labels, focus visible, champs obligatoires indiqués en texte            | ⏳ à tester (carte #87)                      |
+| F3-MAN-2 | Connexion réussie après une redirection (US06)              | Manuel | retour sur la page d'origine                                            | ✅ à tester                                  |
+| F3-MAN-3 | Mauvais identifiants, compte désactivé                      | Manuel | message d'erreur lisible, annoncé aux lecteurs d'écran (`role="alert"`) | ✅ à tester                                  |
+| F3-MAN-4 | En-tête après connexion, puis après rechargement de la page | Manuel | « Bonjour <prénom> » et « Déconnexion »                                 | ✅ à tester (`GET /api/users/me` disponible) |
+| F3-MAN-5 | Déconnexion depuis l'en-tête                                | Manuel | retour à l'état visiteur                                                | ✅ à tester                                  |
+| F3-MAN-6 | Inscription depuis la page `/inscription`                   | Manuel | compte créé, messages 400 et 409 affichés                               | ✅ page en cours (carte #121)                |
+| F3-MAN-7 | Formulaires au clavier et en mobile (375 px)                | Manuel | labels, focus visible, champs obligatoires indiqués en texte            | ✅ à tester (carte #87)                      |
 
 ## F2 · Catalogue et fiche arbre (US02 à US04, US08, US09)
 
@@ -261,12 +264,12 @@ Même fichier. Les 3 cas passent. En test, `SMTP_HOST` est absent : l'email est 
 
 ### Tests manuels — pages `/commandes/nouvelle`, `/commandes/nouvelle/paiement`, `/commandes/[id]/confirmation`
 
-| N°       | Cas                                                       | Type   | Attendu                                                                         | Obtenu                        |
-| -------- | --------------------------------------------------------- | ------ | ------------------------------------------------------------------------------- | ----------------------------- |
-| F5-MAN-1 | Parcours panier → récapitulatif → paiement → confirmation | Manuel | commande créée, page de confirmation affichée                                   | ⏳ pages à faire (carte #107) |
-| F5-MAN-2 | Valider sans cocher l'engagement ou sans adresse          | Manuel | message d'erreur lisible, annoncé aux lecteurs d'écran (`role="alert"`)         | ⏳ pages à faire (carte #107) |
-| F5-MAN-3 | Page de confirmation                                      | Manuel | référence (n° de commande), montant TTC, date limite, IBAN ou adresse du chèque | ⏳ pages à faire (carte #107) |
-| F5-MAN-4 | Formulaires au clavier et en mobile (375 px)              | Manuel | labels, focus visible, champs obligatoires indiqués en texte                    | ⏳ pages à faire (carte #107) |
+| N°       | Cas                                                       | Type   | Attendu                                                                         | Obtenu |
+| -------- | --------------------------------------------------------- | ------ | ------------------------------------------------------------------------------- | ------ |
+| F5-MAN-1 | Parcours panier → récapitulatif → paiement → confirmation | Manuel | commande créée, page de confirmation affichée                                   | ✅     |
+| F5-MAN-2 | Valider sans cocher l'engagement ou sans adresse          | Manuel | message d'erreur lisible, annoncé aux lecteurs d'écran (`role="alert"`)         | ✅     |
+| F5-MAN-3 | Page de confirmation                                      | Manuel | référence (n° de commande), montant TTC, date limite, IBAN ou adresse du chèque | ✅     |
+| F5-MAN-4 | Formulaires au clavier et en mobile (375 px)              | Manuel | labels, focus visible, champs obligatoires indiqués en texte                    | ✅     |
 
 ## F6 · Espace client (US26 à US30)
 
@@ -365,6 +368,92 @@ Vérifiés sur `feat/f6-commandes-front` le 09/11/2026. Les 11 cas passent.
 | F6-MAN-10 | Mobile (360 px) et clavier                                      | Manuel | rien ne déborde ; Tab atteint les cartes, le lien de retour et le bouton, focus visible ; Échap ferme la confirmation | ✅     |
 | F6-MAN-11 | Lighthouse sur les deux pages                                   | Manuel | accessibilité ≥ 90 ; SEO sous 90 attendu : `noindex` volontaire, page privée                                          | ✅     |
 
-## F7 à F9
+### Tests manuels — page `/compte` et lien « Bonjour X » (carte #161)
+
+Vérifiés sur `feat/f6-compte-front` le 10/11/2026. Les 12 cas passent.
+
+| N°        | Cas                                          | Type   | Attendu                                                                                                                                                                       | Obtenu |
+| --------- | -------------------------------------------- | ------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| F6-MAN-12 | « Bonjour X » dans l'en-tête                 | Manuel | mène à `/compte`, lien mis en avant sur cette page ; sur mobile, le menu burger se ferme                                                                                      | ✅     |
+| F6-MAN-13 | `/compte` sans être connecté                 | Manuel | redirection vers `/connexion`, puis retour sur `/compte` après la connexion                                                                                                   | ✅     |
+| F6-MAN-14 | Menu de la page                              | Manuel | « Suivre mes commandes » mène à `/commandes` ; les trois autres entrées descendent jusqu'à leur bloc                                                                          | ✅     |
+| F6-MAN-15 | Informations préremplies                     | Manuel | prénom, nom, email, adresse et type de compte du compte connecté ; structure affichée seulement hors particulier                                                              | ✅     |
+| F6-MAN-16 | Modifier ses informations                    | Manuel | « Vos informations ont été enregistrées. », valeurs gardées après rechargement                                                                                                | ✅     |
+| F6-MAN-17 | Email d'un autre compte                      | Manuel | « Cet email est déjà utilisé. »                                                                                                                                               | ✅     |
+| F6-MAN-18 | Mot de passe actuel faux, nouveau trop court | Manuel | « Le mot de passe actuel est incorrect. » ; « Le mot de passe doit contenir au moins 12 caractères. »                                                                         | ✅     |
+| F6-MAN-19 | Changer son mot de passe                     | Manuel | message de réussite, champs vidés ; connexion avec le nouveau mot de passe                                                                                                    | ✅     |
+| F6-MAN-20 | Supprimer son compte (compte jetable)        | Manuel | confirmation qui prévient de la perte d'accès aux commandes ; « Votre compte a été supprimé… », puis la page de connexion au bout de 3 secondes, « Connexion » dans l'en-tête | ✅     |
+| F6-MAN-21 | Supprimer le dernier admin actif             | Manuel | « Impossible de supprimer le dernier administrateur. »                                                                                                                        | ✅     |
+| F6-MAN-22 | Mobile (360 px) et clavier                   | Manuel | rien ne déborde ; Tab atteint le menu, les champs et les boutons, focus visible                                                                                               | ✅     |
+| F6-MAN-23 | Lighthouse                                   | Manuel | accessibilité ≥ 90 ; SEO sous 90 attendu : `noindex` volontaire, page privée                                                                                                  | ✅     |
+
+**## F7 · Admin catalogue (US41, US42, US43, US43b)**
+
+Tests d'intégration dans `src/api/src/controllers/adminTreeController.spec.test.ts`
+
+**### Tests d'intégration — routes admin des arbres**
+
+| N°        | Cas                                      | Type        | Attendu                                                       | Obtenu      |
+| --------- | ---------------------------------------- | ----------- | ------------------------------------------------------------- | ----------- |
+| F7-INT-1  | La liste contient un arbre retiré        | Intégration | `200`, l'arbre retiré apparaît dans la liste                  | ✅          |
+| F7-INT-2  | Création puis modification du prix seul  | Intégration | `POST` en `201`, `PATCH` en `200`, autres champs inchangés    | ✅          |
+| F7-INT-3  | Liste sans connexion                     | Intégration | `401`, « Vous devez être connecté. »                          | ✅          |
+| F7-INT-4  | Liste avec un compte client              | Intégration | `403`, « Accès réservé à l'administrateur. »                  | ✅          |
+| F7-INT-5  | Lecture d'un arbre inconnu               | Intégration | `404`                                                         | ✅          |
+| F7-INT-6  | Création valide                          | Intégration | `201`, l'arbre créé est renvoyé                               | ✅          |
+| F7-INT-7  | Création avec un nom vide                | Intégration | `400`, « Le nom est obligatoire. »                            | ✅          |
+| F7-INT-8  | Création avec un prix négatif            | Intégration | `400`, « Le prix doit être positif. »                         | ✅          |
+| F7-INT-9  | Création avec une URL de photo externe   | Intégration | `400`, chemin de photo invalide                               | ✅          |
+| F7-INT-10 | Création avec une catégorie inconnue     | Intégration | `400`, « Catégorie invalide. »                                | ✅          |
+| F7-INT-11 | Création avec une disponibilité inconnue | Intégration | `400`, « Disponibilité invalide. »                            | ✅          |
+| F7-INT-12 | Suppression d'un arbre jamais commandé   | Intégration | `204`, arbre supprimé                                         | ✅          |
+| F7-INT-13 | Suppression d'un arbre déjà commandé     | Intégration | `409`, suppression refusée                                    | ✅          |
+| F7-INT-14 | Liste des disponibilités                 | Intégration | `200`, les trois disponibilités sont présentes, triées par id | ✅          |
+| F7-INT-15 | Changement de disponibilité avec `PATCH` | Intégration | `200`, l'arbre reçoit la disponibilité demandée               | ⏳ à écrire |
+
+## F8 · Admin commandes (US46, US25b, US25c, US25d)
+
+Contrat d'API : carte #167. Tests de la carte #170, vérifiés sur `feat/f8-commandes-back` le 11/11/2026.
+
+### Tests d'intégration — routes admin des commandes
+
+Fichier : `src/api/src/controllers/adminOrderController.spec.test.ts`. Les 22 cas passent.
+
+| N°        | Cas                                            | Type        | Attendu                                                                                                | Obtenu |
+| --------- | ---------------------------------------------- | ----------- | ------------------------------------------------------------------------------------------------------ | ------ |
+| F8-INT-1  | Liste sans connexion                           | Intégration | `401`                                                                                                  | ✅     |
+| F8-INT-2  | Liste avec un compte client                    | Intégration | `403`                                                                                                  | ✅     |
+| F8-INT-3  | Liste de deux commandes                        | Intégration | `200`, la plus récente d'abord, exactement les 8 champs du contrat                                     | ✅     |
+| F8-INT-4  | Filtre `?status=payée`                         | Intégration | `200`, seulement la commande payée                                                                     | ✅     |
+| F8-INT-5  | Filtre avec un statut inconnu                  | Intégration | `400` « Statut invalide. »                                                                             | ✅     |
+| F8-INT-6  | Retard de paiement                             | Intégration | `isLate` vrai en attente depuis 11 jours ; faux en attente depuis 2 jours, et pour une commande payée  | ✅     |
+| F8-INT-7  | Détail d'une commande                          | Intégration | `200`, `billingAddress`, `paymentMethod`, `dueDate` au format `AAAA-MM-JJ`, `paidAt` à `null`, `lines` | ✅     |
+| F8-INT-8  | Détail d'une commande inconnue                 | Intégration | `404` « Commande introuvable. »                                                                        | ✅     |
+| F8-INT-9  | Détail avec un id invalide                     | Intégration | `400` (`validateId`)                                                                                   | ✅     |
+| F8-INT-10 | En attente → payée                             | Intégration | `200`, statut et `paid_at` enregistrés en BDD, commande relue en réponse                               | ✅     |
+| F8-INT-11 | Payée → plantée                                | Intégration | `200`, `plantedAt` rempli, `paidAt` gardé                                                              | ✅     |
+| F8-INT-12 | En attente → plantée                           | Intégration | `409` « Une commande « en attente » ne peut pas passer à « plantée ». », statut inchangé               | ✅     |
+| F8-INT-13 | Plantée → annulée                              | Intégration | `409`                                                                                                  | ✅     |
+| F8-INT-14 | Statut inconnu                                 | Intégration | `400` « Statut invalide. »                                                                             | ✅     |
+| F8-INT-15 | Changement sur une commande inconnue           | Intégration | `404` « Commande introuvable. »                                                                        | ✅     |
+| F8-INT-16 | Changement avec un id invalide                 | Intégration | `400` (`validateId`)                                                                                   | ✅     |
+| F8-INT-17 | Email au passage à payée                       | Intégration | un email, objet « Commande n° X : paiement reçu »                                                      | ✅     |
+| F8-INT-18 | Email au passage à annulée                     | Intégration | un email, objet « Commande n° X annulée »                                                              | ✅     |
+| F8-INT-19 | Email au passage à plantée                     | Intégration | `200`, un email, objet « Commande n° X : vos arbres sont plantés »                                     | ✅     |
+| F8-INT-20 | Échec de l'envoi de l'email                    | Intégration | `200`, statut enregistré, échec noté dans les logs (`console.error`)                                   | ✅     |
+| F8-INT-21 | Email après la suppression du compte du client | Intégration | `200`, l'email part à l'adresse copiée dans la commande                                                | ✅     |
+| F8-INT-22 | Email après un changement d'email du client    | Intégration | `200`, l'email part à la nouvelle adresse du compte, la commande garde l'ancienne (`buyerEmail`)       | ✅     |
+
+### Tests unitaires — contenu de l'email de changement de statut
+
+Fichier : `src/api/src/services/emailService.unit.test.ts`. Les 3 cas passent. `buildOrderStatusEmail` fabrique l'email sans l'envoyer : le contenu se vérifie sans BDD ni mock.
+
+| N°       | Cas                 | Type     | Attendu                                                                                       | Obtenu |
+| -------- | ------------------- | -------- | --------------------------------------------------------------------------------------------- | ------ |
+| F8-UNI-1 | Email de paiement   | Unitaire | destinataire, objet « paiement reçu », prénom et nom, message, référence, montant « 33,80 € » | ✅     |
+| F8-UNI-2 | Email d'annulation  | Unitaire | objet « annulée » et message d'annulation, sans le message de paiement                        | ✅     |
+| F8-UNI-3 | Email de plantation | Unitaire | objet « vos arbres sont plantés » et message de plantation                                    | ✅     |
+
+## F9
 
 À compléter au fil des sprints.
