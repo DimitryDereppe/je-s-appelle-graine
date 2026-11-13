@@ -51,7 +51,12 @@ export function CartItems() {
     return (
       <div className={styles.container}>
         <h1 className={styles.title}>Mon panier</h1>
-        <p className={styles.empty}>Votre panier est vide.</p>
+        <div className={styles.emptyState}>
+          <p className={styles.empty}>Votre panier est vide.</p>
+          <Link href="/arbres" className={styles.emptyLink}>
+            ← Découvrir nos arbres
+          </Link>
+        </div>
       </div>
     );
   }
@@ -102,6 +107,14 @@ export function CartItems() {
               <span className={styles.unitPrice}>
                 {item.price.toFixed(0)}€ TTC
               </span>
+              <button
+                type="button"
+                className={styles.deleteString}
+                aria-label={`Retirer ${item.name} du panier`}
+                onClick={() => handleDeleteItem(item.treeId)}
+              >
+                supprimer
+              </button>
               <div className={styles.qtyControl}>
                 <button
                   type="button"
@@ -127,14 +140,6 @@ export function CartItems() {
             </div>
             <div className={styles.priceAndClosure}>
               <div className={styles.deleteDiv}>
-                <button
-                  type="button"
-                  className={styles.deleteString}
-                  aria-label={`Retirer ${item.name} du panier`}
-                  onClick={() => handleDeleteItem(item.treeId)}
-                >
-                  supprimer
-                </button>
                 <button
                   type="button"
                   className={styles.deleteBtn}

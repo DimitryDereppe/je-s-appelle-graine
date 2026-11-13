@@ -19,6 +19,11 @@ export interface ITree extends ICatalogueTree {
   description: string | null;
 }
 
+// Arbre utilisé dans l’administration, avec l’identifiant de sa disponibilité.
+export interface IAdminTree extends ITree {
+  availabilityId: number;
+}
+
 //Formulaire inscription client
 export interface IRegister {
   firstname: string;

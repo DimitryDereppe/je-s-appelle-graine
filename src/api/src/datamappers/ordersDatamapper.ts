@@ -211,27 +211,35 @@ export const ordersDatamapper = {
   // --------------------------------
   async findOrderByIdForAdmin(id: number): Promise<IAdminOrder | null> {
     const orderResult = await pool.query(
-      `SELECT id,
-              purchase_date AS "purchaseDate",
-              status,
-              CAST(total_amount AS FLOAT) AS "totalAmount",
-              buyer_firstname AS "buyerFirstname",
-              buyer_lastname AS "buyerLastname",
-              buyer_email AS "buyerEmail",
-              (status = 'en attente' AND purchase_date < now() - INTERVAL '10 days') AS "isLate",
+      `SELECT purchase.id,
+              purchase.purchase_date AS "purchaseDate",
+              purchase.status,
+              CAST(purchase.total_amount AS FLOAT) AS "totalAmount",
+              purchase.buyer_firstname AS "buyerFirstname",
+              purchase.buyer_lastname AS "buyerLastname",
+              purchase.buyer_email AS "buyerEmail",
+              (purchase.status = 'en attente' AND purchase.purchase_date < now() - INTERVAL '10 days') AS "isLate",
               -- même calcul que findOrderByIdAndAccountId : date limite en texte "AAAA-MM-JJ"
-              TO_CHAR(purchase_date + INTERVAL '10 days', 'YYYY-MM-DD') AS "dueDate",
-              payment_method AS "paymentMethod",
-              buyer_organization AS "buyerOrganization",
+              TO_CHAR(purchase.purchase_date + INTERVAL '10 days', 'YYYY-MM-DD') AS "dueDate",
+              purchase.payment_method AS "paymentMethod",
+              purchase.buyer_organization AS "buyerOrganization",
               -- même nom que dans GET /api/orders/:id (contrat #167)
-              buyer_address AS "billingAddress",
+              purchase.buyer_address AS "billingAddress",
               -- null tant que le statut n'a pas été atteint
-              paid_at AS "paidAt",
-              planted_at AS "plantedAt",
-              cancelled_at AS "cancelledAt"
+              purchase.paid_at AS "paidAt",
+              purchase.planted_at AS "plantedAt",
+              purchase.cancelled_at AS "cancelledAt",
+              -- destinataire des emails (pour les changements de statut) : le client a pu changer son email entre temps dans ses infos personnelles (account.email),
+              -- sinon celui copié à l'achat (purchase.buyer_email)
+              -- (COALESCE prend la 1re valeur : account.email, si le client a supprimé son compte, c'est la 2è valeur purchase.buyer_email)
+              COALESCE(account.email, purchase.buyer_email) AS "notificationEmail"
        FROM purchase
-       -- pas de account_id : l'admin voit les commandes de tous les clients
-       WHERE id = $1`,
+       -- ajoute à la commande le compte du client : la ligne de account dont l'id vaut purchase.account_id
+       -- LEFT (pas JOIN seul) : garde la commande même sans compte (supprimé → account_id NULL),
+       -- ses colonnes account valent alors NULL (JOIN seul ferait disparaître la commande)
+       LEFT JOIN account ON account.id = purchase.account_id
+       -- pas de filtre sur account_id : l'admin voit les commandes de tous les clients
+       WHERE purchase.id = $1`,
       [id],
     );
 

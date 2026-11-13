@@ -24,6 +24,8 @@ describe("buildOrderStatusEmail", () => {
     paidAt: "2026-11-11T09:00:00.000Z",
     plantedAt: null,
     cancelledAt: null,
+    // différent de buyerEmail : vérifie que l'email part bien à notificationEmail
+    notificationEmail: "alice.nouvelle@test.fr",
     lines: [],
   };
 
@@ -32,7 +34,7 @@ describe("buildOrderStatusEmail", () => {
     const email = buildOrderStatusEmail({ ...orderTest, status: "payée" });
 
     // Assert : destinataire, objet et contenu
-    assert.strictEqual(email.to, "alice@test.fr");
+    assert.strictEqual(email.to, "alice.nouvelle@test.fr");
     assert.strictEqual(email.subject, "Commande n° 12 : paiement reçu");
     assert.ok(email.text.startsWith("Bonjour Alice Martin,"));
     assert.ok(email.text.includes("Votre paiement a bien été reçu."));

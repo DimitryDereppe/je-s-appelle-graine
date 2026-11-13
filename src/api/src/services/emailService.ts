@@ -161,8 +161,8 @@ L'équipe Je s'appelle Graine`;
   // l'email, au format attendu par Nodemailer
   return {
     from: config.mail.from,
-    // l'adresse copiée dans la commande : l'email part même si le compte a été supprimé entre temps
-    to: order.buyerEmail,
+    // l'email actuel du compte, ou celui copié dans la commande si le compte a été supprimé
+    to: order.notificationEmail,
     subject,
     text,
   };

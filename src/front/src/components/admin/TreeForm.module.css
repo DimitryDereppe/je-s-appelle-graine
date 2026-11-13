@@ -1,0 +1,98 @@
+/* Place tous les champs les uns sous les autres. */
+.form {
+  display: grid;
+  gap: 20px;
+  max-width: 640px;
+}
+
+/* Place le titre d'un champ au-dessus de sa zone de saisie. */
+.field {
+  display: grid;
+  gap: 6px;
+}
+
+/* Donne aux zones de saisie une taille confortable. */
+.field input,
+.field textarea {
+  width: 100%;
+  min-height: 44px;
+  padding: 10px;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  font: inherit;
+}
+
+/* Agrandit la zone de description et permet de la redimensionner. */
+.field textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
+/* Encadre les choix de catégorie et de disponibilité. */
+.choices {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 14px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+}
+
+/* Aligne chaque bouton radio avec son texte. */
+.choice {
+  display: flex;
+  min-height: 44px;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Donne au bouton Enregistrer la couleur principale du site. */
+.submitButton {
+  min-height: 44px;
+  padding: 8px 16px;
+  border: 0;
+  border-radius: 8px;
+  background: var(--color-green);
+  color: white;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* Rend le focus visible quand on navigue au clavier. */
+.submitButton:focus-visible {
+  outline: 2px solid var(--color-deep-green);
+  outline-offset: 2px;
+}
+
+/* Indique que l'enregistrement est en cours. */
+.submitButton:disabled {
+  cursor: wait;
+  opacity: 0.7;
+}
+
+/* Affiche les erreurs dans la couleur prévue par le site. */
+.error {
+  color: var(--color-terracotta);
+}
+
+/* Place le bouton Enregistrer et le lien Annuler l'un sous l'autre. */
+.formActions {
+  display: grid;
+  justify-items: start;
+  gap: 8px;
+}
+
+/* Le lien Annuler reste facile à utiliser au clavier et au toucher. */
+.cancelLink {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  color: var(--color-deep-green);
+  text-underline-offset: 3px;
+}
+
+.cancelLink:focus-visible {
+  outline: 2px solid var(--color-deep-green);
+  outline-offset: 2px;
+}
