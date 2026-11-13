@@ -222,8 +222,9 @@ Attendu, ligne par ligne :
 2. `200` : la page d'accueil répond, et le certificat est reconnu.
 3. `{"message":"je s'appelle Graine"}` : l'API répond.
 4. Les arbres mis en avant, en JSON : l'API lit bien la base.
-5. `200 image/webp` : le front (composant `<Image>`) récupère bien les photos des arbres auprès de
-   l'API.
+5. `200 image/jpeg` : le front (composant `<Image>`) récupère bien les photos des arbres auprès de
+   l'API. (Next.js choisit le format selon ce qu'accepte le client : `curl` reçoit du JPEG, un
+   navigateur du WebP ; l'important est le `200`.)
 
 **Sur la VM**, depuis `~/apo-jesappellegraine/src` :
 
@@ -335,7 +336,8 @@ mais pas à un `down -v`, à une erreur de migration ou à la perte de la VM. D'
 
 ```bash
 docker compose -f docker-compose.prod.yml exec -T db sh -c 'pg_dump -U "$POSTGRES_USER" "$POSTGRES_DB"' > ~/sauvegarde-bdd-$(date +%F).sql
-ls -lh ~/sauvegarde-bdd-*.sql      # le fichier ne doit pas faire 0 octet
+chmod 600 ~/sauvegarde-bdd-*.sql   # lisible par toi seul : emails et mots de passe hachés des clients
+ls -lh ~/sauvegarde-bdd-*.sql      # -rw------- et pas 0 octet
 ```
 
 - `pg_dump` écrit toute la base (tables et données) sous forme de commandes SQL.
@@ -369,8 +371,21 @@ docker compose -f docker-compose.prod.yml start api
 - `ON_ERROR_STOP=1` : `psql` s'arrête à la première erreur au lieu de continuer à moitié.
 - Vérifier ensuite avec la section 4 (`/api/trees/featured`, se connecter, voir ses commandes).
 
-**Tester la restauration au moins une fois** (en local ou sur la VM avant la démo) : une
-sauvegarde jamais restaurée n'est pas une sauvegarde vérifiée.
+**Tester une sauvegarde sans toucher à la base du site** : la restaurer dans une base à part,
+`restore_test`, créée dans le même conteneur, comparer, puis la supprimer. Une sauvegarde jamais
+restaurée n'est pas une sauvegarde vérifiée.
+
+```bash
+docker compose -f docker-compose.prod.yml exec -T db sh -c 'createdb -U "$POSTGRES_USER" restore_test'
+docker compose -f docker-compose.prod.yml exec -T db sh -c \
+  'psql -q -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d restore_test' < ~/sauvegarde-bdd-AAAA-MM-JJ.sql
+docker compose -f docker-compose.prod.yml exec -T db sh -c \
+  'psql -tA -U "$POSTGRES_USER" -d restore_test -c "SELECT count(*) FROM tree"'   # = nombre d'arbres du site
+docker compose -f docker-compose.prod.yml exec -T db sh -c 'dropdb -U "$POSTGRES_USER" restore_test'
+```
+
+Testé le 13/11/2026 sur la VM de Dimitry : sauvegarde de 21 Ko, restauration sans erreur, mêmes
+nombres d'arbres (21), de catégories (3) et d'utilisateurs que la base du site.
 
 ## 8. Pièges rencontrés
 
