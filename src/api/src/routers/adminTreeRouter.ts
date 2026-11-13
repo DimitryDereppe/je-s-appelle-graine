@@ -14,6 +14,9 @@ router.get("/trees/:id", validateId, adminTreeController.findById);
 // GET /api/admin/availabilities
 router.get("/availabilities", adminTreeController.findAllAvailabilities);
 
+// GET /api/admin/tree-photos
+router.get("/tree-photos", adminTreeController.findAllPhotos);
+
 // POST /api/admin/trees
 router.post("/trees", adminTreeController.create);
 

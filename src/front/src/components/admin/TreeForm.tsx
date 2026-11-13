@@ -4,15 +4,21 @@
 // et réagit à la validation du formulaire.
 import { useEffect, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import type { IAdminTree, ICategory } from "@/@types";
 import { clientApi } from "@/app/utils/clientApi";
 import styles from "./TreeForm.module.css";
-import Link from "next/link";
 
 // Une disponibilité contient son identifiant et son nom.
 type Availability = {
   id: number;
   name: IAdminTree["availabilityName"];
+};
+
+// Une photo contient son nom et le chemin à enregistrer pour l'arbre.
+type TreePhoto = {
+  name: string;
+  photoUrl: string;
 };
 
 interface TreeFormProps {
@@ -22,7 +28,6 @@ interface TreeFormProps {
 }
 
 // Récupère le message d'erreur envoyé par l'API.
-// Si l'API n'en fournit pas, on utilise un message général.
 async function getApiError(response: Response): Promise<string> {
   const data = (await response.json().catch(() => null)) as {
     error?: string;
@@ -35,18 +40,19 @@ export default function TreeForm({ tree }: TreeFormProps) {
   // Permet de revenir à la liste après l'enregistrement.
   const router = useRouter();
 
-  // Ces listes alimentent les boutons radio du formulaire.
+  // Ces listes alimentent les choix du formulaire.
   const [categories, setCategories] = useState<ICategory[]>([]);
   const [availabilities, setAvailabilities] = useState<Availability[]>([]);
+  const [photos, setPhotos] = useState<TreePhoto[]>([]);
 
   // Ces états servent à afficher l'attente, les erreurs et le bouton désactivé.
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
-  // Charge les catégories et disponibilités quand le formulaire s'ouvre.
+  // Charge les catégories, disponibilités et photos quand le formulaire s'ouvre.
   useEffect(() => {
-    // Empêche de modifier l'écran si on le quitte avant la réponse de l'API.
+    // Évite de modifier l'écran si on le quitte avant la réponse de l'API.
     let isMounted = true;
 
     async function loadChoices() {
@@ -58,29 +64,42 @@ export default function TreeForm({ tree }: TreeFormProps) {
           throw new Error(await getApiError(categoryResponse));
         }
 
-        // Récupère les choix de disponibilité.
+        // Récupère les disponibilités disponibles.
         const availabilityResponse = await clientApi("admin/availabilities");
 
         if (!availabilityResponse.ok) {
           throw new Error(await getApiError(availabilityResponse));
         }
 
-        // Les réponses de l'API arrivent au format JSON.
+        // Récupère les photos déjà présentes dans l'API.
+        const photoResponse = await clientApi("admin/tree-photos");
+
+        if (!photoResponse.ok) {
+          throw new Error(await getApiError(photoResponse));
+        }
+
+        // Convertit les réponses de l'API en données JSON.
         const categoryData: unknown = await categoryResponse.json();
         const availabilityData: unknown = await availabilityResponse.json();
+        const photoData: unknown = await photoResponse.json();
 
-        // Vérifie que l'API a bien renvoyé deux listes.
-        if (!Array.isArray(categoryData) || !Array.isArray(availabilityData)) {
-          throw new Error("Les catégories ou disponibilités sont invalides.");
+        // Vérifie que l'API a bien renvoyé trois listes.
+        if (
+          !Array.isArray(categoryData) ||
+          !Array.isArray(availabilityData) ||
+          !Array.isArray(photoData)
+        ) {
+          throw new Error("Les choix du formulaire sont invalides.");
         }
 
         // Enregistre les choix pour les afficher dans le formulaire.
         if (isMounted) {
           setCategories(categoryData as ICategory[]);
           setAvailabilities(availabilityData as Availability[]);
+          setPhotos(photoData as TreePhoto[]);
         }
       } catch (error) {
-        // Affiche l'erreur si une des deux requêtes a échoué.
+        // Affiche l'erreur si une requête a échoué.
         if (isMounted) {
           setErrorMessage(
             error instanceof Error
@@ -116,8 +135,7 @@ export default function TreeForm({ tree }: TreeFormProps) {
     // FormData récupère les valeurs saisies dans le formulaire.
     const formData = new FormData(event.currentTarget);
 
-    // La description, la photo et le lieu peuvent rester vides.
-    // L'API attend alors null pour ces champs.
+    // Ces champs peuvent rester vides : l'API recevra alors null.
     function getOptionalText(fieldName: string): string | null {
       const value = String(formData.get(fieldName) ?? "").trim();
 
@@ -137,8 +155,8 @@ export default function TreeForm({ tree }: TreeFormProps) {
     };
 
     try {
-      // Avec un arbre, on modifie ses données avec PATCH.
-      // Sans arbre, on crée un nouvel arbre avec POST.
+      // Avec un arbre, on le modifie avec PATCH.
+      // Sans arbre, on le crée avec POST.
       const response = tree
         ? await clientApi(`admin/trees/${tree.id}`, "PATCH", treeInput)
         : await clientApi("admin/trees", "POST", treeInput);
@@ -160,7 +178,7 @@ export default function TreeForm({ tree }: TreeFormProps) {
     }
   }
 
-  // Les boutons radio ne sont pas prêts tant que les choix ne sont pas chargés.
+  // Attend que les catégories, disponibilités et photos soient chargées.
   if (isLoading) {
     return <p role="status">Chargement du formulaire…</p>;
   }
@@ -204,13 +222,13 @@ export default function TreeForm({ tree }: TreeFormProps) {
         ))}
       </fieldset>
 
-      {/* Le champ reste vide ou reprend la description de l'arbre. */}
+      {/* La description peut rester vide. */}
       <label className={styles.field}>
         <span>Description</span>
         <textarea name="description" defaultValue={tree?.description ?? ""} />
       </label>
 
-      {/* Le prix est un nombre positif, avec deux décimales possibles. */}
+      {/* Le prix est positif, avec deux décimales possibles. */}
       <label className={styles.field}>
         <span>Prix TTC en euros</span>
         <input
@@ -223,19 +241,21 @@ export default function TreeForm({ tree }: TreeFormProps) {
         />
       </label>
 
-      {/* Le chemin de la photo peut rester vide. */}
+      {/* La liste propose les photos présentes dans le dossier de l'API. */}
       <label className={styles.field}>
-        <span>Chemin de la photo</span>
-        <input
-          name="photoUrl"
-          type="text"
-          maxLength={255}
-          placeholder="/images/trees/mon-arbre.webp"
-          defaultValue={tree?.photoUrl ?? ""}
-        />
+        <span>Photo</span>
+        <select name="photoUrl" defaultValue={tree?.photoUrl ?? ""}>
+          <option value="">Aucune photo</option>
+
+          {photos.map((photo) => (
+            <option key={photo.photoUrl} value={photo.photoUrl}>
+              {photo.name}
+            </option>
+          ))}
+        </select>
       </label>
 
-      {/* Le lieu de plantation peut lui aussi rester vide. */}
+      {/* Le lieu de plantation peut rester vide. */}
       <label className={styles.field}>
         <span>Lieu de plantation</span>
         <input
