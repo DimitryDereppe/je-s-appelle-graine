@@ -2,6 +2,30 @@
 
 Suivi de mon travail sur Je s’appelle Graine. Les décisions notées ici ont été prises avec l'équipe sur Discord ; le suivi de l'équipe est dans le [[Apothéose/apo-jesappellegraine/CARNET-DE-BORD-JE-S-APPELLE-GRAINE|carnet de bord Je s’appelle Graine]].
 
+## 2026-11-13 — Déploiement : procédure finale (#174), testée sur la VM
+
+### `DEPLOIEMENT.md` complété (PR #254 fusionnée dans `main`, PR #255 ouverte vers `main`)
+
+- Prérequis du VPS regroupés (VM publique, SSH, Docker, ~5 Go libres, secrets à avoir sous la main).
+- Variables d'environnement : `PAYMENT_*` expliquées (vides = valeurs fictives de `config.ts`), tableau « si elle est vide ou fausse », rappel `up -d` après une modification du `.env`.
+- Nouvelle section 3.3 Pare-feu : `ufw` (port 22 autorisé **avant** `enable`) ; Docker passe devant `ufw`, la vraie protection de la base reste l'absence de `ports:` sur `db`.
+- Section 5 : que faire si le schéma, le seed ou les variables changent ; livrer une version (DEV → main → VM → vérifications).
+- Nouvelle section 7 : sauvegarde (`pg_dump` + `chmod 600`), copie hors de la VM (`scp`), restauration (`DROP SCHEMA public CASCADE`, puis `psql < fichier`), test dans une base à part.
+- Correction : une erreur dans `ALLOWED_ORIGINS` n'a pas d'effet visible ici (un seul domaine, pas de CORS).
+
+### Tests sur la VM
+
+- Section 4 : tout conforme (HTTPS, API, base, images, certificat jusqu'au 03/02/2027, ports 22/80/443 seulement, `.env` en 600, crontab).
+- Sauvegarde de 21 Ko restaurée sans erreur dans `restore_test` (mêmes comptes d'arbres, catégories, utilisateurs), puis supprimée ; base du site non touchée. Le fichier sortait en `-rw-rw-r--` : `chmod 600` ajouté à la procédure.
+- `curl` sur `/_next/image` renvoie `image/jpeg` (Next choisit le format selon le client) : doc corrigée.
+- `ufw` activé (OpenSSH, 80, 443, IPv4 et IPv6) ; après activation, SSH, HTTP `301` et HTTPS `200` OK.
+
+### Reste à faire
+
+- Ajouter les `PAYMENT_*` au `.env` de la VM (absents : IBAN fictif affiché), puis `up -d api`.
+- Faire relire et fusionner #255 (Fabrice), puis ramener `main` dans `DEV`.
+- Mon `DEV` local a un commit d'avance sur `origin/DEV` (déjà dans `main`) : `git pull` après la fusion.
+
 ## 2026-11-12 — Admin commandes (F8) : back #168 arrivé, page détail `/admin/commandes/[id]` et changement de statut (#169), fix CSS du panier, emails en production
 
 ### Back #168 (Fabrice)
