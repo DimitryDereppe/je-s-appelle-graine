@@ -4,7 +4,11 @@
   margin: 0;
 }
 
+/* Variables de tout le site : définies UNE seule fois ici.
+   Un :root dans un .module.css n'est pas limité au module : il s'applique à tout le site
+   et écrase les valeurs des autres fichiers selon l'ordre de chargement des pages. */
 :root {
+  /* Couleurs de la charte */
   --color-deep-green: #18352e;
   --color-green: #245a46;
   --color-sage: #e3e9df;
@@ -12,12 +16,54 @@
   --color-terracotta: #b6532c;
   --color-muted: #53615b;
   --color-border: #e4e1d9;
+
+  /* Nuances et alias utilisés par les pages */
+  --color-text: #18352e;
+  --color-text-muted: #53615b;
+  --color-primary: #245a46;
+  --color-primary-hover: #145222;
+  --color-primary-light: #f0fdf4;
+  --color-brand: #245a46;
+  --color-focus: #245a46;
+  --color-accent: #b6532c;
+  --color-terracotta-light: #fbeee8;
+  --color-sage-dark: #d0dacc;
+  --color-sage-light: rgb(36 90 70 / 10%);
+  --color-sage-border: #b8c3b8;
+  --color-surface: #e3e9df;
+  --color-surface-hover: #d0dacc;
+  --color-bg: #f8f6f8;
+  --color-card-bg: #f8f6f8;
+  --color-white: #fff;
+  --color-btn-text: #f8f6f8;
+  --color-gray: #666;
+  --color-muted-light: #9ca3af;
+  --color-border-input: #d1d5db;
+
+  /* Erreurs */
+  --color-error: #b00020;
+  --color-error-bg: #fef2f2;
+  --color-error-border: #fecaca;
+
+  /* Polices (--font-lora est défini par next/font dans layout.tsx) */
   --font-editorial: var(--font-lora), Georgia, serif;
+  --font-serif: "Lora", Georgia, serif;
+  --font-serif-fallback: Georgia, serif;
+  --font-sans: system-ui, -apple-system, sans-serif;
 }
 
 body {
   font-family: var(--font-lora), Georgia, serif;
-  height: 100%;
+  /* pied de page collé en bas sur les pages courtes :
+     au moins la hauteur de l'écran (min-height, jamais height : le contenu doit pouvoir dépasser) */
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* la page prend la place restante : le pied de page est poussé en bas */
+body > main {
+  flex: 1;
 }
 .addToCartButton {
   width: 44px;

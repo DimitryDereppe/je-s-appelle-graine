@@ -1,18 +1,3 @@
-:root {
-  /* Couleurs */
-  --color-ivory: #f8f6f0;
-  --color-deep-green: #18352e;
-  --color-green: #245a46;
-  --color-muted: #53615b;
-  --color-sage: #e3e9df;
-  --color-border: #e4e1d9;
-  --color-terracotta: #b6532c;
-  --color-white: #fff;
-
-  /* Polices */
-  --font-lora: "Lora";
-}
-
 .catalogue {
   width: 100%;
   max-width: none;
