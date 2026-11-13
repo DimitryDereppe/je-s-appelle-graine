@@ -3,7 +3,7 @@ import { AdminOrdersList } from "./AdminOrdersList";
 import styles from "./page.module.css";
 
 export const metadata: Metadata = {
-  title: "Commandes — Administration",
+  title: "Commandes",
   description: "Toutes les commandes des clients et leur statut.",
   // page réservée à l'admin : les moteurs de recherche ne l'indexent pas
   robots: { index: false },

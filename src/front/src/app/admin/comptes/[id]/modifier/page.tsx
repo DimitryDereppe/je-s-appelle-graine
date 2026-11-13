@@ -4,7 +4,7 @@ import { AccountStatusForm } from "./AccountStatusForm";
 import styles from "../../../commandes/page.module.css";
 
 export const metadata: Metadata = {
-  title: "Gérer l'état d'un compte — Administration",
+  title: "Comptes",
   description: "Activer ou désactiver un compte.",
 };
 

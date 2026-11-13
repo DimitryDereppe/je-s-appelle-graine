@@ -2,8 +2,9 @@ import type { Metadata } from "next";
 import { AdminGuard } from "./AdminGuard";
 
 export const metadata: Metadata = {
-  // titre par défaut de l'onglet : chaque page admin peut donner le sien
-  title: "Administration",
+  // onglet de l'accueil admin : « Administration | Je s’appelle Graine »
+  // chaque rubrique donne un seul mot : « Commandes | Administration », « Catalogue | Administration »
+  title: { default: "Administration", template: "%s | Administration" },
   // pages privées : les moteurs de recherche ne les indexent pas
   robots: { index: false },
 };
