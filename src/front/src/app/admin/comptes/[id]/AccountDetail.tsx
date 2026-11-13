@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import type { IAdminAccount } from "@/@types";
 import { clientApi } from "@/app/utils/clientApi";
+import { formatRole } from "@/app/utils/format";
 // styles de la page admin des commandes (F8) : mêmes classes (summary, actions…)
 import styles from "../../commandes/page.module.css";
 // styles propres aux comptes (fond blanc du détail)
@@ -157,7 +158,7 @@ export function AccountDetail({ id }: AccountDetailProps) {
         )}
 
         <dt>Rôle</dt>
-        <dd>{account.role}</dd>
+        <dd>{formatRole(account.role)}</dd>
 
         <dt>État</dt>
         {/* écrit en toutes lettres, comme dans la liste */}

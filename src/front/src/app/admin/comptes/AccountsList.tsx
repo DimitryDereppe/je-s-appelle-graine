@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import type { IAdminAccount } from "@/@types";
 import { clientApi } from "@/app/utils/clientApi";
+import { formatRole } from "@/app/utils/format";
 // mêmes styles que la liste admin des commandes (F8) : list, card…
 import styles from "../commandes/page.module.css";
 
@@ -79,7 +80,7 @@ export function AccountsList() {
               <span className={styles.late}>Désactivé</span>
             )}
             <span className={styles.date}>{account.email}</span>
-            <span className={styles.status}>{account.role}</span>
+            <span className={styles.status}>{formatRole(account.role)}</span>
           </Link>
         </li>
       ))}
