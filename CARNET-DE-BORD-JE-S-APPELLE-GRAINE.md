@@ -1,5 +1,32 @@
 # Carnet de bord — Je s’appelle Graine
 
+## 2026-11-13 — Version finale dans `main` et en ligne, finitions, README et plan de tests
+
+### Travail réalisé
+
+- **Admin comptes (F9), front** par Mahamadou (PR #243) : liste, détail, choix actif ou inactif, suppression avec confirmation, 409 du dernier administrateur affiché. F9 est terminée.
+- **Admin catalogue (F7)** par Shanna (PR #247) : photo de chaque arbre dans la liste admin, CSS harmonisé, et choix de la photo dans un menu (nouvelle route `GET /api/admin/tree-photos`).
+- **Panier (F4)** par Loïc : variables CSS (PR #240, #245) ; messages de Zod en français, quantité totale limitée à 100, un test par message (PR #251). F4 est terminée.
+- **Sécurité et qualité** par Fabrice :
+  - `helmet` : en-têtes de sécurité sur chaque réponse de l'API (PR #238) ;
+  - SEO : metadata, `robots.txt`, `sitemap.xml`, titres des onglets, `noindex` des pages privées (PR #242) ;
+  - pied de page qui recouvrait le contenu après la connexion, et couleurs qui changeaient après le panier : variables et règles de `body` déplacées dans `globals.css` (PR #256).
+- **Documentation** : guide d'installation à jour (PR #248) ; README final et plan de tests complet (PR #257) par Fabrice ; procédure de déploiement finale, pare-feu, sauvegarde et restauration par Dimitry (PR #254, #255).
+- **Version finale** : `DEV` fusionné dans `main` (PR #252), puis `main` dans `DEV` ; déployée sur les VM. Lighthouse sur le site en ligne : accessibilité et SEO à 100 sur les pages publiques.
+- **Tests** : 230 tests d'intégration et 6 tests unitaires passent.
+- **Kanban** : F4, F6, F7 et F9 terminées ; README et plan de tests terminées.
+
+### Décisions
+
+- **Gel des fonctionnalités respecté** : ce qui n'est pas fait (filtre de l'admin par disponibilité, envoi d'une photo, adresse en champs séparés) est écrit dans les pistes d'amélioration du README.
+- **CSS** : jamais de `:root`, `html` ni `body` dans un `.module.css` ; les variables et les règles de tout le site vont dans `globals.css`.
+- **Démo** (8 minutes), scénario validé par toute l'équipe : un fil rouge, la même commande du parcours d'achat à l'espace client puis à l'admin ; Loïc (renfort Dimitry) l'achat, Fabrice l'espace client, Mahamadou (renfort Shanna) l'admin. Loïc partage son écran et donne le lien de son VPS; les autres prennent la parole pendant qu'il fait les manipulations.
+- **Déploiement** : chacun déploie le projet sur son propre VPS.
+
+### À poursuivre
+
+- Tous : démo lundi 16.
+
 ## 2026-11-12 — F8 terminée, panier et front de F7 dans `DEV`, emails en production, gel des fonctionnalités
 
 ### Travail réalisé
