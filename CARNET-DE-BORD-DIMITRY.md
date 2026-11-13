@@ -2,6 +2,85 @@
 
 Suivi de mon travail sur Je s’appelle Graine. Les décisions notées ici ont été prises avec l'équipe sur Discord ; le suivi de l'équipe est dans le [[Apothéose/apo-jesappellegraine/CARNET-DE-BORD-JE-S-APPELLE-GRAINE|carnet de bord Je s’appelle Graine]].
 
+## 2026-11-12 — Admin commandes (F8) : back #168 arrivé, page détail `/admin/commandes/[id]` et changement de statut (#169), fix CSS du panier, emails en production
+
+### Back #168 (Fabrice)
+
+- PR #220 fusionnée dans `DEV`. Fusion de `DEV` dans `feat/front-f8-#169` sans conflit (commit `51e67a1`).
+- Types du back (`IAdminOrderSummary`, `IAdminOrder`) relus : identiques aux types front, champ pour champ.
+
+### Carte #169 — page détail `/admin/commandes/[id]`
+
+- Chargement et erreurs (commit `368a208`) : `[id]/page.tsx` (fragment, lien « retour à la liste ») + `AdminOrderDetail.tsx` (composant client, `GET admin/orders/:id`). 401 → `/connexion?next=…`, 403 → « Cette page est réservée à l’administration. », 404 ou 400 → « Cette commande est introuvable. ».
+- Affichage complet (commit `7fd6851`) : statut + « En retard », dates (`paidAt`, `plantedAt`, `cancelledAt` affichées seulement si non `null`, avec `&&`), client (email en `mailto:`), adresse de facturation, lignes (arbre, prix, quantité, lieu), total. Styles repris de `/commandes`.
+- Changement de statut (commit `fcfbf41`) : `NEXT_STATUSES: Record<OrderStatus, OrderStatus[]>` donne les boutons autorisés pour chaque statut (aucun pour « plantée » et « annulée ») ; `getActionLabel` (switch) donne leur texte. `handleStatusChange` : `window.confirm`, `PATCH admin/orders/:id/status`, boutons désactivés pendant l'envoi (`isUpdating`, remis à `false` dans `finally`), message en `role="status"`.
+- 409 (statut changé entre temps, ex. un autre admin est passé avant) : on relit la commande pour afficher le vrai statut et les bons boutons, avec « Changement refusé : la commande est maintenant « … ». ».
+
+### Vérifications navigateur (étape 6)
+
+- 409 à l'écran : deux onglets sur la même commande, A → « payée », puis B → « Annuler » sans recharger → B affiche « Changement refusé : la commande est maintenant « payée ». » et les boutons de « payée ». OK.
+- Mobile (360 px), clavier (Tab : retour, email, boutons ; focus visible ; confirmation à Entrée), liste `/admin/commandes` (filtre, liste vide) : OK.
+- Base locale : `npm run db:seed` efface les commandes (le seed n'en contient pas) → commandes de test recréées par l'API (compte client du seed).
+
+### Fix hors #169 : erreur 500 sur tout le front
+
+- Une règle `p {}` vide dans `panier/cartItems.module.css` (sélecteur de balise seul, refusé par les CSS modules) faisait planter la compilation : retirée (commit `418026b`). Loïc est au courant.
+
+### Emails (Nodemailer) branchés sur la version déployée
+
+- Le code d'envoi (Nodemailer, `emailService.ts`) était déjà déployé, mais le `.env` du VPS n'avait aucun `SMTP_*` : les emails étaient seulement affichés dans les logs de l'API.
+- Ajout du bloc `SMTP_*` dans le `.env` du VPS, sur le modèle de `.env.prod.example` (Gmail de l'équipe, port 587, mot de passe d'application). Ancien fichier gardé dans `.env.avant-smtp`.
+- `up -d api` (un `restart` ne relit pas le `.env`), puis `restart nginx` : sans lui, 502 (Nginx visait encore l'ancien conteneur de l'API).
+- Vérifié : `printenv SMTP_HOST` → `smtp.gmail.com`, `transporter.verify()` → connexion Gmail acceptée, `/api/health` et la page d'accueil répondent.
+- En dev (Docker), rien ne change : sans `SMTP_HOST`, l'email reste affiché dans la console (choix de l'équipe, pas de vrais envois pendant les tests). Un essai pour brancher Gmail en local a été annulé.
+
+### Avancement de #169 : environ 95 %
+
+- Fait : étapes 1 à 6.
+
+### Reste à faire
+
+- Étape 7 : push de `feat/front-f8-#169` + PR vers `DEV`.
+- Décider si les commits `66e3a4a` et `19bdbc9` (F5) restent sur la branche #169 ou partent dans une PR à part.
+- Emails en production : passer une vraie commande sur le site et vérifier la réception (et les spams).
+- Proposer à Loïc `alt="Lieu de plantation"` sur l'icône de lieu (`TreeCard.tsx`, `arbres/[id]/page.tsx`), aujourd'hui `alt=""`.
+
+## 2026-11-10 — Admin commandes (F8) : page liste `/admin/commandes`, filtre, « En retard », type du détail (#169), « Lieu de plantation » (#105, #107)
+
+### Carte #107 — front de la commande
+
+- PR #210 (`feat/front-f5-#107`) fusionnée dans `DEV`.
+
+### Carte #169 — front des pages admin des commandes (branche `feat/front-f8-#169`)
+
+- Contrat #167 validé : `GET /api/admin/orders?status=` (liste, 400 si statut invalide), `GET /api/admin/orders/:id` (détail, 404), `PATCH /api/admin/orders/:id/status` (409 si changement interdit). Le détail renvoie `dueDate` et `billingAddress` (pas `buyerAddress`) ; `paidAt`, `plantedAt`, `cancelledAt`, `buyerOrganization` et `billingAddress` peuvent valoir `null`. Changements autorisés : `en attente` → `payée` ou `annulée` ; `payée` → `plantée`. Le back (#168) est fait par Fabrice.
+- Type `IAdminOrderSummary` (`extends IOrderSummary`) dans `@types/index.d.ts` : nom, prénom et email de l'acheteur, `isLate`.
+- Page `/admin/commandes` (commit `5cfde45`) : `page.tsx` + `AdminOrdersList.tsx` (composant client, `GET admin/orders` avec le cookie) + `page.module.css`. 401 → `/connexion?next=/admin/commandes`, 403 → « Cette page est réservée à l’administration. », sinon un seul affichage à la fois : erreur, chargement, liste vide ou liste de cartes cliquables vers le détail.
+- Fusion de `DEV` (commit `92e9ae7`) : la mise en page `/admin` de Shanna (`layout.tsx` + `AdminGuard.tsx`, onglets) fournit déjà le `<main>` et le menu → `page.tsx` renvoie un fragment, sans `<main>` en double (commit `7426e70`).
+
+### « Lieu de plantation : » partout pareil
+
+- Email de commande (`emailService.ts`, commit `66e3a4a`, #105) et récapitulatif du panier (`CartSummary.tsx`, commit `19bdbc9`, #107) : même intitulé que la page commande.
+
+### Carte #169 — filtre, « En retard », type du détail
+
+- Filtre par statut (commit `abcfb27`) : `useState<OrderStatus | "">("")` (`""` = tous les statuts), `status` dans les dépendances du `useEffect` (nouvelle requête à chaque choix), `setOrders(null)` pour réafficher « Chargement… », `?status=${encodeURIComponent(status)}` (espace et accents de « en attente », « payée »). `<select>` relié à son `<label>` par `htmlFor`/`id`, options générées depuis les 4 statuts avec `formatOrderStatus`.
+- Le filtre reste affiché quand la liste est vide (sinon impossible de revenir à « Tous les statuts ») : les cas chargement / vide / liste passent dans une fonction `renderOrders()` sous le filtre. Liste vide avec filtre → « Aucune commande avec ce statut. ».
+- « En retard » (commit `d6fefe7`) : `{order.isLate && …}`, écrit en toutes lettres (pas seulement une couleur), classe `.late`.
+- Type `IAdminOrderDetail extends IAdminOrderSummary` (commit `508c2af`), relu sur le contrat #167 ; commentaire « contrat carte #169 » corrigé en #167.
+- `tsc`, ESLint, Prettier OK ; pas encore testé dans le navigateur (back #168 pas prêt).
+
+### Avancement de #169 : environ la moitié
+
+- Fait : type liste (étape 1), page liste (étape 2), filtre (étape 3), « En retard » (étape 4), type du détail (début de l'étape 5).
+
+### Reste à faire
+
+- Étape 5 : page détail `/admin/commandes/[id]` (composant client `GET admin/orders/:id`, boutons seulement pour les changements autorisés, `PATCH`).
+- Étape 6 : vérifications navigateur, mobile, clavier, quand le back #168 sera prêt.
+- Décider si les commits `66e3a4a` et `19bdbc9` (F5) restent sur la branche #169 ou partent dans une PR à part.
+- Proposer à Loïc `alt="Lieu de plantation"` sur l'icône de lieu (`TreeCard.tsx`, `arbres/[id]/page.tsx`), aujourd'hui `alt=""`.
+
 ## 2026-11-09 — Commande (F5) : corrections de l'étape 0, plan de tests (#108), front de la commande (#107)
 
 ### Étape 0 « Corriger F5 » (PR #204, fusionnée dans `DEV`)
