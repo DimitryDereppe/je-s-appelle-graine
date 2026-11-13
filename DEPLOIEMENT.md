@@ -2,9 +2,11 @@
 
 Mise en production sur le VPS Kourou fourni par O'Clock (carte #31).
 
-**État au 30/10/2026 :** en ligne en HTTPS sur <https://dimitrydereppe-server.eddi.cloud>, branche
-`main`. Le site se met à jour tout seul à chaque démarrage de la VM, et le certificat se renouvelle
-tout seul (section 6).
+**Procédure finale (13/11/2026, carte #174).** Site en HTTPS sur
+<https://dimitrydereppe-server.eddi.cloud>, branche `main`. Le site se met à jour tout seul à chaque
+démarrage de la VM, et le certificat se renouvelle tout seul (section 6).
+
+**Sommaire :** 1. Architecture · 2. Fichiers · 3. Premier déploiement (prérequis, `.env`, pare-feu) · 4. Vérifier · 5. Mettre à jour · 6. Tâches automatiques · 7. Sauvegarder et restaurer la base · 8. Pièges rencontrés
 
 Procédure détaillée, avec le dépannage, sur le wiki (connexion requise) :
 [Déployer sur un VPS Kourou, pas à pas](https://owikiclock.duckdns.org/books/follow-pas-a-pas/page/deployer-sur-un-vps-kourou-pas-a-pas).
@@ -27,7 +29,7 @@ Internet ──HTTPS:443 / HTTP:80──▶ nginx ── /api/… et /images/tre
 - **Seul Nginx est ouvert sur Internet** (ports 80 et 443). La base, l'API et le front ne sont
   joignables que par le réseau Docker.
 - **Un seul nom de domaine** : le navigateur appelle `/api/…` à la même adresse que les pages. Donc
-  pas de CORS, et les futurs cookies de connexion resteront sur un seul domaine.
+  pas de CORS, et le cookie de connexion (jeton JWT) reste sur un seul domaine.
 - **HTTPS** : certificat Let's Encrypt gratuit, valable 90 jours, obtenu avec Certbot.
 
 Nginx et Certbot sont dans des conteneurs plutôt qu'installés sur la VM : leur configuration est
@@ -51,8 +53,18 @@ Le `.gitignore` de `src/` exclut aussi `certbot/` : il contient la clé privée 
 
 ## 3. Premier déploiement
 
-**Avant de commencer :** la VM est démarrée et **rendue publique** sur la page Kourou VM Cloud, et
-tu connais le mot de passe de la VM (demandé par `sudo`).
+**Prérequis :**
+
+- la VM (Ubuntu) est démarrée et **rendue publique** sur la page Kourou VM Cloud. Son nom
+  (`PSEUDO-server.eddi.cloud`) pointe déjà vers elle : pas de nom de domaine à acheter ni de DNS à
+  régler ;
+- tu te connectes en SSH (`ssh student@PSEUDO-server.eddi.cloud`) et tu connais le mot de passe de
+  la VM (demandé par `sudo`) ;
+- Docker et Docker Compose (étape 2) ; Git (présent sur Ubuntu). **Ni Node, ni Nginx, ni
+  PostgreSQL à installer sur la VM** : ils sont dans les images Docker ;
+- environ 5 Go libres (`df -h /`) pour les images ;
+- les secrets à portée de main : mot de passe d'application Gmail, IBAN et adresse d'envoi des
+  chèques (rangés avec les accès de l'équipe, jamais dans le dépôt).
 
 ### 3.1 Préparer la VM et la clé SSH
 
@@ -126,7 +138,7 @@ docker compose -f docker-compose.prod.yml run --rm -p 80:80 certbot certonly --s
 # 8. Démarrer Nginx
 docker compose -f docker-compose.prod.yml up -d nginx
 
-# 9. Installer les tâches automatiques : voir la section 6
+# 9. Pare-feu : section 3.3 ; tâches automatiques : section 6
 ```
 
 Dans le `.env` :
@@ -137,6 +149,24 @@ Dans le `.env` :
 - `JWT_SECRET` : la clé qui signe les jetons de connexion, générée avec `openssl rand -hex 32`. Laissée vide, l'API refuse de démarrer.
 - `ALLOWED_ORIGINS` : l'adresse du site **avec** `https://` (la même que `SITE_URL`) ; seul ce site peut appeler l'API depuis un navigateur (CORS).
 - `SMTP_*` : l'envoi des emails aux clients (confirmation de commande, paiement reçu, annulation, plantation) par le compte Gmail de l'équipe. Seul `SMTP_PASSWORD` est à remplir : le **mot de passe d'application** (16 lettres à la suite, sans espaces), rangé avec les accès de l'équipe.
+- `PAYMENT_*` : les instructions de paiement affichées après une commande et dans l'email de
+  confirmation. Virement : `PAYMENT_IBAN`, `PAYMENT_BIC`, `PAYMENT_HOLDER` (titulaire du compte).
+  Chèque : `PAYMENT_CHECK_PAYABLE_TO` (ordre) et `PAYMENT_CHECK_ADDRESS` (adresse d'envoi). Une
+  variable vide n'empêche pas l'API de démarrer : elle prend la valeur **fictive** de
+  `src/api/config.ts` (`FR76 0000…`). Pour la démo, c'est acceptable ; pour un vrai site, à remplir.
+
+**Variables à ne pas oublier** (sans elles, le site démarre mais une partie ne marche pas) :
+
+| Variable          | Si elle est vide ou fausse                                                                               |
+| ----------------- | -------------------------------------------------------------------------------------------------------- |
+| `JWT_SECRET`      | l'API refuse de démarrer                                                                                 |
+| `ALLOWED_ORIGINS` | rien de visible ici (un seul domaine), mais un autre site appelant l'API serait bloqué par le navigateur |
+| `DATABASE_URL`    | l'API ne joint pas la base : routes en `500`                                                             |
+| `SMTP_PASSWORD`   | aucun email envoyé (`Invalid login` dans les logs de l'API)                                              |
+| `PAYMENT_*`       | IBAN et adresse fictifs affichés au client                                                               |
+
+Après **toute** modification du `.env` : `docker compose -f docker-compose.prod.yml up -d` (le
+conteneur est recréé et relit le `.env`). Un `restart` garde les anciennes valeurs.
 
 **Pourquoi `--standalone` au premier certificat :** Nginx ne peut pas démarrer sans certificat, car
 sa configuration HTTPS pointe dessus. Certbot lance donc son propre petit serveur sur le port 80,
@@ -149,6 +179,30 @@ cd ~/apo-jesappellegraine
 git config core.sshCommand "ssh -i ~/.ssh/deploy_graine -o IdentitiesOnly=yes"
 git fetch origin main         # attendu : "main -> FETCH_HEAD", sans "Permission denied"
 ```
+
+### 3.3 Pare-feu
+
+**Ce qui protège déjà :** dans `docker-compose.prod.yml`, seul `nginx` a une ligne `ports:` (80 et
+443). `db`, `api` et `front` n'en ont pas : ils ne sont joignables que par le réseau Docker, jamais
+depuis Internet. Le contrôle `ss -tln` de la section 4 le vérifie.
+
+**En plus, le pare-feu de la VM (`ufw`)** ferme tout ce qui n'est pas explicitement ouvert, au cas
+où un service s'ajouterait un jour par erreur :
+
+```bash
+sudo ufw allow OpenSSH        # D'ABORD le port 22 : sinon ta connexion SSH est coupée à l'activation
+sudo ufw allow 80/tcp         # HTTP (redirection vers HTTPS, et Let's Encrypt)
+sudo ufw allow 443/tcp        # HTTPS
+sudo ufw enable               # répondre y
+sudo ufw status               # attendu : 22, 80 et 443 en ALLOW
+```
+
+**Attention, Docker passe devant `ufw`** : un port publié par `ports:` dans le compose est ouvert
+sur Internet même si `ufw` ne l'autorise pas (Docker écrit ses propres règles). La vraie protection
+de la base reste donc **l'absence de `ports:` sur `db`** : ne jamais en ajouter en production.
+
+Si la connexion SSH est coupée par erreur, `ufw` bloque aussi ta reconnexion : d'où la
+première ligne, à ne jamais sauter.
 
 ## 4. Vérifier
 
@@ -180,6 +234,7 @@ Attendu, ligne par ligne :
 | `docker compose -f docker-compose.prod.yml exec nginx nginx -t`              | `syntax is ok`, `test is successful`        |
 | `docker compose -f docker-compose.prod.yml run --rm -T certbot certificates` | `Expiry Date` : date de fin du certificat   |
 | `ss -tln`                                                                    | sur `0.0.0.0`, seulement 22, 80 et 443      |
+| `sudo ufw status`                                                            | `active`, 22, 80 et 443 en `ALLOW`          |
 | `ls -l .env`                                                                 | `-rw-------`                                |
 | `df -h /`                                                                    | assez de place ; sinon `docker image prune` |
 | `docker compose -f docker-compose.prod.yml exec api printenv SMTP_HOST`      | `smtp.gmail.com`                            |
@@ -206,6 +261,14 @@ docker compose -f docker-compose.prod.yml restart nginx
 - Un `502` ou un `500` pendant quelques secondes est normal : les conteneurs redémarrent.
 - **Jamais** de `docker compose down -v` en production : `-v` efface la base. Les scripts SQL ne
   sont joués qu'au tout premier démarrage.
+- **Si la mise à jour change le schéma ou le seed** (`api/src/data/01-schema.sql`,
+  `02-seed.sql`) : `git pull` ne suffit pas, la base de la VM garde l'ancienne structure. Suivre
+  [[MISE-A-JOUR-BDD-VM|MISE-A-JOUR-BDD-VM.md]] (sauvegarde d'abord, section 7).
+- **Si la mise à jour ajoute une variable** dans `.env.prod.example` : l'ajouter aussi au `.env`
+  de la VM (`git pull` ne le touche pas), puis `up -d`.
+
+**Livrer une version** : fusionner `DEV` dans `main` par une PR relue, puis mettre à jour la VM
+(redémarrage, ou les commandes ci-dessus), puis refaire les vérifications de la section 4.
 
 ## 6. Tâches automatiques (cron)
 
@@ -262,7 +325,54 @@ tail -20 ~/mise-a-jour.log    # attendu : la date, "Already up to date." (ou la 
 Si `crontab.prod` change dans le dépôt, refaire `crontab crontab.prod` : cron ne relit pas le
 fichier tout seul.
 
-## 7. Pièges rencontrés
+## 7. Sauvegarder et restaurer la base
+
+La base vit dans le volume Docker `db-data` : elle survit aux mises à jour et aux redémarrages,
+mais pas à un `down -v`, à une erreur de migration ou à la perte de la VM. D'où une sauvegarde
+**avant chaque changement de schéma**, et avant la démo.
+
+**Sauvegarder** (sur la VM, depuis `~/apo-jesappellegraine/src`) :
+
+```bash
+docker compose -f docker-compose.prod.yml exec -T db sh -c 'pg_dump -U "$POSTGRES_USER" "$POSTGRES_DB"' > ~/sauvegarde-bdd-$(date +%F).sql
+ls -lh ~/sauvegarde-bdd-*.sql      # le fichier ne doit pas faire 0 octet
+```
+
+- `pg_dump` écrit toute la base (tables et données) sous forme de commandes SQL.
+- `exec -T` : lance la commande dans le conteneur `db`, sans terminal, pour que `>` puisse
+  récupérer la sortie dans un fichier **de la VM**.
+- `sh -c '…'` avec des apostrophes : `$POSTGRES_USER` et `$POSTGRES_DB` sont lus **dans** le
+  conteneur (qui les connaît par le `.env`), pas sur la VM.
+
+**Garder une copie hors de la VM** (depuis ton poste) : si la VM est perdue, la sauvegarde l'est
+aussi.
+
+```bash
+scp student@PSEUDO-server.eddi.cloud:~/sauvegarde-bdd-AAAA-MM-JJ.sql .
+```
+
+**Restaurer** : on repart d'une base **vide**, sinon le fichier essaie de recréer des tables qui
+existent déjà et s'arrête en erreur.
+
+```bash
+cd ~/apo-jesappellegraine/src
+docker compose -f docker-compose.prod.yml stop api                      # plus personne n'écrit dans la base
+docker compose -f docker-compose.prod.yml exec -T db sh -c \
+  'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public;"'
+docker compose -f docker-compose.prod.yml exec -T db sh -c \
+  'psql -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d "$POSTGRES_DB"' < ~/sauvegarde-bdd-AAAA-MM-JJ.sql
+docker compose -f docker-compose.prod.yml start api
+```
+
+- `DROP SCHEMA public CASCADE` vide la base (toutes les tables) sans supprimer le volume.
+- `<` fait l'inverse de `>` : le fichier est envoyé à `psql`, qui rejoue les commandes SQL.
+- `ON_ERROR_STOP=1` : `psql` s'arrête à la première erreur au lieu de continuer à moitié.
+- Vérifier ensuite avec la section 4 (`/api/trees/featured`, se connecter, voir ses commandes).
+
+**Tester la restauration au moins une fois** (en local ou sur la VM avant la démo) : une
+sauvegarde jamais restaurée n'est pas une sauvegarde vérifiée.
+
+## 8. Pièges rencontrés
 
 | Symptôme                                                                                          | Cause                                                                                                                                | Solution                                                                                                         |
 | ------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------- |
@@ -281,4 +391,6 @@ fichier tout seul.
 | Email non reçu ; logs de l'API : `Email non envoyé (SMTP_HOST absent)`                            | `SMTP_HOST` vide, ou `.env` modifié sans recréer le conteneur                                                                        | Remplir le `.env`, puis `docker compose -f docker-compose.prod.yml up -d api` (`restart` ne relit pas le `.env`) |
 | Email non reçu ; logs de l'API : `Email de confirmation non envoyé` avec `Invalid login` ou `535` | Mauvais mot de passe : celui du compte au lieu du mot de passe d'application, ou espaces                                             | Recopier les 16 lettres à la suite dans `SMTP_PASSWORD`, puis `up -d api`                                        |
 | Email reçu dans les spams                                                                         | Compte Gmail récent, sans réputation                                                                                                 | « Ce n'est pas du spam » et ajouter l'adresse aux contacts ; avant la démo, s'envoyer une ou deux commandes      |
+| `ufw enable` : connexion SSH coupée                                                               | Port 22 pas autorisé avant l'activation                                                                                              | Toujours `sudo ufw allow OpenSSH` avant `ufw enable`                                                             |
+| Restauration : `relation … already exists`                                                        | Base pas vidée avant de rejouer la sauvegarde                                                                                        | Section 7 : `DROP SCHEMA public CASCADE; CREATE SCHEMA public;`, puis relancer                                   |
 | Une route de l'API en `500`                                                                       | Erreur dans le code (elle existe aussi en dev)                                                                                       | La reproduire en dev et la corriger                                                                              |
