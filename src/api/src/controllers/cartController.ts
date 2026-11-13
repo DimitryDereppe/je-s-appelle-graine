@@ -10,17 +10,40 @@ import { z } from "zod";
 // Schémas Zod : validés AVANT tout appel à la BDD
 // coerce.number convertit "3" (string) en 3 (number)
 // --------------------------------
-
 const addCartItemSchema = z.object({
-  treeId: z.coerce.number().int().positive(),
-  quantity: z.coerce.number().int().positive().default(1),
+  treeId: z.coerce
+    .number({
+      error: "treeId doit être un nombre.",
+    })
+    .int({ error: "treeId doit être un entier." })
+    .positive({ error: "treeId doit être supérieur à 0." }),
+
+  quantity: z.coerce
+    .number({
+      error: "quantity doit être un nombre.",
+    })
+    .int({ error: "quantity doit être un entier." })
+    .positive({ error: "quantity doit être supérieur à 0." })
+    .max(100, { error: "quantity ne peut pas dépasser 100." })
+    .default(1),
 });
 
 const updateCartItemSchema = z.object({
-  quantity: z.coerce.number().int().positive(),
+  quantity: z.coerce
+    .number({
+      error: "quantity doit être un nombre.",
+    })
+    .int({ error: "quantity doit être un entier." })
+    .positive({ error: "quantity doit être supérieur à 0." })
+    .max(100, { error: "quantity ne peut pas dépasser 100." }),
 });
 
-const treeIdParamSchema = z.coerce.number().int().positive();
+const treeIdParamSchema = z.coerce
+  .number({
+    error: "treeId doit être un nombre.",
+  })
+  .int({ error: "treeId doit être un entier." })
+  .positive({ error: "treeId doit être supérieur à 0." });
 
 // --------------------------------
 // Wrapper async → transmet les rejections au middleware d'erreur
@@ -58,6 +81,7 @@ export const getCart = asyncHandler(
 );
 
 const MAX_QUANTITY_PER_TREE = 100;
+
 export const addCartItem = asyncHandler(
   async (req: IAuthenticatedRequest, res: Response) => {
     const user = await getAuthenticatedUser(req);
@@ -66,7 +90,7 @@ export const addCartItem = asyncHandler(
 
     const tree = await treeDatamapper.findById(treeId);
     if (!tree) {
-      res.status(404).json({ error: "Arbre introuvable" });
+      res.status(404).json({ error: "Arbre introuvable." });
       return;
     }
 
@@ -78,12 +102,13 @@ export const addCartItem = asyncHandler(
       return;
     }
 
+    // Business logic : somme existant + nouveau ≤ 100
     const existingItem = await cartDatamapper.findCartItem(user.id, treeId);
     const currentQuantity = existingItem ? existingItem.quantity : 0;
 
     if (currentQuantity + quantity > MAX_QUANTITY_PER_TREE) {
       res.status(400).json({
-        error: "La quantité doit être comprise entre 1 et 100.",
+        error: `La quantité totale ne peut pas dépasser ${MAX_QUANTITY_PER_TREE} pour cet arbre.`,
         status: 400,
       });
       return;
@@ -106,14 +131,6 @@ export const updateCartItem = asyncHandler(
     const treeId = treeIdParamSchema.parse(req.params.treeId);
     const { quantity } = updateCartItemSchema.parse(req.body);
 
-    if (quantity > MAX_QUANTITY_PER_TREE) {
-      res.status(400).json({
-        error: "La quantité doit être comprise entre 1 et 100.",
-        status: 400,
-      });
-      return;
-    }
-
     const updatedCartItem = await cartDatamapper.updateCartItemQuantity(
       user.id,
       treeId,
@@ -121,7 +138,7 @@ export const updateCartItem = asyncHandler(
     );
 
     if (!updatedCartItem) {
-      res.status(404).json({ error: "Ligne introuvable" });
+      res.status(404).json({ error: "Ligne introuvable." });
       return;
     }
 
@@ -137,7 +154,7 @@ export const deleteCartItem = asyncHandler(
 
     const tree = await treeDatamapper.findById(treeId);
     if (!tree) {
-      res.status(404).json({ error: "Ligne introuvable" });
+      res.status(404).json({ error: "Ligne introuvable." });
       return;
     }
 
