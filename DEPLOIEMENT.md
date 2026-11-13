@@ -193,9 +193,15 @@ où un service s'ajouterait un jour par erreur :
 sudo ufw allow OpenSSH        # D'ABORD le port 22 : sinon ta connexion SSH est coupée à l'activation
 sudo ufw allow 80/tcp         # HTTP (redirection vers HTTPS, et Let's Encrypt)
 sudo ufw allow 443/tcp        # HTTPS
-sudo ufw enable               # répondre y
-sudo ufw status               # attendu : 22, 80 et 443 en ALLOW
+sudo ufw enable               # "Command may disrupt existing ssh connections" : répondre y
+sudo ufw status               # attendu : "Status: active", OpenSSH, 80/tcp et 443/tcp en ALLOW (+ v6)
 ```
+
+`Firewall is active and enabled on system startup` : le pare-feu reste actif après un redémarrage.
+**Avant de fermer ta session**, ouvrir un second terminal et refaire `ssh` : s'il se connecte, le
+port 22 est bien ouvert.
+
+Testé le 13/11/2026 sur la VM de Dimitry : SSH, HTTP (`301`) et HTTPS (`200`) répondent toujours.
 
 **Attention, Docker passe devant `ufw`** : un port publié par `ports:` dans le compose est ouvert
 sur Internet même si `ufw` ne l'autorise pas (Docker écrit ses propres règles). La vraie protection
