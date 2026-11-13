@@ -1,17 +1,3 @@
-:root {
-  /* Couleurs */
-  --color-bg: #f8f6f8;
-  --color-text: #18352e;
-  --color-primary: #245a46;
-  --color-text-muted: #53615b;
-  --color-surface: #e3e9df;
-  --color-accent: #b6532c;
-  --color-error: #b00020;
-
-  /* Polices */
-  --font-serif: "Lora", Georgia, serif;
-}
-
 .detail {
   width: 100%;
   height: auto;
