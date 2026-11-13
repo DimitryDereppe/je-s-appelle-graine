@@ -1,9 +1,14 @@
+import type { Metadata } from "next";
 // Le formulaire est vide : sans prop "tree", il fera un POST pour créer l'arbre.
 import TreeForm from "@/components/admin/TreeForm";
 
 // Ce fichier est dans le dossier "nouveau", donc il correspond à
 // l'adresse /admin/arbres/nouveau.
 import styles from "../../page.module.css";
+
+export const metadata: Metadata = {
+  title: "Catalogue",
+};
 
 export default function NewTreePage() {
   return (

@@ -4,7 +4,7 @@ import { AccountDetail } from "./AccountDetail";
 import styles from "../../commandes/page.module.css";
 
 export const metadata: Metadata = {
-  title: "Détail d'un compte — Administration",
+  title: "Comptes",
   description:
     "Le détail d'un compte, la gestion de son état et sa suppression.",
 };

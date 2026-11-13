@@ -39,7 +39,7 @@ describe("adminUserController", () => {
   // ==================
   // Droits (communs aux 4 routes, vérifiés sur la liste)
   // ==================
-  describe("droits", () => {
+  describe("Access rights", () => {
     it("should respond 401 if not connected", async () => {
       // Act : sans cookie
       const response = await libTests.requester.get("/admin/users");

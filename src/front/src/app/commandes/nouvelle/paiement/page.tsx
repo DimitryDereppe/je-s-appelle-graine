@@ -1,8 +1,15 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { PaymentForm } from "./PaymentForm";
 import styles from "./page.module.css";
 
 // Page serveur : le titre et le formulaire (composant client, car il réagit aux clics)
+export const metadata: Metadata = {
+  title: "Paiement",
+  // page privée : les moteurs de recherche ne l'indexent pas
+  robots: { index: false },
+};
+
 export default function PaymentPage() {
   return (
     <main className={styles.main}>
