@@ -1,6 +1,14 @@
+:root {
+  /* Nouvelles variables spécifiques à ce fichier */
+  --color-card-bg: #f8f6f8;
+  --color-focus: #245a46;
+  --color-gray: #666;
+  --color-sage-dark: #d0dacc;
+}
+
 .card {
-  background-color: #f8f6f8;
-  border: 1px solid #e4e1d9;
+  background-color: var(--color-card-bg);
+  border: 1px solid var(--color-border);
   border-radius: 12px;
   overflow: hidden;
   transition: filter 0.3s ease;
@@ -13,7 +21,7 @@
 }
 
 .card:focus-within {
-  outline: 3px solid #245a46;
+  outline: 3px solid var(--color-focus);
   outline-offset: 2px;
 }
 
@@ -24,7 +32,7 @@
   max-height: 120px;
   position: relative;
   overflow: hidden;
-  background-color: #e3e9df;
+  background-color: var(--color-sage);
   display: flex;
   justify-content: center;
 }
@@ -47,21 +55,21 @@
 .cardTitle {
   font-size: 20px;
   font-weight: 600;
-  font-family: "Lora", Georgia, serif;
-  color: #18352e;
+  font-family: var(--font-lora), var(--font-serif-fallback);
+  color: var(--color-deep-green);
   margin: 0;
 }
 
 .cardScientific {
   font-size: 14px;
   font-style: italic;
-  color: #53615b;
+  color: var(--color-muted);
   margin: 0;
 }
 
 .cardLocation {
   font-size: 14px;
-  color: #53615b;
+  color: var(--color-muted);
   margin: 0;
   display: flex;
   align-items: center;
@@ -82,9 +90,10 @@
   flex-direction: column-reverse;
   overflow: auto;
 }
+
 .availabilityLocation {
   font-size: 0.8rem;
-  color: #666;
+  color: var(--color-gray);
   margin: 0;
   white-space: nowrap;
 }
@@ -103,7 +112,7 @@
 .cardPrice {
   font-size: 14px;
   font-weight: 700;
-  color: #b6532c;
+  color: var(--color-terracotta);
   margin: 0;
   white-space: nowrap;
 }
@@ -113,8 +122,8 @@
   width: 44px;
   height: 44px;
   border-radius: 50%;
-  background-color: #e3e9df;
-  border: 1px solid #e4e1d9;
+  background-color: var(--color-sage);
+  border: 1px solid var(--color-border);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -127,12 +136,12 @@
 }
 
 .basketButton:hover {
-  background-color: #d0dacc;
+  background-color: var(--color-sage-dark);
   transform: scale(1.08);
 }
 
 .basketButton:focus-visible {
-  outline: 3px solid #245a46;
+  outline: 3px solid var(--color-focus);
   outline-offset: 2px;
 }
 

@@ -151,3 +151,8 @@ export interface IAccount {
   organizationName: string | null;
   role: string;
 }
+
+// Compte vu par l'admin (F9) : GET /api/admin/users
+export interface IAdminAccount extends IAccount {
+  isActive: boolean;
+}

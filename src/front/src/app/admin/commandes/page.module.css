@@ -135,6 +135,8 @@
   font: inherit;
   font-weight: 600;
   cursor: pointer;
+  /* aussi utilisé sur un lien (« Gérer l'état du compte », F9) : pas de soulignement */
+  text-decoration: none;
 }
 
 .actionButton:hover,

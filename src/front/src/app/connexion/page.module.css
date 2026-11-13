@@ -1,5 +1,9 @@
-/* ===== Page connexion — mobile-first (maquette v7, page 4) ===== */
+:root {
+  /* Nouvelle variable spécifique à ce fichier */
+  --color-terracotta-light: #fbeee8;
+}
 
+/* ===== Page connexion — mobile-first (maquette v7, page 4) ===== */
 .main {
   padding: 16px 16px 32px;
   background-color: var(--color-ivory);
@@ -18,7 +22,7 @@
 /* --- Photo --- */
 .imageWrapper {
   position: relative;
-  order: -1; /* mobile : la photo passe au-dessus du formulaire */
+  order: -1;
   width: 100%;
   height: 160px;
   overflow: hidden;
@@ -44,7 +48,6 @@
   line-height: 1.2;
 }
 
-/* Petit trait terracotta sous le titre */
 .title::after {
   content: "";
   display: block;
@@ -83,10 +86,9 @@
   padding: 8px 10px;
   border: 1px solid var(--color-border);
   border-radius: 6px;
-  background-color: #ffffff;
+  background-color: var(--color-white);
   color: var(--color-deep-green);
   font: inherit;
-  /* 16px minimum : en dessous, Safari sur iPhone zoome sur le champ au focus */
   font-size: 16px;
 }
 
@@ -105,7 +107,7 @@
   padding: 8px 12px;
   border-left: 4px solid var(--color-terracotta);
   border-radius: 4px;
-  background-color: #fbeee8;
+  background-color: var(--color-terracotta-light);
   color: var(--color-terracotta);
   font-size: 14px;
 }
@@ -162,6 +164,7 @@
     flex-direction: row;
     align-items: flex-start;
     gap: 96px;
+    height: 100%;
   }
 
   .content {
@@ -169,7 +172,7 @@
   }
 
   .imageWrapper {
-    order: 0; /* la photo revient à droite */
+    order: 0;
     flex: 1;
     height: 360px;
   }

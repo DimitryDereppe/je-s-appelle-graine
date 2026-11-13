@@ -16,7 +16,8 @@
 }
 
 body {
-  font-family: var(--font-editorial);
+  font-family: var(--font-lora), Georgia, serif;
+  height: 100%;
 }
 .addToCartButton {
   width: 44px;
