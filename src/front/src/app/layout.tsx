@@ -1,4 +1,5 @@
 import { Lora } from "next/font/google";
+
 import type { ReactNode } from "react";
 import "./globals.css";
 import { CartCountProvider } from "@/app/context/CartCountContext";
