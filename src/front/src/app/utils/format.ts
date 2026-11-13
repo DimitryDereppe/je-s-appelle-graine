@@ -37,3 +37,8 @@ export function formatOrderStatus(status: OrderStatus): string {
 export function formatPaymentMethod(method: PaymentMethod): string {
   return method === "virement" ? "Virement bancaire" : "Chèque";
 }
+
+// Rôle d'un compte, tel qu'on l'affiche (la base stocke "customer" ou "admin")
+export function formatRole(role: string): string {
+  return role === "admin" ? "Administrateur" : "Client";
+}
