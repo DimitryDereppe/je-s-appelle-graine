@@ -7,8 +7,8 @@ import {
 } from "../controllers/adminUserController.ts";
 import { validateId } from "../middlewares/commonMiddleware.ts";
 
-// Routes /api/admin/... (F7, F8, F9)
-// Elles sont protégées une seule fois dans indexRouter.ts (isConnected + checkRoles(["admin"]))
+// Routes admin des comptes (F9) : /api/admin/users...
+// la protection (connecté + admin) est déjà dans indexRouter.ts
 export const router = Router();
 
 router.get("/users", getAllUsers);

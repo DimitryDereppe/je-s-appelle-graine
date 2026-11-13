@@ -6,7 +6,7 @@ import {
   NotFoundError,
 } from "../lib/errors.ts";
 
-//obtien la liste de tous les compte
+// GET /api/admin/users : la liste de tous les comptes, admins compris
 export async function getAllUsers(_req: Request, res: Response) {
   const accounts = await accountDatamapper.findAllForAdmin();
   res.status(200).json(accounts);
@@ -43,8 +43,8 @@ export async function updateUserStatus(req: Request, res: Response) {
     isActive === false && account.role === "admin" && account.isActive;
 
   if (disable) {
-    const actifAdminsNumber = await accountDatamapper.countActiveAdmins();
-    if (actifAdminsNumber <= 1) {
+    const activeAdminsCount = await accountDatamapper.countActiveAdmins();
+    if (activeAdminsCount <= 1) {
       throw new ConflictError(
         "Impossible de désactiver le dernier administrateur.",
       );
