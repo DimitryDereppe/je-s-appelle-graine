@@ -1,8 +1,14 @@
+:root {
+  /* Nouvelles variables spécifiques à ce fichier */
+  --color-error: #8c2f1c;
+  --font-sans: Arial, sans-serif;
+}
+
 .main {
   min-height: 100vh;
-  color: #18352e;
-  background-color: #f8f6f0;
-  font-family: var(--font-lora, Georgia), Georgia, serif;
+  color: var(--color-deep-green);
+  background-color: var(--color-ivory);
+  font-family: var(--font-lora), var(--font-serif-fallback);
 }
 
 .layout {
@@ -11,7 +17,6 @@
   min-height: 100vh;
 }
 
-/* Le formulaire reste visible sur mobile. */
 .promo {
   display: none;
 }
@@ -21,7 +26,7 @@
   justify-content: center;
   width: 100%;
   padding: 2rem 1rem 3rem;
-  background-color: #f8f6f0;
+  background-color: var(--color-ivory);
 }
 
 .formSection {
@@ -31,21 +36,21 @@
 
 .title {
   margin: 0 0 0.5rem;
-  color: #18352e;
+  color: var(--color-deep-green);
   font-size: clamp(2rem, 8vw, 2.5rem);
   line-height: 1.2;
 }
 
 .introduction {
   margin: 0 0 1.25rem;
-  color: #53615b;
+  color: var(--color-muted);
   font-size: 1rem;
   line-height: 1.5;
 }
 
 .requiredNote {
   margin: 0 0 1rem;
-  color: #53615b;
+  color: var(--color-muted);
   font-size: 0.875rem;
 }
 
@@ -62,7 +67,7 @@
 }
 
 .field label {
-  color: #18352e;
+  color: var(--color-deep-green);
   font-size: 0.9375rem;
   font-weight: 700;
 }
@@ -72,16 +77,16 @@
   width: 100%;
   min-height: 44px;
   padding: 0.625rem 0.75rem;
-  color: #18352e;
-  background-color: #fff;
-  border: 1px solid #53615b;
+  color: var(--color-deep-green);
+  background-color: var(--color-white);
+  border: 1px solid var(--color-muted);
   border-radius: 8px;
   font: inherit;
   font-size: 1rem;
 }
 
 .field input::placeholder {
-  color: #53615b;
+  color: var(--color-muted);
   opacity: 1;
 }
 
@@ -89,13 +94,13 @@
 .field select:focus-visible,
 .submitButton:focus-visible,
 .loginLink:focus-visible {
-  outline: 3px solid #b6532c;
+  outline: 3px solid var(--color-terracotta);
   outline-offset: 3px;
 }
 
 .errorMessage {
   margin: 0;
-  color: #8c2f1c;
+  color: var(--color-error);
   font-size: 0.9375rem;
   line-height: 1.5;
 }
@@ -105,8 +110,8 @@
   min-height: 48px;
   margin-top: 0.5rem;
   padding: 0.75rem 1rem;
-  color: #fff;
-  background-color: #245a46;
+  color: var(--color-white);
+  background-color: var(--color-focus);
   border: 0;
   border-radius: 8px;
   cursor: pointer;
@@ -116,7 +121,7 @@
 }
 
 .submitButton:hover:not(:disabled) {
-  background-color: #18352e;
+  background-color: var(--color-deep-green);
 }
 
 .submitButton:disabled {
@@ -126,7 +131,7 @@
 
 .loginPrompt {
   margin: 1.5rem 0 0;
-  color: #53615b;
+  color: var(--color-muted);
   font-size: 0.875rem;
   text-align: center;
 }
@@ -135,13 +140,13 @@
   display: block;
   width: fit-content;
   margin: 0.35rem auto 0;
-  color: #18352e;
+  color: var(--color-deep-green);
   font-weight: 700;
   text-underline-offset: 0.25rem;
 }
 
 .loginLink:hover {
-  color: #245a46;
+  color: var(--color-focus);
 }
 
 @media (min-width: 900px) {
@@ -154,14 +159,14 @@
     flex-direction: column;
     justify-content: center;
     padding: clamp(2rem, 5vw, 5rem);
-    color: #f8f6f0;
-    background-color: #18352e;
+    color: var(--color-ivory);
+    background-color: var(--color-deep-green);
   }
 
   .tagline {
     margin: 0 0 1.5rem;
-    color: #e3e9df;
-    font-family: Arial, sans-serif;
+    color: var(--color-sage);
+    font-family: var(--font-sans);
     font-size: 0.875rem;
     font-weight: 700;
     letter-spacing: 0.06em;
@@ -180,7 +185,7 @@
     margin-top: 2rem;
     overflow: hidden;
     border-radius: 12px;
-    background-color: #245a46;
+    background-color: var(--color-focus);
   }
 
   .image {
@@ -200,7 +205,7 @@
 .promoSubtitle {
   max-width: 100%;
   margin: 1.5rem 0 2rem;
-  color: #e3e9df;
+  color: var(--color-sage);
   font-size: 1.125rem;
   line-height: 1.5;
 }
