@@ -1,14 +1,31 @@
+:root {
+  /* Couleurs */
+  --color-deep-green: #18352e;
+  --color-ivory: #f8f6f0;
+  --color-sage: #e3e9df;
+  --color-sage-light: rgb(36 90 70 / 10%);
+  --color-sage-border: #b8c3b8;
+  --color-green: #2c5e4a;
+  --color-border: #e4e1d9;
+  --color-muted: #53615b;
+  --color-terracotta: #b6532c;
+  --color-white: #fff;
+
+  /* Polices */
+  --font-serif-fallback: Georgia, serif;
+}
+
 .header {
   position: relative;
   z-index: 10;
   width: 100%;
   min-width: 340px;
-  color: var(--color-deep-green, #18352e);
-  background-color: var(--color-ivory, #f8f6f0);
-  border-bottom: 1px solid var(--color-border, #e4e1d9);
+  color: var(--color-deep-green);
+  background-color: var(--color-ivory);
+  border-bottom: 1px solid var(--color-border);
 }
 
-/* Toute la largeur de l’écran est utilisée ; ce padding règle l’écart aux bords. */
+/* Toute la largeur de l'écran est utilisée ; ce padding règle l'écart aux bords. */
 .inner {
   flex-wrap: wrap;
   padding-block: 0.75rem;
@@ -22,21 +39,20 @@
 
 .brand {
   display: flex;
-  /* peut rétrécir sur petit écran pour laisser la place au menu et au panier */
   flex: 0 1 auto;
   min-width: 0;
   flex-direction: row;
   color: inherit;
   text-decoration: none;
 }
+
 .badgeIcon {
   position: relative;
   bottom: 8px;
 }
 
 .brandName {
-  font-family: var(--font-lora, Georgia), Georgia, serif;
-  /* 1rem sur très petit écran, jusqu'à 1.25rem dès qu'il y a la place */
+  font-family: var(--font-lora), var(--font-serif-fallback);
   font-size: clamp(1rem, 5vw, 1.25rem);
   font-weight: 700;
   line-height: 1.2;
@@ -44,7 +60,7 @@
 
 .brandTagline {
   margin-top: 0.25rem;
-  color: var(--color-muted, #53615b);
+  color: var(--color-muted);
   font-size: 0.875rem;
   line-height: 1.3;
 }
@@ -60,7 +76,7 @@
   padding: 0;
   color: inherit;
   background: transparent;
-  border: 1px solid var(--color-border, #e4e1d9);
+  border: 1px solid var(--color-border);
   border-radius: 10px;
   cursor: pointer;
   font: inherit;
@@ -76,8 +92,8 @@
   flex-direction: column;
   gap: 0.25rem;
   padding: 1rem;
-  background-color: var(--color-ivory, #f8f6f0);
-  border-bottom: 1px solid var(--color-border, #e4e1d9);
+  background-color: var(--color-ivory);
+  border-bottom: 1px solid var(--color-border);
 }
 
 .navigationOpen {
@@ -89,7 +105,7 @@
   align-items: center;
   min-height: 44px;
   padding: 0.5rem 0.75rem;
-  color: var(--color-deep-green, #18352e);
+  color: var(--color-deep-green);
   border-radius: 8px;
   font-size: 1rem;
   text-decoration: none;
@@ -98,7 +114,7 @@
 .navigationLink:hover,
 .navigationLink:focus-visible {
   color: var(--color-green);
-  background-color: var(--color-sage, #e3e9df);
+  background-color: var(--color-sage);
 }
 
 .activeLink {
@@ -127,11 +143,11 @@
 }
 
 .cartLink:hover {
-  color: var(--color-ivory, #f8f6f0);
+  color: var(--color-ivory);
   background-color: var(--color-green);
 }
 
-/* Retire l'apparence par défaut d'un <button> (bordure, fond gris, police système) */
+/* Retire l'apparence par défaut d'un <button> */
 .logoutButton {
   border: 0;
   background: transparent;
@@ -139,29 +155,28 @@
   cursor: pointer;
 }
 
-/* Bandeau d'alerte sous l'en-tête (ex. compte désactivé) */
+/* Bandeau d'alerte sous l'en-tête */
 .alert {
   margin: 0;
   padding: 0.75rem 1rem;
   text-align: center;
-  color: var(--color-ivory, #f8f6f0);
-  background-color: var(--color-terracotta, #b6532c);
+  color: var(--color-ivory);
+  background-color: var(--color-terracotta);
 }
 
 .brand:focus-visible,
 .menuToggle:focus-visible,
 .navigationLink:focus-visible,
 .cartLink:focus-visible {
-  outline: 3px solid var(--color-terracotta, #b6532c);
+  outline: 3px solid var(--color-terracotta);
   outline-offset: 3px;
 }
 
 /* Boîte qui contient le menu + la barre de recherche */
-/* Mobile : elle passe sur sa propre ligne, sous le logo */
 .navArea {
-  order: 1; /* se place après le panier */
-  flex-basis: 100%; /* prend toute la largeur → nouvelle ligne */
-  min-width: 0; /* autorise la boîte à rétrécir : la recherche ne touche plus le bord */
+  order: 1;
+  flex-basis: 100%;
+  min-width: 0;
 }
 
 .search {
@@ -170,13 +185,13 @@
 }
 
 .searchInput {
-  flex: 1; /* prend toute la place restante à côté du bouton */
-  min-width: 0; /* autorise le champ à rétrécir (sinon il déborde) */
+  flex: 1;
+  min-width: 0;
   min-height: 44px;
   padding: 0.5rem 0.75rem;
   color: inherit;
-  background-color: #fff;
-  border: 1px solid var(--color-border, #e4e1d9);
+  background-color: var(--color-white);
+  border: 1px solid var(--color-border);
   border-radius: 10px;
   font: inherit;
 }
@@ -184,7 +199,7 @@
 .searchButton {
   min-height: 44px;
   padding: 0.5rem 1rem;
-  color: var(--color-ivory, #f8f6f0);
+  color: var(--color-ivory);
   background-color: var(--color-green);
   border: 0;
   border-radius: 10px;
@@ -194,7 +209,7 @@
 
 .searchInput:focus-visible,
 .searchButton:focus-visible {
-  outline: 3px solid var(--color-terracotta, #b6532c);
+  outline: 3px solid var(--color-terracotta);
   outline-offset: 3px;
 }
 
@@ -202,6 +217,7 @@
   .inner {
     min-height: 100px;
     gap: clamp(1.5rem, 3vw, 3rem);
+    flex-wrap: nowrap;
   }
 
   .brandName {
@@ -224,18 +240,13 @@
     border: 0;
   }
 
-  /* La boîte revient sur la ligne du logo, poussée à droite */
   .navArea {
-    order: 0; /* reprend sa place : entre le logo et le panier */
+    order: 0;
     flex-basis: auto;
     display: flex;
-    flex-direction: column; /* menu en haut, recherche en dessous */
+    flex-direction: column;
     gap: 0.5rem;
-    margin-left: auto; /* pousse la boîte à droite */
-  }
-
-  .inner {
-    flex-wrap: nowrap;
+    margin-left: auto;
   }
 }
 
