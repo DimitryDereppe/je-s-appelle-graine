@@ -2,6 +2,29 @@
 
 Suivi de mon travail sur Je s’appelle Graine. Les décisions notées ici ont été prises avec l'équipe ; le suivi de l'équipe est dans le [carnet de bord Je s’appelle Graine](CARNET-DE-BORD-JE-S-APPELLE-GRAINE.md), que je tiens à jour.
 
+## 2026-11-13 — Finitions, sécurité, SEO et version finale
+
+### Travail réalisé
+
+- **Sécurité :**
+  - `helmet` dans l'API (PR #238, #239), testé : en-têtes présents, photos toujours affichées ;
+- **SEO et performance** (PR #242, #249) : metadata de tout le site, titres harmonisés, `robots.txt`, `sitemap.xml`, favicon, photo de l'accueil chargée en priorité, titres des onglets de l'admin ; Lighthouse sur le site en ligne : SEO et accessibilité à 100.
+- **Correctifs CSS** (PR #256) : pied de page qui recouvrait le contenu après la connexion (`html` et `body` dans le module de la connexion), couleurs qui changeaient après le panier (16 blocs `:root` dans les modules).
+- **Relectures et suivi** : finitions de relecture de F9 faites (PR #242) ; route des photos de Shanna relue.
+- **Documentation** : guide d'installation (PR #248, #250), README final et plan de tests complet (PR #257).
+- **Version finale** : simulation puis fusion de `DEV` dans `main` (PR #252, #253), `main` remis dans `DEV` ; déploiement sur ma VM vérifié.
+- **Équipe** : challenge allégé au travail du jour (finitions, tests manuels, démo), Kanban mis à jour.
+
+### Ce que j'ai appris
+
+- Un **CSS module** ne renomme que les classes : `:root`, `html` et `body` y restent globaux, et le CSS d'une page reste chargé quand Next change de page sans recharger.
+- Pied de page collé en bas : `min-height: 100vh` (jamais `height`) sur `body` en flex, et `flex: 1` sur `main`.
+- `robots: { index: false }` sert au référencement, pas à la vitesse ; `useCallback` garde une fonction en mémoire, `useEffect` exécute du code après l'affichage.
+
+### À poursuivre
+
+- démo lundi 16.
+
 ## 2026-11-12 — F8 terminée, emails en production et correctifs avant le gel
 
 ### Travail réalisé
