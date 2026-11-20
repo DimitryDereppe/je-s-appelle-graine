@@ -331,6 +331,132 @@ describe("treeController", () => {
     });
   });
 
+  // Test du filtre par lieu de plantation
+  describe("[GET] /api/trees?location=:lieu", () => {
+    // Ne doit renvoyer que les arbres du lieu choisi
+    it("should return only the trees of the location", async () => {
+      // Arrange : 2 arbres à Brocéliande, 1 ailleurs
+      await libTests.createTree({
+        name: "Chêne",
+        plantingLocation: "Brocéliande (35)",
+      });
+      await libTests.createTree({
+        name: "Hêtre",
+        plantingLocation: "Brocéliande (35)",
+      });
+      await libTests.createTree({
+        name: "Pin",
+        plantingLocation: "Landes (40)",
+      });
+
+      // Act : encodeURIComponent encode les espaces et les parenthèses, comme le fait le front
+      const httpResponse = await libTests.requester.get(
+        `/trees?location=${encodeURIComponent("Brocéliande (35)")}`,
+      );
+      const body = httpResponse.data; // le JSON renvoyé (tableau d'arbres)
+
+      // Assert : seuls les 2 arbres de Brocéliande, triés par id
+      assert.strictEqual(httpResponse.status, 200);
+      assert.deepStrictEqual(
+        body.map((tree: { name: string }) => tree.name),
+        ["Chêne", "Hêtre"],
+      );
+    });
+
+    // Doit se combiner avec la catégorie
+    it("should combine location and category", async () => {
+      // Arrange : 2 arbres à Brocéliande, dont 1 seul résineux (Feuillage caduc par défaut)
+      await libTests.createTree({
+        name: "Sapin",
+        plantingLocation: "Brocéliande (35)",
+        category: "Résineux",
+      });
+      await libTests.createTree({
+        name: "Chêne",
+        plantingLocation: "Brocéliande (35)",
+      });
+      const categoryId = await libTests.getCategoryId("Résineux");
+
+      // Act : Appelle la route comme le ferait le front
+      const httpResponse = await libTests.requester.get(
+        `/trees?location=${encodeURIComponent("Brocéliande (35)")}&category=${categoryId}`,
+      );
+      const body = httpResponse.data; // le JSON renvoyé (tableau d'arbres)
+
+      // Assert : seul le résineux de Brocéliande est renvoyé
+      assert.strictEqual(httpResponse.status, 200);
+      assert.strictEqual(body.length, 1);
+      assert.strictEqual(body[0].name, "Sapin");
+    });
+
+    // Doit répondre 400 si le lieu est répété
+    it("should return 400 and error: repeated location", async () => {
+      // Act : ?location=a&location=b donne un tableau, pas un texte
+      const httpResponse = await libTests.requester.get(
+        "/trees?location=a&location=b",
+      );
+
+      // Assert : La route répond 400 et renvoie le message de validateLocationQuery (commonMiddleware.ts)
+      assert.strictEqual(httpResponse.status, 400);
+      assert.strictEqual(
+        httpResponse.data.error,
+        "Lieu invalide : un seul texte de 150 caractères maximum",
+      );
+    });
+
+    // Doit répondre 400 si le lieu est vide
+    it("should return 400 if location is empty", async () => {
+      // Act : ?location= sans valeur, aucun lieu ne peut correspondre
+      const httpResponse = await libTests.requester.get("/trees?location=");
+
+      // Assert : La route répond 400 et renvoie le message de validateLocationQuery (commonMiddleware.ts)
+      assert.strictEqual(httpResponse.status, 400);
+      assert.strictEqual(
+        httpResponse.data.error,
+        "Lieu invalide : un seul texte de 150 caractères maximum",
+      );
+    });
+  });
+
+  // Test de la liste des lieux pour le filtre
+  describe("[GET] /api/trees/locations", () => {
+    // Chaque lieu une seule fois, trié, sans les lieux vides ni ceux qui n'ont que des arbres retirés
+    it("should return each location once, sorted, without null or withdrawn-only locations", async () => {
+      // Arrange
+      await libTests.createTree({
+        name: "Pin",
+        plantingLocation: "Landes (40)",
+      });
+      await libTests.createTree({
+        name: "Chêne",
+        plantingLocation: "Brocéliande (35)",
+      });
+      // doublon : même lieu que le chêne
+      await libTests.createTree({
+        name: "Hêtre",
+        plantingLocation: "Brocéliande (35)",
+      });
+      // plantingLocation = null par défaut
+      await libTests.createTree({ name: "Érable" });
+      // seul arbre du Jura, et il est retiré
+      await libTests.createTree({
+        name: "If",
+        plantingLocation: "Jura (39)",
+        availability: "retiré",
+      });
+
+      // Act : Appelle la route comme le ferait le front
+      const httpResponse = await libTests.requester.get("/trees/locations");
+
+      // Assert : DISTINCT, ORDER BY, IS NOT NULL et <> 'retiré' vérifiés en un seul test
+      assert.strictEqual(httpResponse.status, 200);
+      assert.deepStrictEqual(httpResponse.data, [
+        "Brocéliande (35)",
+        "Landes (40)",
+      ]);
+    });
+  });
+
   // Test de la route de la fiche arbre
   describe("[GET] /api/trees/:id", () => {
     // Doit répondre 200 et renvoyer l'arbre (avec sa description) s'il est disponible

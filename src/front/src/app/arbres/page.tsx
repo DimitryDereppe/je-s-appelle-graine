@@ -18,11 +18,15 @@ export const metadata: Metadata = {
 const ALL_TREES: ICategory = { id: 0, name: "Tous nos arbres" };
 
 interface TreesPageProps {
-  searchParams: Promise<{ categorie?: string; recherche?: string }>;
+  searchParams: Promise<{
+    categorie?: string;
+    recherche?: string;
+    lieu?: string;
+  }>;
 }
 
 export default async function TreesPage({ searchParams }: TreesPageProps) {
-  const { categorie, recherche } = await searchParams;
+  const { categorie, recherche, lieu } = await searchParams;
 
   let categories: ICategory[] = [ALL_TREES];
 
@@ -32,6 +36,18 @@ export default async function TreesPage({ searchParams }: TreesPageProps) {
   } catch {
     // Si pas de catégories, le catalogue reste utilisable : on garde « Tous nos arbres »
   }
+
+  let locations: string[] = [];
+
+  try {
+    locations = await api<string[]>("trees/locations");
+  } catch {
+    // Si pas de lieux, le catalogue reste utilisable : le filtre par lieu est simplement vide
+  }
+
+  // Un lieu inconnu dans l'adresse affiche tous les lieux ("" = pas de filtre)
+  const selectedLocation =
+    typeof lieu === "string" && locations.includes(lieu) ? lieu : "";
 
   // Une catégorie inconnue dans l'adresse affiche tout le catalogue
   const selectedCategory = categories.some((c) => String(c.id) === categorie)
@@ -54,6 +70,11 @@ export default async function TreesPage({ searchParams }: TreesPageProps) {
   // Si l'utilisateur a tapé quelque chose, on l'ajoute : search=chene
   if (searchText !== "") {
     params.set("search", searchText);
+  }
+
+  // Si un lieu est choisi, on l'ajoute : location=Massif+des+Maures…
+  if (selectedLocation !== "") {
+    params.set("location", selectedLocation);
   }
 
   // On transforme les paramètres en texte : ""category=1&search=pin"" ou "" si aucun filtre
@@ -101,6 +122,8 @@ export default async function TreesPage({ searchParams }: TreesPageProps) {
         <TreesFilters
           categories={categories}
           selectedCategory={selectedCategory}
+          locations={locations}
+          selectedLocation={selectedLocation}
           searchText={searchText}
         />
 
@@ -121,7 +144,7 @@ export default async function TreesPage({ searchParams }: TreesPageProps) {
               <p>
                 {searchText !== ""
                   ? `Aucun arbre ne correspond à « ${searchText} ».`
-                  : "Aucun arbre n’est disponible dans cette catégorie."}
+                  : "Aucun arbre n’est disponible avec ces filtres."}
               </p>
               <Link href="/arbres">Voir tout le catalogue</Link>
             </div>
