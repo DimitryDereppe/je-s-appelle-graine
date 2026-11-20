@@ -4,6 +4,7 @@ import Image from "next/image";
 
 const footerLinks = [
   { href: "/qui-sommes-nous", label: "Qui sommes-nous" },
+  { href: "/nos-forets", label: "Nos forêts" },
   { href: "/mentions-legales", label: "Mentions légales" },
   {
     href: "/politique-de-confidentialite",
