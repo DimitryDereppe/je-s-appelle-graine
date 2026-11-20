@@ -26,6 +26,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     "",
     "/arbres",
     "/qui-sommes-nous",
+    "/nos-forets",
     "/mentions-legales",
     "/politique-de-confidentialite",
   ].map((path) => ({ url: `${siteUrl}${path}` }));

@@ -1,0 +1,26 @@
+/* ===== Page « Nos forêts » : le reste vient de infoPage.module.css ===== */
+
+/* une forêt : un peu d'air entre deux lieux */
+.forest {
+  margin-top: 2.5rem;
+}
+
+/* légende du tableau, alignée à gauche comme le texte */
+.caption {
+  margin-bottom: 0.5rem;
+  font-weight: 700;
+  text-align: left;
+}
+
+/* essence retirée de la vente : discrète, mais lisible */
+.unavailable {
+  color: var(--color-muted);
+  font-weight: 400;
+  font-style: italic;
+}
+
+.catalogueLink {
+  display: inline-block;
+  margin-top: 0.75rem;
+  font-weight: 700;
+}

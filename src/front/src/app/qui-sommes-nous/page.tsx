@@ -55,7 +55,8 @@ export default function AboutPage() {
         <ul>
           <li>
             Chaque essence est choisie avec nos partenaires pour sa résistance
-            et sa place dans la forêt.
+            et sa place dans la forêt : découvrez{" "}
+            <Link href="/nos-forets">nos forêts et leurs mélanges</Link>.
           </li>
           <li>
             Vous choisissez votre arbre dans le catalogue : sa fiche indique son
