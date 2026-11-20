@@ -16,7 +16,7 @@ export function OrderLines({ lines }: OrderLinesProps) {
           <span className={styles.name}>{line.treeName}</span>
           {/* total de la ligne, calculé ici : l'API ne le renvoie pas */}
           <span className={styles.amount}>
-            {formatEuros(line.unitPrice * line.quantity)}
+            {formatEuros(line.unitPrice * line.quantity)} TTC
           </span>
           {/* && : n'affiche le lieu que s'il est renseigné (il peut être null) */}
           {line.plantingLocation && (
