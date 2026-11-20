@@ -9,18 +9,31 @@ export async function getFeaturedTrees(_req: Request, res: Response) {
   res.status(200).json(trees);
 }
 
-// la liste des arbres du catalogue et peut être filtré par ?category= et ?search=
+// la liste des arbres du catalogue et peut être filtré par ?category=, ?search= et ?location=
 export async function getAllCatalog(req: Request, res: Response) {
   //Lecture de L'URL
-  const { category, search } = req.query;
+  const { category, search, location } = req.query;
   //Conversion de la catégorie, seulement si elle est présente
   const categoryId = category === undefined ? undefined : Number(category);
   //Nettoyage de la recherche
   // trim : une recherche vide ou faite d'espaces revient à ne pas filtrer
   const name = typeof search === "string" ? search.trim() : undefined;
 
-  const trees = await treeDatamapper.findAllCatalog(categoryId, name);
+  // le middleware validateLocationQuery garantit un texte ou undefined
+  const plantingLocation = typeof location === "string" ? location : undefined;
+
+  const trees = await treeDatamapper.findAllCatalog(
+    categoryId,
+    name,
+    plantingLocation,
+  );
   res.status(200).json(trees);
+}
+
+// la liste des lieux de plantation, pour le filtre du catalogue
+export async function getAllLocations(_req: Request, res: Response) {
+  const locations = await treeDatamapper.findLocations();
+  res.status(200).json(locations);
 }
 
 // un arbre selon son id

@@ -1,6 +1,7 @@
 import { Router } from "express";
 import {
   getAllCatalog,
+  getAllLocations,
   getFeaturedTrees,
   getOneTree,
 } from "../controllers/treeController.ts";
@@ -8,6 +9,7 @@ import {
   validateId,
   validateCategoryQuery,
   validateSearchQuery,
+  validateLocationQuery,
 } from "../middlewares/commonMiddleware.ts";
 
 import { getAllCategories } from "../controllers/treeController.ts";
@@ -24,7 +26,18 @@ router.get("/trees/featured", getFeaturedTrees);
 // GET /api/trees → la liste de tous les arbres pour le catalogue
 // GET /api/trees?category=:id → filtrée par catégorie
 // GET /api/trees?search=:search → recherche par nom (combinable avec category)
-router.get("/trees", validateCategoryQuery, validateSearchQuery, getAllCatalog);
+// GET /api/trees?location=:lieu → filtrée par lieu (combinable avec category et search)
+router.get(
+  "/trees",
+  validateCategoryQuery,
+  validateSearchQuery,
+  validateLocationQuery,
+  getAllCatalog,
+);
+
+// GET /api/trees/locations → la liste des lieux, pour le filtre du catalogue
+// AVANT /trees/:id : sinon Express lirait "locations" comme un id
+router.get("/trees/locations", getAllLocations);
 
 // GET /api/trees/:id → un arbre pour la fiche arbre
 router.get("/trees/:id", validateId, getOneTree);

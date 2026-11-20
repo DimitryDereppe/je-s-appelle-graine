@@ -5,7 +5,7 @@ import commonStyles from "@/components/infoPage/infoPage.module.css";
 import styles from "./page.module.css";
 
 export const metadata: Metadata = {
-  title: "Qui sommes-nous — Je s’appelle Graine",
+  title: "Qui sommes-nous",
   description:
     "La mission de Je s’appelle Graine : contribuer à la reforestation en offrant un arbre à une forêt française.",
 };
@@ -54,8 +54,12 @@ export default function AboutPage() {
         <h2>Comment un arbre est choisi et planté</h2>
         <ul>
           <li>
-            Chaque essence est choisie avec nos partenaires pour sa résistance
-            et sa place dans la forêt.
+            {/* un seul enfant : le li est une grille (puce | texte), chaque enfant y prend une case */}
+            <span>
+              Chaque essence est choisie avec nos partenaires pour sa résistance
+              et sa place dans la forêt : découvrez{" "}
+              <Link href="/nos-forets">nos forêts et leurs mélanges</Link>.
+            </span>
           </li>
           <li>
             Vous choisissez votre arbre dans le catalogue : sa fiche indique son

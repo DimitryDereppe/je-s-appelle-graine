@@ -11,6 +11,13 @@ Ce guide explique comment installer le projet et vérifier qu'il fonctionne. Il 
 
 Commence par l'[installation commune](#installation-commune), puis suis le chapitre de ton choix : 1. Tout en Docker ou 2. En local (base en Docker).
 
+Ensuite, garde sous la main :
+
+- [3. Au quotidien](#3-au-quotidien) : les comptes pour essayer, les commandes utiles, les tests, les emails, et quoi faire après un `git pull` ;
+- le [dépannage](#dépannage).
+
+> ⚠️ **Toutes les commandes `docker compose` se lancent depuis `src/`, avec `--env-file .env.docker`.** Sans lui, Docker ne trouve aucune variable : il affiche `The "…" variable is not set` puis `no port specified`.
+
 ---
 
 ## Installation commune
@@ -125,7 +132,7 @@ Les 4 services doivent être `Up`, et `db` doit être `(healthy)`. Ensuite, dans
 | Test                   | Adresse                            | Résultat attendu                            |
 | ---------------------- | ---------------------------------- | ------------------------------------------- |
 | Front                  | `http://localhost:3000`            | la page d'accueil, avec la liste des arbres |
-| API en direct          | `http://localhost:4000/api/health` | `{"message":"je s'appelle Graine"}`         |
+| API en direct          | `http://localhost:4000/api/health` | `{"message":"je s'appelle Graine 🌲"}`      |
 | API à travers le front | `http://localhost:3000/api/health` | la même réponse                             |
 | Données de l'API       | `http://localhost:4000/api/trees`  | la liste des arbres en JSON                 |
 | Adminer                | `http://localhost:8080`            | une page de connexion                       |
@@ -175,6 +182,8 @@ ALLOWED_ORIGINS=http://localhost:3000
 
 - `PORT=4050` : un port différent de celui de l'API Docker (4000), pour éviter tout conflit.
 - `ALLOWED_ORIGINS` : l'adresse du front, le seul site autorisé à appeler l'API depuis un navigateur (CORS).
+- `PAYMENT_*` : les instructions de paiement affichées après une commande. Laisse-les vides en dev : l'API prend des valeurs fictives (`config.ts`).
+- Pas de `JWT_SECRET` ni de `SMTP_*` en dev : l'API prend une clé de secours, et les emails sont affichés dans le terminal (voir [3.4](#34-les-emails-en-développement)). Les vraies valeurs ne sont que dans le `.env` du VPS (`DEPLOIEMENT.md`).
 - Dans `DATABASE_URL`, l'hôte est `localhost` et le port `5433`. Depuis ta machine, tu passes par le port publié par Docker (`POSTGRES_PORT`). L'hôte `db` et le port `5432` ne marchent qu'entre conteneurs.
 
 **Le front** (depuis `src/front/`) :
@@ -226,7 +235,7 @@ npm run dev
 | Test                   | Adresse                            | Résultat attendu                            |
 | ---------------------- | ---------------------------------- | ------------------------------------------- |
 | Front                  | `http://localhost:3000`            | la page d'accueil, avec la liste des arbres |
-| API en direct          | `http://localhost:4050/api/health` | `{"message":"je s'appelle Graine"}`         |
+| API en direct          | `http://localhost:4050/api/health` | `{"message":"je s'appelle Graine 🌲"}`      |
 | API à travers le front | `http://localhost:3000/api/health` | la même réponse                             |
 | Données de l'API       | `http://localhost:4050/api/trees`  | la liste des arbres en JSON                 |
 
@@ -239,7 +248,96 @@ Pour tout arrêter :
 
 ---
 
+## 3. Au quotidien
+
+### 3.1 Les comptes pour essayer
+
+La base est remplie par `02-seed.sql` :
+
+- **Clients :** `alice@test.fr`, `charlie@test.fr`, `eve@test.fr`, mot de passe `Client12345!` ;
+- **Comptes désactivés** (la connexion répond 403) : `bob@test.fr`, `david@test.fr`, même mot de passe ;
+- **Administrateurs :** un compte par membre de l'équipe (`prenom@graine.fr`). Les mots de passe sont partagés en privé dans l'équipe : ils ne vont **jamais** dans le dépôt, ni dans un fichier `.http`.
+
+### 3.2 Les commandes de la base
+
+Depuis `src/api/`, base lancée (Docker ou `npm run db:up`) :
+
+| Commande           | Ce qu'elle fait                                                                                 |
+| ------------------ | ----------------------------------------------------------------------------------------------- |
+| `npm run db:seed`  | remet les données de test (vide les tables, rejoue `02-seed.sql`) : tes commandes sont effacées |
+| `npm run db:reset` | recrée toute la base : tables (`01-schema.sql`) et données de test                              |
+| `npm run db:psql`  | ouvre `psql` dans la base, pour lancer une requête à la main (`\q` pour sortir)                 |
+
+Ces commandes ne touchent qu'à la base de développement, jamais à celle des tests.
+
+### 3.3 Lancer les tests et les vérifications
+
+Depuis `src/api/`, **Docker lancé** :
+
+```bash
+npm test
+```
+
+- `npm test` lance les tests unitaires (`*.unit.test.ts`), puis les tests d'intégration (`*.spec.test.ts`).
+- Les tests d'intégration créent leur **propre base** dans un conteneur `graine_test` (port 5434, `test/config/.env.test`), puis la suppriment : ils ne touchent jamais à ta base de développement.
+- Un test ne lance que sa feature : `npx tsx --test --env-file=./test/config/.env.test --import ./test/config/global-setup.ts --experimental-test-isolation=none src/controllers/cartController.spec.test.ts`.
+
+Les vérifications que Husky refait à chaque commit, à lancer avant d'ouvrir une PR :
+
+```bash
+npm --prefix src/api run typecheck
+npm --prefix src/front run typecheck
+npm --prefix src/front run lint
+npm --prefix src/front run build
+```
+
+### 3.4 Les emails en développement
+
+En dev, aucun vrai email n'est envoyé : sans `SMTP_HOST`, l'API affiche l'email (destinataire, objet, texte) dans son terminal.
+
+- Tout en Docker : `docker compose --env-file .env.docker logs -f api` depuis `src/` (`Ctrl+C` pour sortir) ;
+- En local : directement dans le terminal de l'API.
+
+On ne met pas de `SMTP_*` en dev : les tests enverraient de vrais emails. Les vrais envois ne se font qu'en production (`DEPLOIEMENT.md`).
+
+### 3.5 Après un `git pull`
+
+Regarde ce qui a changé et fais seulement ce qui correspond :
+
+| Ce qui a changé                                         | À faire                                                                                                                                                                    |
+| ------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| du code seulement                                       | rien : l'API et le front se rechargent tout seuls                                                                                                                          |
+| `src/api/package-lock.json` (une dépendance de l'API)   | `npm --prefix src/api ci`, puis, en Docker, depuis `src/` : `docker compose --env-file .env.docker exec api npm ci` et `docker compose --env-file .env.docker restart api` |
+| `src/front/package-lock.json` (une dépendance du front) | `npm --prefix src/front ci`, puis, en Docker : `docker compose --env-file .env.docker exec front npm ci` et `docker compose --env-file .env.docker restart front`          |
+| `01-schema.sql` ou `02-seed.sql`                        | `npm run db:reset` depuis `src/api/` (⚠️ efface tes données de dev)                                                                                                        |
+| un `.env.example`                                       | compare avec ton `.env` et ajoute les nouvelles lignes                                                                                                                     |
+
+> **Pourquoi `npm ci` deux fois en Docker ?** Les conteneurs gardent leurs propres `node_modules` dans un volume Docker. Ni `git pull` ni `up --build` ne les mettent à jour : sans le `npm ci` dans le conteneur, l'API plante au démarrage avec `Cannot find package '…'`.
+
+Pour voir ce qui a changé dans le dernier `git pull` :
+
+```bash
+git diff --stat HEAD@{1} HEAD
+```
+
+---
+
 ## Dépannage
+
+### `The "…" variable is not set` / `no port specified`
+
+La commande `docker compose` a été lancée sans `--env-file .env.docker`, ou ailleurs que dans `src/`. Relance-la depuis `src/`, avec `--env-file .env.docker`.
+
+### L'API ne répond plus après un `git pull` : `Cannot find package '…'`
+
+Une dépendance a été ajoutée, mais pas dans le conteneur. Le message est dans `docker compose --env-file .env.docker logs api`. Depuis `src/` :
+
+```bash
+docker compose --env-file .env.docker exec api npm ci
+docker compose --env-file .env.docker restart api
+```
+
+Même chose pour le front, avec `front` à la place de `api`.
 
 ### `port is already allocated` / `address already in use`
 

@@ -2,6 +2,56 @@
 
 Suivi de mon travail sur Je s’appelle Graine. Les décisions notées ici ont été prises avec l'équipe ; le suivi de l'équipe est dans le [carnet de bord Je s’appelle Graine](CARNET-DE-BORD-JE-S-APPELLE-GRAINE.md), que je tiens à jour.
 
+## 2026-11-13 — Finitions, sécurité, SEO et version finale
+
+### Travail réalisé
+
+- **Sécurité :**
+  - `helmet` dans l'API (PR #238, #239), testé : en-têtes présents, photos toujours affichées ;
+- **SEO et performance** (PR #242, #249) : metadata de tout le site, titres harmonisés, `robots.txt`, `sitemap.xml`, favicon, photo de l'accueil chargée en priorité, titres des onglets de l'admin ; Lighthouse sur le site en ligne : SEO et accessibilité à 100.
+- **Correctifs CSS** (PR #256) : pied de page qui recouvrait le contenu après la connexion (`html` et `body` dans le module de la connexion), couleurs qui changeaient après le panier (16 blocs `:root` dans les modules).
+- **Relectures et suivi** : finitions de relecture de F9 faites (PR #242) ; route des photos de Shanna relue.
+- **Documentation** : guide d'installation (PR #248, #250), README final et plan de tests complet (PR #257).
+- **Version finale** : simulation puis fusion de `DEV` dans `main` (PR #252, #253), `main` remis dans `DEV` ; déploiement sur ma VM vérifié.
+- **Équipe** : challenge allégé au travail du jour (finitions, tests manuels, démo), Kanban mis à jour.
+
+### Ce que j'ai appris
+
+- Un **CSS module** ne renomme que les classes : `:root`, `html` et `body` y restent globaux, et le CSS d'une page reste chargé quand Next change de page sans recharger.
+- Pied de page collé en bas : `min-height: 100vh` (jamais `height`) sur `body` en flex, et `flex: 1` sur `main`.
+- `robots: { index: false }` sert au référencement, pas à la vitesse ; `useCallback` garde une fonction en mémoire, `useEffect` exécute du code après l'affichage.
+
+### À poursuivre
+
+- démo lundi 16.
+
+## 2026-11-12 — F8 terminée, emails en production et correctifs avant le gel
+
+### Travail réalisé
+
+- **F8 :** PR #220 fusionnée après la relecture de Dimitry ; #168, #169, #170 et #8 en Terminé.
+- **Emails en production** (#222) : compte Gmail de l'équipe (validation en deux étapes, mot de passe d'application) ; envoi réel vérifié (confirmation, paiement reçu, plantation) ; `DEPLOIEMENT.md` et `.env.prod.example` à jour (PR #223).
+- **Correctifs et factorisation :**
+  - composant `OrderLines` partagé, `formatPaymentMethod`, bouton d'annulation en terracotta, boutons de `/compte` (PR #225, #226) ;
+  - champs en 16px, plus de zoom sur mobile (PR #227) ;
+  - compteur du panier relu après une commande, une connexion et une déconnexion (PR #230) ;
+  - emails de statut envoyés à l'email actuel du compte, test F8-INT-22.
+- **Suivi de l'équipe :** tour des commits, point avec Loïc sur les règles du panier, point avec Mahamadou sur le front de F9.
+
+### Ce que j'ai appris
+
+- **SMTP** est le protocole d'envoi des emails. Nodemailer fabrique l'email (au format MIME) et le remet au serveur SMTP de Gmail, qui le livre.
+- Port 587 avec **STARTTLS** : la connexion commence en clair puis passe en chiffré ; le port 465 est chiffré dès le début.
+- Un **mot de passe d'application** fonctionne comme une clé API : donné à un programme, révocable, jamais dans le dépôt.
+- Un **Context React** partage une donnée entre composants (le compteur du panier) : un Provider dans le layout, un hook pour la lire, et `refresh()` à appeler après chaque action qui change le panier.
+- `LEFT JOIN` garde la ligne de gauche même sans correspondance (colonnes à `NULL`) ; `COALESCE` prend la première valeur non `NULL`.
+- Safari zoome sur un champ dont le texte fait moins de 16px.
+
+### À poursuivre
+
+- Relire le front de F9 ; fusionner `DEV` dans `main` après le gel.
+- Installer `helmet` et les solutions pour la photo d'un arbre à l'équipe.
+
 ## 2026-11-11 — F8 : back des commandes pour l'admin, tests et `helmet`
 
 ### Travail réalisé

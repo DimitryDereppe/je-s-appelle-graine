@@ -4,6 +4,7 @@ import Image from "next/image";
 
 const footerLinks = [
   { href: "/qui-sommes-nous", label: "Qui sommes-nous" },
+  { href: "/nos-forets", label: "Nos forêts" },
   { href: "/mentions-legales", label: "Mentions légales" },
   {
     href: "/politique-de-confidentialite",
@@ -18,7 +19,7 @@ export default function Footer() {
         <Link
           className={styles.brand}
           href="/"
-          aria-label="Je m’appelle Graine, accueil"
+          aria-label="Je s’appelle Graine, accueil"
         >
           <Image
             src="/assets/graine-2-germination.ico"

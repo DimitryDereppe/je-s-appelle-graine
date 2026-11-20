@@ -16,7 +16,7 @@ describe("cartController", () => {
       });
 
       assert.strictEqual(response.status, 200);
-      assert.deepStrictEqual(response.data, []);
+      assert.deepStrictEqual(response.data, { items: [], total: 0 });
     });
 
     it("should respond 200 with the cart lines and the tree details", async () => {
@@ -34,12 +34,14 @@ describe("cartController", () => {
       });
 
       assert.strictEqual(response.status, 200);
-      assert.strictEqual(response.data.length, 1);
-      const line = response.data[0];
+      assert.strictEqual(response.data.items.length, 1);
+      assert.strictEqual(response.data.total, 19.8);
+      const line = response.data.items[0];
       assert.deepStrictEqual(Object.keys(line).sort(), [
         "accountId",
         "availabilityName",
         "id",
+        "lineTotal",
         "name",
         "photoUrl",
         "plantingLocation",
@@ -53,6 +55,7 @@ describe("cartController", () => {
       assert.strictEqual(line.price, 9.9);
       assert.strictEqual(line.plantingLocation, "Landiras (33)");
       assert.strictEqual(line.availabilityName, "disponible");
+      assert.strictEqual(line.lineTotal, 19.8);
     });
 
     it("should respond only with the cart of the connected account", async () => {
@@ -73,9 +76,9 @@ describe("cartController", () => {
       });
 
       assert.strictEqual(response.status, 200);
-      assert.strictEqual(response.data.length, 1);
-      assert.strictEqual(response.data[0].treeId, aliceTreeId);
-      assert.strictEqual(response.data[0].accountId, aliceId);
+      assert.strictEqual(response.data.items.length, 1);
+      assert.strictEqual(response.data.items[0].treeId, aliceTreeId);
+      assert.strictEqual(response.data.items[0].accountId, aliceId);
     });
 
     it("should respond 401 if not connected", async () => {
@@ -127,10 +130,7 @@ describe("cartController", () => {
 
       const response = await libTests.requester.post(
         "/cart/items",
-        {
-          treeId,
-          quantity: 2,
-        },
+        { treeId, quantity: 2 },
         { headers: { Cookie: cookie } },
       );
 
@@ -148,49 +148,169 @@ describe("cartController", () => {
 
       const response = await libTests.requester.post(
         "/cart/items",
-        {
-          treeId,
-          quantity: 3,
-        },
+        { treeId, quantity: 3 },
         { headers: { Cookie: cookie } },
       );
 
       assert.strictEqual(response.status, 201);
-      assert.strictEqual(response.data.quantity, 5); // 2 + 3
+      assert.strictEqual(response.data.quantity, 5);
+    });
+
+    it("should default quantity to 1 if not provided", async () => {
+      await libTests.createAccount(libTests.ALICE);
+      const treeId = await libTests.createTree({ name: "Chêne" });
+      const cookie = await libTests.loginAs(libTests.ALICE);
+
+      const response = await libTests.requester.post(
+        "/cart/items",
+        { treeId },
+        { headers: { Cookie: cookie } },
+      );
+
+      assert.strictEqual(response.status, 201);
+      assert.strictEqual(response.data.quantity, 1);
+    });
+
+    it("should respond 404 if treeId does not exist", async () => {
+      await libTests.createAccount(libTests.ALICE);
+      const cookie = await libTests.loginAs(libTests.ALICE);
+
+      const response = await libTests.requester.post(
+        "/cart/items",
+        { treeId: 99999, quantity: 1 },
+        { headers: { Cookie: cookie } },
+      );
+
+      assert.strictEqual(response.status, 404);
+      assert.strictEqual(response.data.error, "Arbre introuvable.");
+    });
+
+    it("should respond 409 if the tree is 'en rupture de stock'", async () => {
+      await libTests.createAccount(libTests.ALICE);
+      const treeId = await libTests.createTree({
+        name: "Chêne indisponible",
+        availability: "en rupture de stock",
+      });
+      const cookie = await libTests.loginAs(libTests.ALICE);
+
+      const response = await libTests.requester.post(
+        "/cart/items",
+        { treeId, quantity: 1 },
+        { headers: { Cookie: cookie } },
+      );
+
+      assert.strictEqual(response.status, 409);
+      assert.strictEqual(
+        response.data.error,
+        "Cet arbre n'est pas disponible.",
+      );
+    });
+
+    it("should respond 409 if the tree is 'retiré'", async () => {
+      await libTests.createAccount(libTests.ALICE);
+      const treeId = await libTests.createTree({
+        name: "Chêne retiré",
+        availability: "retiré",
+      });
+      const cookie = await libTests.loginAs(libTests.ALICE);
+
+      const response = await libTests.requester.post(
+        "/cart/items",
+        { treeId, quantity: 1 },
+        { headers: { Cookie: cookie } },
+      );
+
+      assert.strictEqual(response.status, 409);
+      assert.strictEqual(
+        response.data.error,
+        "Cet arbre n'est pas disponible.",
+      );
+    });
+
+    it("should respond 400 if total quantity exceeds MAX_QUANTITY_PER_TREE", async () => {
+      const aliceId = await libTests.createAccount(libTests.ALICE);
+      const treeId = await libTests.createTree({ name: "Chêne" });
+      await libTests.addCartItem(aliceId, treeId, 90);
+      const cookie = await libTests.loginAs(libTests.ALICE);
+
+      const response = await libTests.requester.post(
+        "/cart/items",
+        { treeId, quantity: 15 },
+        { headers: { Cookie: cookie } },
+      );
+
+      assert.strictEqual(response.status, 400);
+      assert.strictEqual(
+        response.data.error,
+        "La quantité totale ne peut pas dépasser 100 pour cet arbre.",
+      );
     });
 
     it("should respond 400 if quantity is 0", async () => {
-      const aliceId = await libTests.createAccount(libTests.ALICE);
+      await libTests.createAccount(libTests.ALICE);
       const treeId = await libTests.createTree({ name: "Chêne" });
       const cookie = await libTests.loginAs(libTests.ALICE);
-      console.log(aliceId);
 
       const response = await libTests.requester.post(
         "/cart/items",
-        {
-          treeId,
-          quantity: 0,
-        },
+        { treeId, quantity: 0 },
         { headers: { Cookie: cookie } },
       );
-      console.log(aliceId);
+
       assert.strictEqual(response.status, 400);
+      assert.strictEqual(
+        response.data.error,
+        "quantity doit être supérieur à 0.",
+      );
+    });
+
+    it("should respond 400 if quantity is negative", async () => {
+      await libTests.createAccount(libTests.ALICE);
+      const treeId = await libTests.createTree({ name: "Chêne" });
+      const cookie = await libTests.loginAs(libTests.ALICE);
+
+      const response = await libTests.requester.post(
+        "/cart/items",
+        { treeId, quantity: -3 },
+        { headers: { Cookie: cookie } },
+      );
+
+      assert.strictEqual(response.status, 400);
+      assert.strictEqual(
+        response.data.error,
+        "quantity doit être supérieur à 0.",
+      );
     });
 
     it("should respond 400 if treeId is missing", async () => {
-      const aliceId = await libTests.createAccount(libTests.ALICE);
+      await libTests.createAccount(libTests.ALICE);
       const cookie = await libTests.loginAs(libTests.ALICE);
-      console.log(aliceId);
 
       const response = await libTests.requester.post(
         "/cart/items",
-        {
-          quantity: 1,
-        },
+        { quantity: 1 },
         { headers: { Cookie: cookie } },
       );
 
       assert.strictEqual(response.status, 400);
+      assert.strictEqual(response.data.error, "treeId doit être un nombre.");
+    });
+
+    it("should respond 400 if treeId is 0", async () => {
+      await libTests.createAccount(libTests.ALICE);
+      const cookie = await libTests.loginAs(libTests.ALICE);
+
+      const response = await libTests.requester.post(
+        "/cart/items",
+        { treeId: 0, quantity: 1 },
+        { headers: { Cookie: cookie } },
+      );
+
+      assert.strictEqual(response.status, 400);
+      assert.strictEqual(
+        response.data.error,
+        "treeId doit être supérieur à 0.",
+      );
     });
 
     it("should respond 401 if not connected", async () => {
@@ -214,9 +334,7 @@ describe("cartController", () => {
 
       const response = await libTests.requester.patch(
         `/cart/items/${treeId}`,
-        {
-          quantity: 4,
-        },
+        { quantity: 4 },
         { headers: { Cookie: cookie } },
       );
 
@@ -225,22 +343,54 @@ describe("cartController", () => {
       assert.strictEqual(response.data.quantity, 4);
     });
 
-    it("should respond 404 if the tree is not in the cart", async () => {
+    it("should respond 200 if quantity is exactly 100 (boundary)", async () => {
       const aliceId = await libTests.createAccount(libTests.ALICE);
       const treeId = await libTests.createTree({ name: "Hêtre" });
+      await libTests.addCartItem(aliceId, treeId, 1);
       const cookie = await libTests.loginAs(libTests.ALICE);
-      console.log(aliceId);
 
       const response = await libTests.requester.patch(
         `/cart/items/${treeId}`,
-        {
-          quantity: 2,
-        },
+        { quantity: 100 },
+        { headers: { Cookie: cookie } },
+      );
+
+      assert.strictEqual(response.status, 200);
+      assert.strictEqual(response.data.quantity, 100);
+    });
+
+    it("should respond 404 if the tree is not in the cart", async () => {
+      await libTests.createAccount(libTests.ALICE);
+      const treeId = await libTests.createTree({ name: "Hêtre" });
+      const cookie = await libTests.loginAs(libTests.ALICE);
+
+      const response = await libTests.requester.patch(
+        `/cart/items/${treeId}`,
+        { quantity: 2 },
         { headers: { Cookie: cookie } },
       );
 
       assert.strictEqual(response.status, 404);
-      assert.strictEqual(response.data.error, "Ligne du panier introuvable");
+      assert.strictEqual(response.data.error, "Ligne introuvable.");
+    });
+
+    it("should respond 400 if quantity exceeds 100", async () => {
+      const aliceId = await libTests.createAccount(libTests.ALICE);
+      const treeId = await libTests.createTree({ name: "Hêtre" });
+      await libTests.addCartItem(aliceId, treeId, 1);
+      const cookie = await libTests.loginAs(libTests.ALICE);
+
+      const response = await libTests.requester.patch(
+        `/cart/items/${treeId}`,
+        { quantity: 105 },
+        { headers: { Cookie: cookie } },
+      );
+
+      assert.strictEqual(response.status, 400);
+      assert.strictEqual(
+        response.data.error,
+        "quantity ne peut pas dépasser 100.",
+      );
     });
 
     it("should respond 400 if quantity is 0", async () => {
@@ -251,13 +401,48 @@ describe("cartController", () => {
 
       const response = await libTests.requester.patch(
         `/cart/items/${treeId}`,
-        {
-          quantity: 0,
-        },
+        { quantity: 0 },
         { headers: { Cookie: cookie } },
       );
 
       assert.strictEqual(response.status, 400);
+      assert.strictEqual(
+        response.data.error,
+        "quantity doit être supérieur à 0.",
+      );
+    });
+
+    it("should respond 400 if quantity is negative", async () => {
+      const aliceId = await libTests.createAccount(libTests.ALICE);
+      const treeId = await libTests.createTree({ name: "Hêtre" });
+      await libTests.addCartItem(aliceId, treeId, 1);
+      const cookie = await libTests.loginAs(libTests.ALICE);
+
+      const response = await libTests.requester.patch(
+        `/cart/items/${treeId}`,
+        { quantity: -1 },
+        { headers: { Cookie: cookie } },
+      );
+
+      assert.strictEqual(response.status, 400);
+      assert.strictEqual(
+        response.data.error,
+        "quantity doit être supérieur à 0.",
+      );
+    });
+
+    it("should respond 400 if treeId in URL is not a number", async () => {
+      await libTests.createAccount(libTests.ALICE);
+      const cookie = await libTests.loginAs(libTests.ALICE);
+
+      const response = await libTests.requester.patch(
+        `/cart/items/abc`,
+        { quantity: 2 },
+        { headers: { Cookie: cookie } },
+      );
+
+      assert.strictEqual(response.status, 400);
+      assert.strictEqual(response.data.error, "treeId doit être un nombre.");
     });
 
     it("should respond 401 if not connected", async () => {
@@ -292,7 +477,46 @@ describe("cartController", () => {
       const getResponse = await libTests.requester.get("/cart", {
         headers: { Cookie: cookie },
       });
-      assert.strictEqual(getResponse.data.length, 0);
+      assert.strictEqual(getResponse.data.items.length, 0);
+    });
+
+    it("should respond 404 if the tree does not exist", async () => {
+      await libTests.createAccount(libTests.ALICE);
+      const cookie = await libTests.loginAs(libTests.ALICE);
+
+      const response = await libTests.requester.delete(`/cart/items/99999`, {
+        headers: { Cookie: cookie },
+      });
+
+      assert.strictEqual(response.status, 404);
+      assert.strictEqual(response.data.error, "Ligne introuvable.");
+    });
+
+    it("should respond 204 if the tree exists but is not in the cart", async () => {
+      await libTests.createAccount(libTests.ALICE);
+      const treeId = await libTests.createTree({ name: "Chêne" });
+      const cookie = await libTests.loginAs(libTests.ALICE);
+
+      const response = await libTests.requester.delete(
+        `/cart/items/${treeId}`,
+        {
+          headers: { Cookie: cookie },
+        },
+      );
+
+      assert.strictEqual(response.status, 204);
+    });
+
+    it("should respond 400 if treeId in URL is not a number", async () => {
+      await libTests.createAccount(libTests.ALICE);
+      const cookie = await libTests.loginAs(libTests.ALICE);
+
+      const response = await libTests.requester.delete(`/cart/items/xyz`, {
+        headers: { Cookie: cookie },
+      });
+
+      assert.strictEqual(response.status, 400);
+      assert.strictEqual(response.data.error, "treeId doit être un nombre.");
     });
 
     it("should respond 401 if not connected", async () => {
@@ -324,7 +548,18 @@ describe("cartController", () => {
       const getResponse = await libTests.requester.get("/cart", {
         headers: { Cookie: cookie },
       });
-      assert.deepStrictEqual(getResponse.data, []);
+      assert.deepStrictEqual(getResponse.data, { items: [], total: 0 });
+    });
+
+    it("should respond 204 if the cart is already empty", async () => {
+      await libTests.createAccount(libTests.ALICE);
+      const cookie = await libTests.loginAs(libTests.ALICE);
+
+      const response = await libTests.requester.delete("/cart/items", {
+        headers: { Cookie: cookie },
+      });
+
+      assert.strictEqual(response.status, 204);
     });
 
     it("should respond 401 if not connected", async () => {

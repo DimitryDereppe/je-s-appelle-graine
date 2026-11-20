@@ -3,9 +3,9 @@
   height: auto;
   display: flex;
   flex-direction: column;
-  background-color: #f8f6f8;
-  font-family: "Lora", Georgia, serif;
-  color: #18352e;
+  background-color: var(--color-bg);
+  font-family: var(--font-serif);
+  color: var(--color-text);
   padding: 16px 16px 40px;
 }
 
@@ -18,27 +18,27 @@
   padding: 16px 0;
   margin: 0;
   font-size: 14px;
-  color: #53615b;
+  color: var(--color-text-muted);
 }
 
 .breadcrumb li + li::before {
   content: "·";
   margin: 0 8px;
-  color: #53615b;
+  color: var(--color-text-muted);
 }
 
 .breadcrumb a {
-  color: #53615b;
+  color: var(--color-text-muted);
   text-decoration: none;
 }
 
 .breadcrumb a:hover {
   text-decoration: underline;
-  text-decoration-color: #b6532c;
+  text-decoration-color: var(--color-accent);
 }
 
 .breadcrumb [aria-current="page"] {
-  color: #18352e;
+  color: var(--color-text);
   font-weight: 600;
 }
 
@@ -46,11 +46,11 @@
 .backButton {
   display: inline-block;
   align-self: flex-start;
-  color: #245a46;
+  color: var(--color-primary);
   font-size: 14px;
   text-decoration: none;
   text-align: center;
-  border: 1px solid #245a46;
+  border: 1px solid var(--color-primary);
   border-radius: 8px;
   padding: 8px 16px;
   margin-bottom: 16px;
@@ -59,11 +59,11 @@
 
 .backButton:hover {
   text-decoration: underline;
-  text-decoration-color: #b6532c;
+  text-decoration-color: var(--color-accent);
 }
 
 .backButton:focus-visible {
-  outline: 2px solid #245a46;
+  outline: 2px solid var(--color-primary);
   outline-offset: 2px;
 }
 
@@ -72,7 +72,7 @@
   display: flex;
   flex-direction: column;
   width: 100%;
-  background-color: #f8f6f8;
+  background-color: var(--color-bg);
   position: relative;
 }
 
@@ -82,7 +82,7 @@
   height: 220px;
   border-radius: 12px;
   overflow: hidden;
-  background-color: #e3e9df;
+  background-color: var(--color-surface);
   position: relative;
 }
 
@@ -101,34 +101,34 @@
 .title {
   font-size: 26px;
   font-weight: 700;
-  font-family: "Lora", Georgia, serif;
-  color: #18352e;
+  font-family: var(--font-serif);
+  color: var(--color-text);
   margin: 0 0 4px;
 }
 
-/* --- Sous-titre catégorie en gris --- */
+/* --- Sous-titre catégorie --- */
 .subtitle {
   font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #53615b;
+  color: var(--color-text-muted);
   margin: 0 0 8px;
 }
 
-/* --- Prix en vert --- */
+/* --- Prix --- */
 .price {
   font-size: 16px;
   font-weight: 700;
-  color: #b6532c;
+  color: var(--color-accent);
   margin: 0 0 16px;
 }
 
-/* --- Nom scientifique (italique gris) --- */
+/* --- Nom scientifique --- */
 .scientific {
   font-size: 14px;
   font-style: italic;
-  color: #53615b;
+  color: var(--color-text-muted);
   margin: 0 0 8px;
 }
 
@@ -136,15 +136,15 @@
 .description {
   font-size: 15px;
   line-height: 1.6;
-  color: #18352e;
+  color: var(--color-text);
   margin: 0 0 16px;
   text-align: justify;
 }
 
-/* --- Localisation avec icône --- */
+/* --- Localisation --- */
 .location {
   font-size: 14px;
-  color: #53615b;
+  color: var(--color-text-muted);
   display: flex;
   align-items: center;
   gap: 8px;
@@ -159,7 +159,9 @@
 .actions {
   width: 100%;
   display: flex;
+  flex-direction: column;
   justify-content: center;
+  align-items: center;
   margin-top: 8px;
 }
 
@@ -168,8 +170,8 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  background-color: #245a46;
-  color: #f8f6f8;
+  background-color: var(--color-primary);
+  color: var(--color-bg);
   border: none;
   border-radius: 12px;
   padding: 14px 24px;
@@ -177,23 +179,23 @@
   width: 100%;
   font-size: 15px;
   font-weight: 600;
-  font-family: "Lora", Georgia, serif;
+  font-family: var(--font-serif);
   cursor: pointer;
   transition: background-color 0.3s ease;
 }
 
 .basketButton:hover {
-  background-color: #18352e;
+  background-color: var(--color-text);
 }
 
 .basketButton:focus-visible {
-  outline: 3px solid #245a46;
+  outline: 3px solid var(--color-primary);
   outline-offset: 2px;
 }
 
 /* --- Lien retour / erreurs --- */
 .backLink {
-  color: #245a46;
+  color: var(--color-primary);
   text-decoration: none;
   font-size: 14px;
   margin-top: 16px;
@@ -205,7 +207,7 @@
 
 .errorMessage {
   font-size: 1.1rem;
-  color: #b00020;
+  color: var(--color-error);
   text-align: center;
 }
 
@@ -218,6 +220,7 @@
   .detail {
     padding: 32px;
   }
+
   .detailCard {
     flex-direction: row;
     width: 100%;

@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { useCartCount } from "@/app/context/CartCountContext";
 import styles from "./page.module.css";
 
 interface LoginFormProps {
@@ -24,6 +25,7 @@ function getSafeNextPath(next?: string): string {
 export function LoginForm({ next }: LoginFormProps) {
   const [errorMessage, setErrorMessage] = useState("");
   const router = useRouter();
+  const { refresh } = useCartCount();
 
   async function handleLogin(formData: FormData) {
     setErrorMessage("");
@@ -56,6 +58,9 @@ export function LoginForm({ next }: LoginFormProps) {
         setErrorMessage("Quelque chose n’a pas fonctionné.");
         return;
       }
+      // Connexion réussie : le compteur affiche le panier enregistré du compte
+      await refresh();
+
       // Connexion réussie : où renvoyer l'utilisateur ? Deux cas, testés dans l'ordre.
 
       // 1. Une page a demandé la connexion et donné son adresse dans l'URL,

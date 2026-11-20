@@ -1,5 +1,61 @@
 # Carnet de bord — Je s’appelle Graine
 
+## 2026-11-13 — Version finale dans `main` et en ligne, finitions, README et plan de tests
+
+### Travail réalisé
+
+- **Admin comptes (F9), front** par Mahamadou (PR #243) : liste, détail, choix actif ou inactif, suppression avec confirmation, 409 du dernier administrateur affiché. F9 est terminée.
+- **Admin catalogue (F7)** par Shanna (PR #247) : photo de chaque arbre dans la liste admin, CSS harmonisé, et choix de la photo dans un menu (nouvelle route `GET /api/admin/tree-photos`).
+- **Panier (F4)** par Loïc : variables CSS (PR #240, #245) ; messages de Zod en français, quantité totale limitée à 100, un test par message (PR #251). F4 est terminée.
+- **Sécurité et qualité** par Fabrice :
+  - `helmet` : en-têtes de sécurité sur chaque réponse de l'API (PR #238) ;
+  - SEO : metadata, `robots.txt`, `sitemap.xml`, titres des onglets, `noindex` des pages privées (PR #242) ;
+  - pied de page qui recouvrait le contenu après la connexion, et couleurs qui changeaient après le panier : variables et règles de `body` déplacées dans `globals.css` (PR #256).
+- **Documentation** : guide d'installation à jour (PR #248) ; README final et plan de tests complet (PR #257) par Fabrice ; procédure de déploiement finale, pare-feu, sauvegarde et restauration par Dimitry (PR #254, #255).
+- **Version finale** : `DEV` fusionné dans `main` (PR #252), puis `main` dans `DEV` ; déployée sur les VM. Lighthouse sur le site en ligne : accessibilité et SEO à 100 sur les pages publiques.
+- **Tests** : 230 tests d'intégration et 6 tests unitaires passent.
+- **Kanban** : F4, F6, F7 et F9 terminées ; README et plan de tests terminées.
+
+### Décisions
+
+- **Gel des fonctionnalités respecté** : ce qui n'est pas fait (filtre de l'admin par disponibilité, envoi d'une photo, adresse en champs séparés) est écrit dans les pistes d'amélioration du README.
+- **CSS** : jamais de `:root`, `html` ni `body` dans un `.module.css` ; les variables et les règles de tout le site vont dans `globals.css`.
+- **Démo** (8 minutes), scénario validé par toute l'équipe : un fil rouge, la même commande du parcours d'achat à l'espace client puis à l'admin ; Loïc (renfort Dimitry) l'achat, Fabrice l'espace client, Mahamadou (renfort Shanna) l'admin. Loïc partage son écran et donne le lien de son VPS; les autres prennent la parole pendant qu'il fait les manipulations.
+- **Déploiement** : chacun déploie le projet sur son propre VPS.
+
+### À poursuivre
+
+- Tous : démo lundi 16.
+
+## 2026-11-12 — F8 terminée, panier et front de F7 dans `DEV`, emails en production, gel des fonctionnalités
+
+### Travail réalisé
+
+- **Admin commandes (F8)**, terminée (#8) :
+  - back par Fabrice (PR #220, #168, #170) : liste, filtre, détail, changement de statut, emails de paiement reçu, d'annulation et de plantation, 21 tests d'intégration et 3 tests unitaires ;
+  - front par Dimitry (PR #224, #169) : page `/admin/commandes/[id]`, boutons de changement de statut, commande relue si un autre admin l'a changée entre-temps (409) ;
+  - composant `OrderLines` partagé entre les pages client et admin, `formatPaymentMethod`, bouton « Annuler la commande » en terracotta (PR #225, #226) ;
+  - emails de statut envoyés à l'email actuel du compte.
+- **Emails en production :** compte Gmail de l'équipe (#222), `DEPLOIEMENT.md` et `.env.prod.example` (PR #223) ; `SMTP_*` ajoutées au `.env` du VPS par Dimitry ; emails de confirmation, de paiement reçu et de plantation bien reçus.
+- **Panier (F4)** par Loïc : page `/panier` (PR #229, #231) et règles du back (PR #234) : quantité 1 par défaut, 404 pour un arbre inconnu, 409 pour un arbre en rupture de stock ou retiré, 13 tests.
+- **Compteur du panier** relu après une commande, une connexion et une déconnexion, par Fabrice (PR #230).
+- **Admin catalogue (F7), front** par Shanna (PR #232) : ajouter, modifier et supprimer un arbre (suppression refusée s'il a déjà été commandé).
+- **Admin comptes (F9), front** par Mahamadou : liste et détail des comptes, bouton de suppression ; pas encore poussé.
+- **Mobile :** champs de connexion et de paiement en 16px, plus de zoom sur iPhone (PR #227). Déploiement de `DEV` essayé sur une machine virtuelle : le site fonctionne sur mobile.
+- **`DEV` :** 230 tests d'intégration et 6 tests unitaires de l'API passent ; le front passe TypeScript et ESLint.
+
+### Décisions
+
+- **Emails :** vrais envois seulement en production ; en développement, l'email reste affiché dans la console, pour ne pas envoyer de vrais emails pendant les tests.
+- **Emails de statut :** envoyés à l'email actuel du compte ; si le compte a été supprimé, à l'email copié dans la commande.
+
+### À poursuivre
+
+- Mahamadou : pousser le front de F9 (choix actif ou inactif d'un compte, CSS), retirer le mot de passe admin de `test.admin.http`.
+- Fabrice : relire F9, fusionner `DEV` dans `main` ; installer `helmet` et parler de la photo d'un nouvel arbre (US48).
+- Dimitry : déploiement final vendredi 13 (#176).
+- Tous : derniers détails vendredi matin, relectures, préparation de la démo du lundi 16.
+
 ## 2026-11-10 — Espace admin, F6 terminée, back de F7 et de F9 dans `DEV`
 
 ### Travail réalisé

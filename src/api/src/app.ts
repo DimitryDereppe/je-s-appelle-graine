@@ -6,6 +6,7 @@ import { router as apiRouter } from "./routers/indexRouter.ts";
 import { validateContentType } from "./middlewares/validateContentTypeMiddleware.ts";
 
 import cors from "cors";
+import helmet from "helmet";
 import { config } from "../config.ts";
 import {
   globalErrorHandler,
@@ -13,6 +14,9 @@ import {
 } from "./middlewares/errorMiddleware.ts";
 
 export const app = express();
+
+// helmet : en-têtes de sécurité sur chaque réponse (CSP, X-Frame-Options, nosniff…)
+app.use(helmet());
 
 // CORS : seul notre front peut lire les réponses de l'API ; credentials pour le cookie accessToken
 app.use(cors({ origin: config.allowedOrigins, credentials: true }));

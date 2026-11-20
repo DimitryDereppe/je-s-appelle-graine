@@ -1,0 +1,70 @@
+/* ===== Espace admin — commun aux pages de F7, F8 et F9 ===== */
+.main {
+  padding: 16px 16px 32px;
+  background-color: var(--color-ivory);
+  color: var(--color-deep-green);
+}
+
+/* plus large que les pages client : les listes admin ont plus de colonnes */
+.content {
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+.title {
+  font-size: 24px;
+  line-height: 1.2;
+}
+
+.subtitle {
+  margin: 12px 0;
+  color: var(--color-muted);
+  font-size: 14px;
+}
+
+.error {
+  color: var(--color-terracotta);
+}
+
+.success {
+  color: var(--color-green);
+}
+
+/* --- Menu de l'espace admin --- */
+.menu {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 24px;
+  padding: 0;
+  list-style: none;
+}
+
+.menuLink {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 8px 16px;
+  border: 2px solid var(--color-green);
+  border-radius: 8px;
+  background-color: var(--color-green);
+  color: var(--color-white);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+/* survol et focus au clavier : vert plus foncé, contour visible */
+.menuLink:hover,
+.menuLink:focus-visible {
+  background-color: var(--color-deep-green);
+  outline: 2px solid var(--color-deep-green);
+  outline-offset: 2px;
+}
+
+/* rubrique ouverte : vert foncé et soulignée */
+.menuLinkActive {
+  border-color: var(--color-deep-green);
+  background-color: var(--color-deep-green);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}

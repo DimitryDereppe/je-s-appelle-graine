@@ -1,0 +1,10 @@
+/* ===== Admin — comptes (F9) ===== */
+/* le reste des styles vient de la page admin des commandes (commandes/page.module.css) */
+
+/* détail d'un compte : fond blanc et bordure, comme les cartes de la liste */
+.detailCard {
+  padding: 12px 16px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background-color: white;
+}
