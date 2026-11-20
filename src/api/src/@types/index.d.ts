@@ -100,6 +100,19 @@ export interface ICartItem {
 // --------------------------------
 export type PaymentMethod = "virement" | "chèque";
 
+// pays européens acceptés pour l'adresse de facturation (code ISO à 2 lettres)
+// la liste des formats de code postal est dans lib/countries.ts
+export type CountryCode =
+  "FR" | "BE" | "DE" | "ES" | "GB" | "LU" | "CH" | "IT" | "NL" | "PT";
+
+// adresse de facturation, découpée pour la facture
+export interface IBillingAddress {
+  street: string; // numéro et rue, ex. "221B Baker Street"
+  postalCode: string; // format vérifié selon le pays
+  city: string;
+  country: CountryCode;
+}
+
 // ligne de commande : nom, prix et lieu figés au moment de l'achat
 export interface IOrderLine {
   treeName: string;
@@ -116,7 +129,7 @@ export interface IOrder {
   status: string;
   paymentMethod: PaymentMethod;
   totalAmount: number;
-  billingAddress: string; // adresse de facturation saisie par le client
+  billingAddress: IBillingAddress; // adresse de facturation saisie par le client
   lines: IOrderLine[];
 }
 

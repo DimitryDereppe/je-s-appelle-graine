@@ -91,7 +91,12 @@ CREATE TABLE purchase (
   buyer_lastname     VARCHAR(100)  NOT NULL,
   buyer_email        VARCHAR(255)  NOT NULL,
   buyer_organization VARCHAR(150),
-  buyer_address      VARCHAR(255),
+  -- Adresse de facturation saisie à la commande (pays européens, code ISO à 2 lettres)
+  buyer_street       VARCHAR(255)  NOT NULL,
+  buyer_postal_code  VARCHAR(10)   NOT NULL,
+  buyer_city         VARCHAR(100)  NOT NULL,
+  buyer_country      CHAR(2)       NOT NULL
+                     CHECK (buyer_country IN ('FR', 'BE', 'DE', 'ES', 'GB', 'LU', 'CH', 'IT', 'NL', 'PT')),
   -- Date de chaque changement de statut
   paid_at            TIMESTAMPTZ,
   planted_at         TIMESTAMPTZ,

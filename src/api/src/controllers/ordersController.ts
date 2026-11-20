@@ -13,6 +13,48 @@ import {
 import { cartDatamapper } from "../datamappers/cartDatamapper.ts";
 import { ordersDatamapper } from "../datamappers/ordersDatamapper.ts";
 import { config } from "../../config.ts";
+import { COUNTRY_CODES, POSTAL_CODE_FORMATS } from "../lib/countries.ts";
+
+// --------------------------------
+// schéma de l'adresse de facturation (pays européens)
+// --------------------------------
+const billingAddressSchema = z
+  .object(
+    {
+      // trim retire les espaces au début et à la fin, avant de vérifier la longueur
+      // max : la taille de chaque colonne dans purchase
+      street: z
+        .string({
+          error: "La rue de l'adresse de facturation est obligatoire.",
+        })
+        .trim()
+        .min(1, {
+          error: "La rue de l'adresse de facturation est obligatoire.",
+        })
+        .max(255, {
+          error: "La rue de l'adresse de facturation est trop longue.",
+        }),
+      // toUpperCase : "nw1 6xe" devient "NW1 6XE", le format attendu
+      postalCode: z
+        .string({ error: "Le code postal est obligatoire." })
+        .trim()
+        .toUpperCase(),
+      city: z
+        .string({ error: "La ville est obligatoire." })
+        .trim()
+        .min(1, { error: "La ville est obligatoire." })
+        .max(100, { error: "Le nom de la ville est trop long." }),
+      // z.enum : un code pays parmi la liste de lib/countries.ts
+      country: z.enum(COUNTRY_CODES, { error: "Pays non pris en charge." }),
+    },
+    { error: "L'adresse de facturation est obligatoire." },
+  )
+  // refine : une vérification de plus, qui a besoin de 2 champs à la fois :
+  // le code postal doit avoir le format du pays choisi
+  .refine(
+    (address) => POSTAL_CODE_FORMATS[address.country].test(address.postalCode),
+    { error: "Code postal invalide pour ce pays.", path: ["postalCode"] },
+  );
 
 // --------------------------------
 // instructions de paiement selon le mode choisi (valeurs lues dans la config, contrat #103)
@@ -53,13 +95,7 @@ export async function createOrder(req: IAuthenticatedRequest, res: Response) {
       error: "Vous devez vous engager à payer sous 10 jours.",
     }),
     // adresse de facturation saisie par le client : elle figure sur la facture
-    // trim retire les espaces au début et à la fin, avant de vérifier la longueur
-    // max(255) : la taille de la colonne purchase.buyer_address
-    billingAddress: z
-      .string({ error: "L'adresse de facturation est obligatoire." })
-      .trim()
-      .min(1, { error: "L'adresse de facturation est obligatoire." })
-      .max(255, { error: "L'adresse de facturation est trop longue." }),
+    billingAddress: billingAddressSchema,
   });
   // parse lève une erreur si le body ne respecte pas le schéma :
   // le gestionnaire d'erreurs la transforme en réponse 400

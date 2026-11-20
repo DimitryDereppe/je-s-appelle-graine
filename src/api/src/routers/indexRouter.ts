@@ -12,7 +12,7 @@ import {
 export const router = Router();
 
 router.get("/health", (_req, res) => {
-  res.status(200).send({ message: "je s'appelle Graine 🌲" });
+  res.status(200).send({ message: "je s'appelle Graine" });
 });
 
 router.use(treeRouter);

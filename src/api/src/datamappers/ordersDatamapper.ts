@@ -1,6 +1,7 @@
 import { pool } from "../data/db-client.ts";
 import type {
   IAccountProfile,
+  IBillingAddress,
   ICartItem,
   IOrder,
   PaymentMethod,
@@ -20,7 +21,7 @@ export const ordersDatamapper = {
     cart: ICartItem[],
     paymentMethod: PaymentMethod,
     totalAmount: number,
-    billingAddress: string,
+    billingAddress: IBillingAddress,
   ): Promise<number> {
     // pool.query peut envoyer chaque requête sur une connexion différente ;
     // BEGIN ne vaut que pour SA connexion : on en emprunte UNE au pool pour toute la transaction
@@ -33,10 +34,12 @@ export const ordersDatamapper = {
       // 1. la commande : identité de l'acheteur copiée depuis son compte,
       // adresse de facturation saisie par le client au moment de commander
       // (si le client change d'adresse plus tard, la commande garde celle du jour)
+      // l'adresse de facturation est rangée dans 4 colonnes (rue, code postal, ville, pays)
       const purchaseResult = await client.query(
         `INSERT INTO purchase (total_amount, payment_method, buyer_firstname, buyer_lastname,
-                               buyer_email, buyer_organization, buyer_address, account_id)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+                               buyer_email, buyer_organization, buyer_street, buyer_postal_code,
+                               buyer_city, buyer_country, account_id)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
          RETURNING id`,
         [
           totalAmount,
@@ -45,7 +48,10 @@ export const ordersDatamapper = {
           account.lastname,
           account.email,
           account.organizationName,
-          billingAddress,
+          billingAddress.street,
+          billingAddress.postalCode,
+          billingAddress.city,
+          billingAddress.country,
           account.id,
         ],
       );
@@ -109,7 +115,10 @@ export const ordersDatamapper = {
               -- NUMERIC arrive en texte dans Node : CAST le change en nombre
               CAST(total_amount AS FLOAT) AS "totalAmount",
               -- adresse de facturation, à faire figurer sur la facture
-              buyer_address AS "billingAddress"
+              buyer_street,
+              buyer_postal_code,
+              buyer_city,
+              buyer_country
        FROM purchase
        WHERE id = $1 AND account_id = $2`,
       [orderId, accountId],
@@ -130,7 +139,26 @@ export const ordersDatamapper = {
       [orderId],
     );
 
-    // la commande, avec ses lignes dans une propriété "lines" (format du contrat)
-    return { ...orderResult.rows[0], lines: linesResult.rows };
+    // on sépare les 4 colonnes de l'adresse du reste de la commande…
+    const {
+      buyer_street,
+      buyer_postal_code,
+      buyer_city,
+      buyer_country,
+      ...order
+    } = orderResult.rows[0];
+
+    // … pour les regrouper dans un objet billingAddress,
+    // et les lignes dans une propriété "lines" (format du contrat)
+    return {
+      ...order,
+      billingAddress: {
+        street: buyer_street,
+        postalCode: buyer_postal_code,
+        city: buyer_city,
+        country: buyer_country,
+      },
+      lines: linesResult.rows,
+    };
   },
 };

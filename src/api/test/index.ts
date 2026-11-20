@@ -1,7 +1,7 @@
 import axios, { AxiosInstance, AxiosResponse } from "axios";
 import argon2 from "argon2";
 import { pool } from "../src/data/db-client.ts";
-import type { Role } from "../src/@types/index.d.ts";
+import type { IBillingAddress, Role } from "../src/@types/index.d.ts";
 
 const apiBaseUrl = `http://localhost:${process.env.PORT}/api/`;
 
@@ -102,6 +102,7 @@ interface ITestAccount {
   password: string;
   role: Role;
   isActive: boolean;
+  address?: string | null; // adresse du profil, facultative (texte libre)
 }
 
 export const ALICE: ITestAccount = {
@@ -111,6 +112,91 @@ export const ALICE: ITestAccount = {
   password: "MotDePasse123!",
   role: "customer",
   isActive: true,
+};
+
+// --------------------------------
+// clients européens : un compte et l'adresse de facturation qu'il saisit à la commande
+// (comptes aussi présents dans 02-seed.sql, id 11 à 14)
+// --------------------------------
+interface ITestCustomer {
+  account: ITestAccount;
+  billingAddress: IBillingAddress;
+}
+
+// Royaume-Uni
+export const SHERLOCK: ITestCustomer = {
+  account: {
+    firstname: "Sherlock",
+    lastname: "Holmes",
+    email: "sherlock@test.fr",
+    password: "Client12345!",
+    role: "customer",
+    isActive: true,
+    address: "221B Baker Street, London NW1 6XE, Royaume-Uni",
+  },
+  billingAddress: {
+    street: "221B Baker Street",
+    postalCode: "NW1 6XE",
+    city: "London",
+    country: "GB",
+  },
+};
+
+// Belgique (adresse inventée : Poirot est né à Ellezelles d'après Agatha Christie)
+export const POIROT: ITestCustomer = {
+  account: {
+    firstname: "Hercule",
+    lastname: "Poirot",
+    email: "poirot@test.fr",
+    password: "Client12345!",
+    role: "customer",
+    isActive: true,
+    address: "Rue des Petites Cellules Grises 3, 7890 Ellezelles, Belgique",
+  },
+  billingAddress: {
+    street: "Rue des Petites Cellules Grises 3",
+    postalCode: "7890",
+    city: "Ellezelles",
+    country: "BE",
+  },
+};
+
+// Allemagne (Einstein a habité au 5 Haberlandstraße à Berlin)
+export const EINSTEIN: ITestCustomer = {
+  account: {
+    firstname: "Albert",
+    lastname: "Einstein",
+    email: "einstein@test.fr",
+    password: "Client12345!",
+    role: "customer",
+    isActive: true,
+    address: "Haberlandstraße 5, 10779 Berlin, Allemagne",
+  },
+  billingAddress: {
+    street: "Haberlandstraße 5",
+    postalCode: "10779",
+    city: "Berlin",
+    country: "DE",
+  },
+};
+
+// Espagne (Campo de Criptana, le village des moulins de la Manche)
+export const QUICHOTTE: ITestCustomer = {
+  account: {
+    firstname: "Don",
+    lastname: "Quichotte",
+    email: "quichotte@test.fr",
+    password: "Client12345!",
+    role: "customer",
+    isActive: true,
+    address: "Calle de los Molinos 1, 13610 Campo de Criptana, Espagne",
+  },
+  billingAddress: {
+    street: "Calle de los Molinos 1",
+    postalCode: "13610",
+    city: "Campo de Criptana",
+    country: "ES",
+  },
 };
 
 // --------------------------------
@@ -128,14 +214,16 @@ export async function createAccount(account: ITestAccount): Promise<number> {
   const hashedPassword = await argon2.hash(account.password);
 
   const accountResult = await pool.query(
-    `INSERT INTO account (email, password, firstname, lastname, is_active, role_id)
-     VALUES ($1, $2, $3, $4, $5, $6)
+    `INSERT INTO account (email, password, firstname, lastname, address, is_active, role_id)
+     VALUES ($1, $2, $3, $4, $5, $6, $7)
      RETURNING id`,
     [
       account.email,
       hashedPassword,
       account.firstname,
       account.lastname,
+      // ?? null : sans adresse précisée, la colonne reste vide (NULL)
+      account.address ?? null,
       account.isActive,
       roleResult.rows[0].id,
     ],

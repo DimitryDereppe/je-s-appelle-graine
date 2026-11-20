@@ -6,9 +6,10 @@ import { pool } from "../data/db-client.ts";
 // --------------------------------
 // prépare un client connecté avec un panier : 3 chênes à 16,90 € et 1 hêtre à 12,50 €
 // retourne ce dont les tests ont besoin
+// par défaut le client est ALICE ; on peut passer un autre compte (ex. SHERLOCK.account)
 // --------------------------------
-async function createCustomerWithCart() {
-  const aliceId = await libTests.createAccount(libTests.ALICE);
+async function createCustomerWithCart(account = libTests.ALICE) {
+  const aliceId = await libTests.createAccount(account);
   const oakId = await libTests.createTree({
     name: "Chêne pédonculé",
     price: 16.9,
@@ -17,7 +18,7 @@ async function createCustomerWithCart() {
   const beechId = await libTests.createTree({ name: "Hêtre", price: 12.5 });
   await libTests.addCartItem(aliceId, oakId, 3);
   await libTests.addCartItem(aliceId, beechId, 1);
-  const cookie = await libTests.loginAs(libTests.ALICE);
+  const cookie = await libTests.loginAs(account);
   return { aliceId, oakId, cookie };
 }
 
@@ -27,7 +28,13 @@ async function countRows(table: "purchase" | "purchase_line" | "cart_item") {
   return Number(result.rows[0].count);
 }
 
-const billingAddress = "12 rue des Chênes, 35380 Paimpont";
+// adresse de facturation française d'ALICE
+const billingAddress = {
+  street: "12 rue des Tilleuls",
+  postalCode: "35000",
+  city: "Rennes",
+  country: "FR",
+};
 const validBody = {
   paymentMethod: "virement",
   paymentCommitment: true,
@@ -64,7 +71,7 @@ describe("ordersController", () => {
       ]);
       assert.strictEqual(response.data.status, "en attente");
       assert.strictEqual(response.data.paymentMethod, "virement");
-      assert.strictEqual(response.data.billingAddress, billingAddress);
+      assert.deepStrictEqual(response.data.billingAddress, billingAddress);
       // total recalculé par l'API : 3 × 16,90 + 1 × 12,50 = 63,20 (arrondi au centime)
       assert.strictEqual(response.data.totalAmount, 63.2);
       // date limite = date de commande + 10 jours
@@ -130,11 +137,16 @@ describe("ordersController", () => {
 
       // Assert : identité figée dans la commande, panier vidé
       const purchase = await pool.query(
-        "SELECT buyer_email, buyer_address, account_id FROM purchase WHERE id = $1",
+        `SELECT buyer_email, buyer_street, buyer_postal_code, buyer_city, buyer_country, account_id
+         FROM purchase WHERE id = $1`,
         [response.data.id],
       );
       assert.strictEqual(purchase.rows[0].buyer_email, libTests.ALICE.email);
-      assert.strictEqual(purchase.rows[0].buyer_address, billingAddress);
+      // l'adresse de facturation est rangée dans ses 4 colonnes
+      assert.strictEqual(purchase.rows[0].buyer_street, "12 rue des Tilleuls");
+      assert.strictEqual(purchase.rows[0].buyer_postal_code, "35000");
+      assert.strictEqual(purchase.rows[0].buyer_city, "Rennes");
+      assert.strictEqual(purchase.rows[0].buyer_country, "FR");
       assert.strictEqual(purchase.rows[0].account_id, aliceId);
       assert.strictEqual(await countRows("purchase_line"), 2);
       assert.strictEqual(await countRows("cart_item"), 0);
@@ -210,7 +222,7 @@ describe("ordersController", () => {
       );
       const blank = await libTests.requester.post(
         "/orders",
-        { ...validBody, billingAddress: "   " },
+        { ...validBody, billingAddress: { ...billingAddress, street: "   " } },
         { headers: { Cookie: cookie } },
       );
 
@@ -223,8 +235,85 @@ describe("ordersController", () => {
       assert.strictEqual(blank.status, 400);
       assert.strictEqual(
         blank.data.error,
-        "L'adresse de facturation est obligatoire.",
+        "La rue de l'adresse de facturation est obligatoire.",
       );
+    });
+
+    // un code postal valide dans un pays, mais pas dans celui choisi
+    const wrongPostalCodes = [
+      { country: "FR", postalCode: "7890" }, // 4 chiffres : format belge
+      { country: "BE", postalCode: "75008" }, // 5 chiffres : format français
+      { country: "DE", postalCode: "1077" },
+      { country: "ES", postalCode: "ABCDE" },
+      { country: "GB", postalCode: "10779" },
+      { country: "NL", postalCode: "1012" }, // il manque les 2 lettres
+      { country: "PT", postalCode: "1100148" }, // il manque le tiret
+    ];
+    for (const { country, postalCode } of wrongPostalCodes) {
+      it(`should respond 400 if the postal code ${postalCode} does not match ${country}`, async () => {
+        // Arrange
+        const { cookie } = await createCustomerWithCart();
+
+        // Act
+        const response = await libTests.requester.post(
+          "/orders",
+          {
+            ...validBody,
+            billingAddress: { ...billingAddress, country, postalCode },
+          },
+          { headers: { Cookie: cookie } },
+        );
+
+        // Assert
+        assert.strictEqual(response.status, 400);
+        assert.strictEqual(
+          response.data.error,
+          "Code postal invalide pour ce pays.",
+        );
+      });
+    }
+
+    it("should respond 400 if the country is not supported", async () => {
+      // Arrange
+      const { cookie } = await createCustomerWithCart();
+
+      // Act : les États-Unis ne sont pas dans la liste des pays européens
+      const response = await libTests.requester.post(
+        "/orders",
+        {
+          ...validBody,
+          billingAddress: { ...billingAddress, country: "US" },
+        },
+        { headers: { Cookie: cookie } },
+      );
+
+      // Assert
+      assert.strictEqual(response.status, 400);
+      assert.strictEqual(response.data.error, "Pays non pris en charge.");
+    });
+
+    it("should accept a lowercase British postal code and save it in uppercase", async () => {
+      // Arrange
+      const { cookie } = await createCustomerWithCart(
+        libTests.SHERLOCK.account,
+      );
+
+      // Act : code postal tapé en minuscules
+      const response = await libTests.requester.post(
+        "/orders",
+        {
+          ...validBody,
+          billingAddress: {
+            ...libTests.SHERLOCK.billingAddress,
+            postalCode: "nw1 6xe",
+          },
+        },
+        { headers: { Cookie: cookie } },
+      );
+
+      // Assert
+      assert.strictEqual(response.status, 201);
+      assert.strictEqual(response.data.billingAddress.postalCode, "NW1 6XE");
     });
 
     it("should respond 400 if the cart is empty", async () => {
@@ -331,27 +420,37 @@ describe("ordersController", () => {
       assert.deepStrictEqual(response.data, order.data);
     });
 
-    it("should return the billing address given when ordering", async () => {
-      // Arrange : ALICE commande avec une adresse de facturation
-      // (différente de celle de son compte : c'est bien l'adresse saisie qui est gardée)
-      const { cookie } = await createCustomerWithCart();
-      const otherAddress = "221B Baker Street, London NW1 6XE";
-      const order = await libTests.requester.post(
-        "/orders",
-        { ...validBody, billingAddress: otherAddress },
-        { headers: { Cookie: cookie } },
-      );
+    // un client par pays : chacun commande avec son adresse de facturation
+    const europeanCustomers = [
+      libTests.SHERLOCK, // Royaume-Uni
+      libTests.POIROT, // Belgique
+      libTests.EINSTEIN, // Allemagne
+      libTests.QUICHOTTE, // Espagne
+    ];
+    for (const customer of europeanCustomers) {
+      const { account, billingAddress: customerAddress } = customer;
 
-      // Act : relecture de la commande, comme sur la page de confirmation
-      const response = await libTests.requester.get(
-        `/orders/${order.data.id}`,
-        { headers: { Cookie: cookie } },
-      );
+      it(`should return the billing address of ${account.firstname} ${account.lastname} (${customerAddress.country})`, async () => {
+        // Arrange : le client commande avec son adresse de facturation
+        const { cookie } = await createCustomerWithCart(account);
+        const order = await libTests.requester.post(
+          "/orders",
+          { ...validBody, billingAddress: customerAddress },
+          { headers: { Cookie: cookie } },
+        );
 
-      // Assert : l'adresse de facturation est celle saisie, prête pour la facture
-      assert.strictEqual(response.status, 200);
-      assert.strictEqual(response.data.billingAddress, otherAddress);
-    });
+        // Act : relecture de la commande, comme sur la page de confirmation
+        const response = await libTests.requester.get(
+          `/orders/${order.data.id}`,
+          { headers: { Cookie: cookie } },
+        );
+
+        // Assert : l'adresse est celle saisie, découpée pour la facture
+        assert.strictEqual(order.status, 201);
+        assert.strictEqual(response.status, 200);
+        assert.deepStrictEqual(response.data.billingAddress, customerAddress);
+      });
+    }
 
     it("should respond 404 for the order of another customer", async () => {
       // Arrange : ALICE passe commande, un autre client se connecte
