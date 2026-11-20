@@ -1,6 +1,48 @@
 # Carnet de bord — Dimitry (Tech Lead Back)
 
-Suivi de mon travail sur Je s’appelle Graine. Les décisions notées ici ont été prises avec l'équipe sur Discord ; le suivi de l'équipe est dans le [[Apothéose/apo-jesappellegraine/CARNET-DE-BORD-JE-S-APPELLE-GRAINE|carnet de bord Je s’appelle Graine]].
+Suivi de mon travail sur Je s’appelle Graine. Les décisions notées ici ont été prises avec l'équipe sur Discord ; le suivi de l'équipe est dans le [[Apothéose/je-s-appelle-graine/CARNET-DE-BORD-JE-S-APPELLE-GRAINE|carnet de bord Je s’appelle Graine]].
+
+## 2026-11-20 — Copie sur mon GitHub perso, filtre par lieu, vérification des incendies, page « Nos forêts »
+
+### Copie du dépôt
+
+- `O-clock-Kyoto/apo-jesappellegraine` copié vers `DimitryDereppe/je-s-appelle-graine` (public), avec tout l'historique. Historique vérifié avant : seulement des identifiants de test, aucun vrai secret.
+- Seules `main` et `DEV` existaient encore sur l'original. Étape `filter-branch` du guide O'clock sautée : le `README.md` est le nôtre.
+- Clone local repointé (`git remote set-url`), nettoyé (`git fetch --prune`, 15 branches fusionnées supprimées avec `git branch -d`), dossier renommé `Apothéose/je-s-appelle-graine`.
+- `feat/front-f8-#169` supprimée : `main` contenait déjà une version plus aboutie du composant `OrderLines` (fusionner aurait fait revenir en arrière `formatPaymentMethod` et le bouton « annulée »).
+- Stash « adresse découpée en 4 colonnes » (06/11) sauvé dans la branche `feat/adresse-4-colonnes`, non fusionnée (trace). Les 3 stashes locaux sont ensuite vidés.
+
+### Petits correctifs
+
+- « TTC » après le total de chaque ligne de commande (`OrderLines.tsx`), PR #1.
+- Les hooks husky interdisent le commit et le push directs sur `main` : tout passe par une branche et une PR.
+- Après le renommage du dossier, les conteneurs Docker ne démarraient plus : ils gardaient l'ancien chemin absolu des fichiers montés → `up -d --force-recreate`.
+- Puis `password authentication failed` : `POSTGRES_PASSWORD` n'est lu qu'à la création du volume, et `.env.docker` avait changé depuis → volume recréé (`down -v`, puis `up -d --build`).
+
+### Filtre du catalogue par lieu (PR #2)
+
+- API : `GET /api/trees?location=` (combinable avec `category` et `search`), validé par `validateLocationQuery` ; `GET /api/trees/locations` (`SELECT DISTINCT`, sans `NULL` ni lieu dont tous les arbres sont retirés), déclarée avant `/trees/:id`.
+- Front : `?lieu=` sur `/arbres`, groupe « Lieux de plantation ». Une seule fonction `updateFilters(changes)` garde les autres filtres ; `??` et pas `||`, car `0` et `""` sont de vrais choix (« Tous »).
+- Tests F2-INT-28 à 32 (`deepStrictEqual` pour comparer des tableaux), plan de tests à jour : 235/235.
+
+### Incendies vérifiés, Jura corrigé
+
+- Source interne : `Apothéose/divers/bdd arbres.md` (« Conseils de mélange »), qui ne cite aucune source externe.
+- Vérifié (préfectures, ONF, DRAAF) : Landiras ~13 800 ha et non ~20 000 ; Brocéliande, départ à Campénéac (56) ; Corbières 16 000 à 17 000 ha parcourus ; **le Jura n'a pas brûlé à Cerniébaud mais à Cernon et Vescles, en août 2022 (~700 ha)**.
+- Seed corrigé (« Massif du Jura — Cernon (39) ») et base de dev mise à jour. **Reste à faire** : les deux `UPDATE` sur la base de production (dans la PR #2).
+- Comparaison ONF : mélanger est bien la ligne recommandée, mais il n'existe pas de plafond officiel par essence, et l'ONF laisse d'abord la forêt se régénérer seule avant de planter (3 à 5 ans après le feu).
+
+### Page « Nos forêts » (PR #3)
+
+- `/nos-forets` : pourquoi planter en mélange, 4 principes, puis une section par lieu (incendie, tableau Essence / Part / Rôle avec total calculé par `reduce`, lien vers `/arbres?lieu=…` construit avec `URLSearchParams`), « Comment nous plantons », sources.
+- Données séparées de l'affichage (`forests.ts`), essences retirées marquées « (non disponible) » grâce à un `Set` des noms du catalogue.
+- Monts d'Arrée : plantation en lisière, la lande (milieu protégé) est laissée en régénération ; pin sylvestre limité à 25 %, car il colonise la lande.
+- Liens depuis « Qui sommes-nous », le pied de page et le sitemap.
+- Bug d'affichage : le `<li>` de « Qui sommes-nous » est une grille (puce | texte), le lien y devenait une case de 1rem → contenu regroupé dans un seul `<span>`.
+
+### Fin de journée
+
+- PR #2 et #3 fusionnées ; `main` et `DEV` à `b9db8bd`.
 
 ## 2026-11-13 — Déploiement : procédure finale (#174), testée sur la VM
 
