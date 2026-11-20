@@ -69,3 +69,33 @@ export function validateSearchQuery(
     `Recherche invalide : un seul texte de ${MAX_SEARCH_LENGTH} caractères maximum`,
   );
 }
+
+// taille de la colonne tree.planting_location (VARCHAR(150) dans 01-schema.sql)
+const MAX_LOCATION_LENGTH = 150;
+
+export function validateLocationQuery(
+  req: Request,
+  _res: Response,
+  next: NextFunction,
+) {
+  const { location } = req.query;
+
+  // Pas de lieu : rien à valider
+  if (location === undefined) {
+    return next();
+  }
+
+  // Un texte (pas un tableau), non vide, qui tient dans la colonne
+  if (
+    typeof location === "string" &&
+    location.trim() !== "" &&
+    location.length <= MAX_LOCATION_LENGTH
+  ) {
+    return next();
+  }
+
+  // Cas par défaut : lieu invalide
+  throw new BadRequestError(
+    `Lieu invalide : un seul texte de ${MAX_LOCATION_LENGTH} caractères maximum`,
+  );
+}

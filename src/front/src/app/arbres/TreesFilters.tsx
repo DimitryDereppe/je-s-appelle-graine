@@ -8,30 +8,43 @@ import type { ICategory } from "../../@types";
 interface TreesFiltersProps {
   categories: ICategory[];
   selectedCategory: number;
+  locations: string[];
+  selectedLocation: string; // "" = tous les lieux
   searchText: string; // la recherche en cours, pour ne pas la perdre
 }
 
 export function TreesFilters({
   categories,
   selectedCategory,
+  locations,
+  selectedLocation,
   searchText,
 }: TreesFiltersProps) {
   const router = useRouter();
   const [isFilterOpen, setIsFilterOpen] = useState(false);
 
-  function handleCategoryChange(categoryId: number) {
+  // Reconstruit l'URL avec les 3 filtres : celui qui change prend sa nouvelle
+  // valeur, les autres gardent la valeur actuelle (sinon ils seraient perdus)
+  function updateFilters(changes: { category?: number; location?: string }) {
     setIsFilterOpen(false);
 
-    // On reconstruit l'URL avec les DEUX filtres
+    // ?? et pas || : 0 (« Tous nos arbres ») et "" (« Tous les lieux ») sont de vrais choix
+    const category = changes.category ?? selectedCategory;
+    const location = changes.location ?? selectedLocation;
+
     const params = new URLSearchParams();
 
-    if (categoryId !== 0) {
-      params.set("categorie", String(categoryId));
+    if (category !== 0) {
+      params.set("categorie", String(category));
     }
 
     // On recopie la recherche en cours, sinon elle serait perdue
     if (searchText !== "") {
       params.set("recherche", searchText);
+    }
+
+    if (location !== "") {
+      params.set("lieu", location);
     }
 
     const query = params.toString();
@@ -44,9 +57,7 @@ export function TreesFilters({
         className={styles.filterToggle}
         type="button"
         aria-label={
-          isFilterOpen
-            ? "Masquer les filtres par catégorie"
-            : "Afficher les filtres par catégorie"
+          isFilterOpen ? "Masquer les filtres" : "Afficher les filtres"
         }
         aria-expanded={isFilterOpen}
         aria-controls="tree-filters"
@@ -72,9 +83,27 @@ export function TreesFilters({
                 name="category"
                 value={category.id}
                 checked={selectedCategory === category.id}
-                onChange={() => handleCategoryChange(category.id)}
+                onChange={() => updateFilters({ category: category.id })}
               />
               <span>{category.name}</span>
+            </label>
+          ))}
+        </fieldset>
+
+        <fieldset className={styles.categoryFilters}>
+          <legend>Lieux de plantation</legend>
+
+          {/* "" : la valeur qui veut dire « pas de filtre » */}
+          {["", ...locations].map((location) => (
+            <label className={styles.categoryOption} key={location || "tous"}>
+              <input
+                type="radio"
+                name="location"
+                value={location}
+                checked={selectedLocation === location}
+                onChange={() => updateFilters({ location })}
+              />
+              <span>{location || "Tous les lieux"}</span>
             </label>
           ))}
         </fieldset>

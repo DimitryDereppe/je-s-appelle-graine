@@ -12,12 +12,12 @@ Ce document liste, feature par feature, les cas à vérifier, leur type et le r�
 
 ## Synthèse (13/11/2026, code de `main`)
 
-`npm test` dans `src/api/` : **230 tests d'intégration et 6 tests unitaires, tous passent** (`node:test` compte à part chaque cas généré par une boucle, par exemple chaque champ trop long : d'où un total plus grand que la somme ci-dessous).
+`npm test` dans `src/api/` : **235 tests d’intégration et 6 tests unitaires, tous passent** (20/11/2026 : +5 avec le filtre par lieu, F2-INT-28 à 32) (`node:test` compte à part chaque cas généré par une boucle, par exemple chaque champ trop long : d'où un total plus grand que la somme ci-dessous).
 
 | Fichier de tests                                | Feature                     | Cas écrits |
 | ----------------------------------------------- | --------------------------- | ---------- |
 | `app.spec.test.ts`                              | API (santé, route inconnue) | 3          |
-| `treeController.spec.test.ts`                   | F1 Accueil, F2 Catalogue    | 33         |
+| `treeController.spec.test.ts`                   | F1 Accueil, F2 Catalogue    | 38         |
 | `authController.spec.test.ts`                   | F3 Connexion                | 11         |
 | `userController.spec.test.ts`                   | F3 Inscription, F6 Compte   | 42         |
 | `cartController.spec.test.ts`                   | F4 Panier                   | 34         |
@@ -266,6 +266,25 @@ Même fichier. Les 4 cas passent.
 | F2-INT-25 | Champs d'une catégorie   | Intégration | `id` et `name`                  | ✅     |
 | F2-INT-26 | Doublons                 | Intégration | chaque catégorie une seule fois | ✅     |
 | F2-INT-27 | Aucune catégorie en base | Intégration | `200` et `[]`                   | ✅     |
+
+### Tests d'intégration — filtre par lieu `GET /api/trees?location=` (ajout du 20/11/2026)
+
+Même fichier. Les 4 cas passent.
+
+| N°        | Cas                                          | Type        | Attendu                                      | Obtenu |
+| --------- | -------------------------------------------- | ----------- | -------------------------------------------- | ------ |
+| F2-INT-28 | Arbres de deux lieux                         | Intégration | seulement ceux du lieu demandé, triés par id | ✅     |
+| F2-INT-29 | Lieu combiné avec une catégorie              | Intégration | seulement les arbres des deux filtres        | ✅     |
+| F2-INT-30 | `location` répété (`?location=a&location=b`) | Intégration | `400` (`validateLocationQuery`)              | ✅     |
+| F2-INT-31 | Lieu vide (`?location=`)                     | Intégration | `400` (`validateLocationQuery`)              | ✅     |
+
+### Tests d'intégration — liste des lieux `GET /api/trees/locations` (ajout du 20/11/2026)
+
+Même fichier. Le cas passe.
+
+| N°        | Cas                                                             | Type        | Attendu                                                                            | Obtenu |
+| --------- | --------------------------------------------------------------- | ----------- | ---------------------------------------------------------------------------------- | ------ |
+| F2-INT-32 | Lieu en double, lieu `NULL`, lieu dont le seul arbre est retiré | Intégration | chaque lieu une seule fois, par ordre alphabétique, sans `NULL` ni lieu « retiré » | ✅     |
 
 ## F4 · Panier (US05, US22, US23)
 

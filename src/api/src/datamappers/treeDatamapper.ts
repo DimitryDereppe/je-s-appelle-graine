@@ -43,6 +43,7 @@ export const treeDatamapper = {
   async findAllCatalog(
     categoryId?: number,
     name?: string,
+    location?: string,
   ): Promise<ICatalogueTree[]> {
     // Colonnes listées une par une pour pouvoir convertir le prix :
     // PostgreSQL stocke price en NUMERIC, que pg renvoie en texte ("9.90") ;
@@ -68,6 +69,8 @@ export const treeDatamapper = {
         CAST($2 AS TEXT) IS NULL
         OR unaccent(tree.name) ILIKE unaccent('%' || $2 || '%')
       )
+      -- même principe pour le lieu : comparaison exacte, la valeur vient de la liste du filtre
+      AND (CAST($3 AS TEXT) IS NULL OR tree.planting_location = $3)
       ORDER BY tree.id;
     `;
 
@@ -76,8 +79,27 @@ export const treeDatamapper = {
     const result = await pool.query(sqlQuery, [
       categoryId ?? null,
       escapedName,
+      location ?? null,
     ]);
     return result.rows;
+  },
+
+  // filtre du catalogue : chaque lieu de plantation une seule fois, par ordre alphabétique
+  async findLocations(): Promise<string[]> {
+    const sqlQuery = `
+      SELECT DISTINCT tree.planting_location AS "location"
+      FROM tree
+      JOIN availability ON tree.availability_id = availability.id
+      -- mêmes arbres que le catalogue : un lieu qui n'a que des arbres retirés
+      -- donnerait une liste vide une fois choisi
+      WHERE availability.name <> 'retiré'
+      -- la colonne accepte NULL (01-schema.sql) : un lieu vide n'a rien à faire dans la liste
+      AND tree.planting_location IS NOT NULL
+      ORDER BY "location";
+    `;
+    const result = await pool.query(sqlQuery);
+    // [{ location: "Forêt…" }, …] → ["Forêt…", …] : le front n'a besoin que des textes
+    return result.rows.map((row: { location: string }) => row.location);
   },
 
   // fiche : un arbre selon son id, ou undefined s'il n'existe pas
