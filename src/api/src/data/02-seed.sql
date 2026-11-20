@@ -98,11 +98,11 @@ INSERT INTO tree (name, description, price, photo_url, planting_location, catego
   -- id 5
   ('Sapin pectiné',
    'Grand sapin des forêts de montagne, il apprécie la fraîcheur et l''ombre des versants du Jura.',
-   12.90, '/images/trees/sapin-pectine.webp', 'Massif du Jura — Cerniébaud (39)', 1, 1),
+   12.90, '/images/trees/sapin-pectine.webp', 'Massif du Jura — Cernon (39)', 1, 1),
   -- id 6 : retiré
   ('Épicéa commun',
    'Conifère des montagnes, à croissance rapide, au bois très utilisé en charpente.',
-   9.50, '/images/trees/epicea-commun.webp', 'Massif du Jura — Cerniébaud (39)', 1, 3),
+   9.50, '/images/trees/epicea-commun.webp', 'Massif du Jura — Cernon (39)', 1, 3),
   -- id 7 : en rupture de stock
   ('If commun',
    'Arbre légendaire pouvant vivre plus de mille ans, à la croissance très lente. Toutes ses parties sauf la chair rouge du fruit sont toxiques.',
@@ -135,7 +135,7 @@ INSERT INTO tree (name, description, price, photo_url, planting_location, catego
   -- id 14
   ('Érable sycomore',
    'Grand érable de montagne au feuillage dense, qui pousse vite et stabilise les sols.',
-   14.50, '/images/trees/erable-sycomore.webp', 'Massif du Jura — Cerniébaud (39)', 2, 1),
+   14.50, '/images/trees/erable-sycomore.webp', 'Massif du Jura — Cernon (39)', 2, 1),
   -- Feuillage persistant (category_id = 3) : id 15 à 21
   -- id 15
   ('Houx commun',
