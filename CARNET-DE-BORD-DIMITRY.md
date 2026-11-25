@@ -2,6 +2,34 @@
 
 Suivi de mon travail sur Je s’appelle Graine. Les décisions notées ici ont été prises avec l'équipe sur Discord ; le suivi de l'équipe est dans le [[Apothéose/apo-jesappellegraine/CARNET-DE-BORD-JE-S-APPELLE-GRAINE|carnet de bord Je s’appelle Graine]].
 
+## 2026-11-20 — Dépôt perso : TTC sur les lignes de commande, filtre par lieu, page « Nos forêts »
+
+Travail sur mon dépôt perso (`DimitryDereppe/je-s-appelle-graine`), après la dernière fusion du dépôt de l'équipe (PR #260, 16/11).
+
+### PR #1 — TTC sur les lignes de commande
+
+- `OrderLines.tsx` : « TTC » affiché après le total de chaque ligne (commit `8101778`).
+
+### PR #2 — Filtre du catalogue par lieu de plantation
+
+- API (commit `f283be7`) : `GET /api/trees?location=` (validé par `validateLocationQuery`) et `GET /api/trees/locations` (lieux distincts, triés, sans `NULL` ni lieu dont tous les arbres sont retirés de la vente).
+- Front : paramètre `?lieu=` sur `/arbres`, groupe « Lieux de plantation » dans `TreesFilters`, une seule fonction `updateFilters` qui garde les autres filtres.
+- Tests : F2-INT-28 à 32, [[Apothéose/je-s-appelle-graine/docs/tests/PLAN-DE-TESTS|plan de tests]] à jour (235 tests d'intégration).
+- Fix du seed (commit `94d2095`) : le lieu du Jura est « Cernon » et non « Cerniébaud ». Les incendies de 2022 sont partis de Cernon et de Vescles (9-10 août 2022, ~700 ha, d'après les communiqués de la préfecture du Jura). Les 3 arbres du Jura changent de `planting_location`.
+
+### PR #3 — Page « Nos forêts »
+
+- `/nos-forets` (commit `bc70e02`) : pourquoi planter en mélange, 4 principes, une section par lieu (incendie vérifié, tableau des essences avec leur part et leur rôle, total, lien vers `/arbres?lieu=…`), régénération naturelle d'abord, sources.
+- Données à part dans `forests.ts`. Les essences retirées de la vente sont marquées « non disponible » d'après `GET /api/trees`.
+- Monts d'Arrée : plantation en lisière, la lande est laissée en régénération naturelle.
+- Liens depuis « Qui sommes-nous », le pied de page et le sitemap.
+- Fix (commit `0ba70ed`) : dans « Qui sommes-nous », le `li` est une grille à 2 colonnes (puce | texte). Le texte, le lien et le point devenaient 3 cases, et le lien tombait dans la colonne de la puce. Un seul `span` regroupe maintenant le contenu dans la colonne du texte.
+
+### Reste à faire
+
+- En production, corriger la base existante avec un `UPDATE` (Cerniébaud → Cernon) : le seed ne la modifie pas.
+- Voir si ces trois fonctionnalités doivent être proposées au dépôt de l'équipe.
+
 ## 2026-11-12 — Admin commandes (F8) : back #168 arrivé, page détail `/admin/commandes/[id]` et changement de statut (#169), fix CSS du panier, emails en production
 
 ### Back #168 (Fabrice)
