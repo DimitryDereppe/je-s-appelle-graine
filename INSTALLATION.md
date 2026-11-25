@@ -49,8 +49,8 @@ Toutes les commandes de ce guide sont les mêmes sous Windows (WSL) et macOS. Se
 ### Cloner le dépôt
 
 ```bash
-git clone git@github.com:O-clock-Kyoto/apo-jesappellegraine.git
-cd apo-jesappellegraine
+git clone https://github.com/DimitryDereppe/je-s-appelle-graine.git
+cd je-s-appelle-graine
 ```
 
 ### Installer les dépendances (avant Docker !)

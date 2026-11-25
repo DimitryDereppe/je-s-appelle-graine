@@ -1,6 +1,32 @@
 # Carnet de bord — Dimitry (Tech Lead Back)
 
-Suivi de mon travail sur Je s’appelle Graine. Les décisions notées ici ont été prises avec l'équipe sur Discord ; le suivi de l'équipe est dans le [[Apothéose/apo-jesappellegraine/CARNET-DE-BORD-JE-S-APPELLE-GRAINE|carnet de bord Je s’appelle Graine]].
+Suivi de mon travail sur Je s’appelle Graine. Les décisions notées ici ont été prises avec l'équipe sur Discord ; le suivi de l'équipe est dans le [[Apothéose/je-s-appelle-graine/CARNET-DE-BORD-JE-S-APPELLE-GRAINE|carnet de bord Je s’appelle Graine]].
+
+## 2026-11-25 — La VM de production passe sur mon dépôt perso
+
+La VM (`dimitrydereppe-server.eddi.cloud`) faisait tourner le dépôt de l'équipe (`O-clock-Kyoto/apo-jesappellegraine`, dernière fusion PR #260 du 16/11). Elle fait maintenant tourner mon dépôt public `DimitryDereppe/je-s-appelle-graine`, avec les PR #1 à #3 du 20/11.
+
+### Bascule sur la VM
+
+1. Sauvegarde de la base : `~/sauvegarde-bdd-2026-11-25.sql` (`chmod 600`) ; sauvegarde de la crontab : `~/crontab-sauvegarde-2026-11-25`.
+2. `git clone` en HTTPS dans `~/je-s-appelle-graine` : le dépôt est public, pas besoin de clé de déploiement.
+3. `.env` et `certbot/` repris de l'ancien dossier. `certbot/` appartient à root (créé par le conteneur Certbot) : copie avec `sudo cp -a`.
+4. `down` de l'ancien site (**sans** `-v`), puis `up -d --build` du nouveau. Le projet Compose s'appelle `graine` dans les deux dépôts : le volume `graine_db-data` est repris tel quel (comptes et commandes gardés).
+5. Base : `UPDATE tree SET planting_location = 'Massif du Jura — Cernon (39)' WHERE planting_location = 'Massif du Jura — Cerniébaud (39)';` → `UPDATE 3`. Le seed corrigé le 20/11 ne touche pas une base déjà remplie.
+6. Crontab : chemins passés à `~/je-s-appelle-graine/src`. Au prochain démarrage, la VM récupère `main` de mon dépôt.
+7. Vérifié : `/`, `/nos-forets`, `/arbres`, `/api/trees/locations` en 200, certificat valable jusqu'au 03/02/2027. Puis `~/apo-jesappellegraine` supprimé (`sudo rm -rf`, à cause de `certbot/`).
+
+### Documents mis à jour
+
+- [[Apothéose/je-s-appelle-graine/DEPLOIEMENT|DEPLOIEMENT.md]] : note sur le changement de dépôt, clonage en HTTPS, procédure de clé de déploiement retirée (elle reste dans l'historique Git), chemins `~/je-s-appelle-graine/src`.
+- `src/crontab.prod`, [[Apothéose/je-s-appelle-graine/MISE-A-JOUR-BDD-VM|MISE-A-JOUR-BDD-VM.md]], [[Apothéose/je-s-appelle-graine/INSTALLATION|INSTALLATION.md]] : nouveaux chemins et nouvelle adresse du dépôt.
+- `package.json` : le paquet s'appelle `je-s-appelle-graine`.
+- Carnets : les wikilinks vers `Apothéose/apo-jesappellegraine/…` (et un vers `apo-greenroots/…`, qui n'existait plus) pointent vers ce dossier. Les mentions historiques du dépôt de l'équipe sont gardées.
+
+### Reste à faire
+
+- La clé `~/.ssh/deploy_graine` de la VM ne sert plus : la retirer de GitHub si elle y est enregistrée.
+- Changer le mot de passe `sudo` de la VM s'il sert ailleurs.
 
 ## 2026-11-20 — Dépôt perso : TTC sur les lignes de commande, filtre par lieu, page « Nos forêts »
 
@@ -127,7 +153,7 @@ Travail sur mon dépôt perso (`DimitryDereppe/je-s-appelle-graine`), après la 
 ### Carte #108 — tests (PR #205, branche `tests/f5-#108`, fusionnée dans `DEV`)
 
 - Les cas de la carte étaient déjà couverts : F5-INT-1, 4, 6, 7, 12, 14.
-- [[Apothéose/apo-jesappellegraine/docs/tests/PLAN-DE-TESTS|PLAN-DE-TESTS.md]] : F5-INT-22 vérifie aussi « Bonjour prénom nom », nouvelle ligne F5-INT-24 (email du chèque), section email à 3 cas.
+- [[Apothéose/je-s-appelle-graine/docs/tests/PLAN-DE-TESTS|PLAN-DE-TESTS.md]] : F5-INT-22 vérifie aussi « Bonjour prénom nom », nouvelle ligne F5-INT-24 (email du chèque), section email à 3 cas.
 - Tests de l'API : 114/116, les 2 échecs (`GET /api/cart`) existaient déjà sur `DEV`.
 
 ### Carte #107 — front de la commande (branche `feat/front-f5-#107`)
@@ -160,7 +186,7 @@ Travail sur mon dépôt perso (`DimitryDereppe/je-s-appelle-graine`), après la 
 - **Symptôme** : sur le VPS, `/images/trees/pin-maritime.webp` répond `200`, mais `/_next/image?url=/images/trees/…` répond `500` (`"url" parameter is valid but internal response is invalid`) : aucune photo d'arbre ne s'affiche.
 - **Cause** : `<Image>` passe par l'optimiseur de Next.js, qui va chercher la photo **lui-même** en suivant les `rewrites` de `next.config.ts`. Ces `rewrites` sont **figés au `next build`**, alors que `API_URL` n'arrive qu'au démarrage du conteneur (`env_file`) : Next avait enregistré `http://localhost:4050`, qui ne répond pas dans le conteneur front.
 - **Correction** (branche `fix/deploiement-images`, commit `99936ed`) : `front/Dockerfile.prod` → `ARG API_URL=http://api:4000` + `ENV API_URL=$API_URL` avant `RUN npm run build` (sans `/` final : `next.config.ts` ajoute `/images/...`). Build testé en local : `routes-manifest.json` contient bien `http://api:4000/images/trees/:path*`.
-- Doc : [[Apothéose/apo-jesappellegraine/DEPLOIEMENT|DEPLOIEMENT.md]] (vérification n° 5 + ligne dans « Pièges rencontrés ») et commentaire dans `.env.prod.example`.
+- Doc : [[Apothéose/je-s-appelle-graine/DEPLOIEMENT|DEPLOIEMENT.md]] (vérification n° 5 + ligne dans « Pièges rencontrés ») et commentaire dans `.env.prod.example`.
 
 ### Reste à faire
 
@@ -469,7 +495,7 @@ Branche `feat/formulaires-connexion-inscription`. Commit `b7dce3e` : `connexion/
 
 ### Travail réalisé
 
-- **Cahier des charges relu** ([[Apothéose/apo-jesappellegraine/docs/specifications/CAHIER-DES-CHARGES-JE-S-APPELLE-GRAINE|cahier des charges]] §parcours d'achat, [[Apothéose/apo-jesappellegraine/docs/specifications/user-stories|user stories]] US05, US05b, US06) : la page où renvoyer après la connexion n'est pas fixée ; le retour automatique est une **évolution** (US06).
+- **Cahier des charges relu** ([[Apothéose/je-s-appelle-graine/docs/specifications/CAHIER-DES-CHARGES-JE-S-APPELLE-GRAINE|cahier des charges]] §parcours d'achat, [[Apothéose/je-s-appelle-graine/docs/specifications/user-stories|user stories]] US05, US05b, US06) : la page où renvoyer après la connexion n'est pas fixée ; le retour automatique est une **évolution** (US06).
 - **`AddToCartButton.tsx`** : sur un 401/403, envoie vers `/connexion?next=<page actuelle>` (`window.location.pathname + window.location.search`, encodé avec `encodeURIComponent`). Remplace `next=/trees`, une page qui n'existe pas.
 - **`connexion/page.tsx`** : lit `next` dans `searchParams` (même modèle que `arbres/page.tsx`) et le passe en prop à `LoginForm`.
 - **`LoginForm.tsx`**, après une réponse réussie, dans l'ordre :
@@ -629,8 +655,8 @@ Branche `feat/deployment` (commit `abeb3b0`, fusionné dans `main` par la PR #12
   - `purchase.payment_method` : `virement`, `chèque`.
 - **Code** : `01-schema.sql` (`DEFAULT` et `CHECK`), `02-seed.sql`, `bdd-arbres.json`, `treeDatamapper.ts` (`= 'disponible'` pour l'accueil, `<> 'retiré'` pour le catalogue), `treeController.ts` (404 si `"retiré"`) et le type `availabilityName`.
 - **Doc** :
-  - [[Apothéose/apo-jesappellegraine/docs/conception/modele-de-donnees/00-dictionnaire-de-donnees|dictionnaire de données]], [[Apothéose/apo-jesappellegraine/docs/conception/modele-de-donnees/06-mld|MLD]], [[Apothéose/apo-jesappellegraine/docs/conception/modele-de-donnees/07-mpd|MPD]] et le SVG drawio du MPD ;
-  - [[Apothéose/apo-jesappellegraine/docs/specifications/CAHIER-DES-CHARGES-JE-S-APPELLE-GRAINE|cahier des charges]], user stories, entités et diagrammes `.puml` 02, 03 et 04.
+  - [[Apothéose/je-s-appelle-graine/docs/conception/modele-de-donnees/00-dictionnaire-de-donnees|dictionnaire de données]], [[Apothéose/je-s-appelle-graine/docs/conception/modele-de-donnees/06-mld|MLD]], [[Apothéose/je-s-appelle-graine/docs/conception/modele-de-donnees/07-mpd|MPD]] et le SVG drawio du MPD ;
+  - [[Apothéose/je-s-appelle-graine/docs/specifications/CAHIER-DES-CHARGES-JE-S-APPELLE-GRAINE|cahier des charges]], user stories, entités et diagrammes `.puml` 02, 03 et 04.
 - **« Épuisé » devient « en rupture de stock »** partout, pour que la doc emploie le même mot que la base.
 - **Tests** dans une base temporaire (schéma et seed chargés, puis base supprimée) :
   - 13 arbres disponibles, 5 en rupture, 3 retirés ;
@@ -667,7 +693,7 @@ Branche `docs/renouvellement-certificat` (commit `5b70c69`), créée depuis `mai
 
 ### Travail réalisé
 
-- **[[Apothéose/apo-jesappellegraine/DEPLOIEMENT|DEPLOIEMENT.md]], section « Mettre à jour le site »** : `restart nginx` remplace `nginx -s reload`.
+- **[[Apothéose/je-s-appelle-graine/DEPLOIEMENT|DEPLOIEMENT.md]], section « Mettre à jour le site »** : `restart nginx` remplace `nginx -s reload`.
   - L'image Nginx ne remplace `${DOMAINE}` dans le `.template` qu'au **démarrage** du conteneur.
   - Un `reload` relit l'ancienne configuration : une nouvelle règle (comme `/images/trees/`) serait ignorée.
   - Cette erreur venait du guide d'origine (commit `1dc6150`, écrit avec Claude).
@@ -1080,14 +1106,14 @@ Travail fait en groupe.
 
 ### Travail réalisé
 
-- **Jeu de données en JSON** : [bdd-arbres.json](src/api/src/data/bdd-arbres.json), tiré de [[Apothéose/divers/bdd arbres|bdd arbres]]. Il reprend les noms de tables et de colonnes du [[Apothéose/apo-jesappellegraine/docs/conception/modele-de-donnees/00-dictionnaire-de-donnees|dictionnaire de données]] : `role`, `availability`, `category`, `account`, `tree`.
+- **Jeu de données en JSON** : [bdd-arbres.json](src/api/src/data/bdd-arbres.json), tiré de [[Apothéose/divers/bdd arbres|bdd arbres]]. Il reprend les noms de tables et de colonnes du [[Apothéose/je-s-appelle-graine/docs/conception/modele-de-donnees/00-dictionnaire-de-donnees|dictionnaire de données]] : `role`, `availability`, `category`, `account`, `tree`.
   - **10 comptes** : 5 admins (Dimitry, Loïc, Shanna, Mahamadou, Fabrice) et 5 clients de test, dont 2 bloqués (`is_active: false`). Les clients couvrent les 3 types de compte : particulier, association, entreprise.
   - **21 arbres répartis** : 13 disponibles, 5 en rupture (If, Sorbier, Chêne tauzin, Chêne-liège, Olivier sauvage), 3 retirés (Épicéa, Laurier noble, Pin parasol). Chaque lieu garde au moins 2 arbres disponibles.
 - **Photos des arbres** : [src/api/src/public/images/trees/](src/api/src/public/images/trees/) (copie dans [src/front/public/images/trees/](src/front/public/images/trees/)).
   - 21 photos d'arbres **entiers**, prises sur **Wikimedia Commons** : 19 sous licence CC BY ou CC BY-SA, 2 dans le domaine public. Elles remplacent les anciennes photos Pexels et Commons, qui montraient souvent seulement un détail (écorce, baies, feuilles).
   - Converties en **WebP**, 1200 px maximum sur le plus grand côté, de 180 à 440 Ko chacune.
   - Les noms de fichiers suivent le chemin `/images/trees/<arbre>.webp` attendu par le seed SQL. Les `photo_url` du JSON ont été mis à jour : les 21 fichiers existent bien.
-  - Les crédits (auteur, licence, page source) sont dans [[Apothéose/apo-jesappellegraine/src/api/src/public/images/trees/CREDITS|CREDITS]] et `credits.json`.
+  - Les crédits (auteur, licence, page source) sont dans [[Apothéose/je-s-appelle-graine/src/api/src/public/images/trees/CREDITS|CREDITS]] et `credits.json`.
 
 ### Décisions
 
@@ -1159,7 +1185,7 @@ Travail fait en groupe.
 ### Travail réalisé
 
 - Diagramme de séquence de l'authentification (inscription, connexion, route protégée, déconnexion), en Mermaid.
-- Diagramme d'architecture de l'application (front Next.js sur Vercel, API Express dans Docker sur mon serveur, PostgreSQL chez Neon), en Mermaid : [[Apothéose/apo-greenroots/docs/conception/diagrammes/01-architecture|architecture]].
+- Diagramme d'architecture de l'application (front Next.js sur Vercel, API Express dans Docker sur mon serveur, PostgreSQL chez Neon), en Mermaid : [[Apothéose/je-s-appelle-graine/docs/conception/diagrammes/01-architecture|architecture]].
 - Orthographe de mon prénom corrigée (« Dimitry ») dans le cahier des charges et les diagrammes.
 
 ### Décisions (prises avec l'équipe sur Discord)

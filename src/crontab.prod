@@ -1,6 +1,6 @@
 # Crontab du VPS de production (voir DEPLOIEMENT.md, section 6).
-# La même pour toute l'équipe : chacun l'installe sur sa VM.
-# Installation, sur la VM, depuis ~/apo-jesappellegraine/src :
+# Installée sur la VM qui fait tourner le dépôt DimitryDereppe/je-s-appelle-graine.
+# Installation, sur la VM, depuis ~/je-s-appelle-graine/src :
 #   crontab -l             → doit répondre "no crontab" : la commande suivante REMPLACE toute la crontab
 #   crontab crontab.prod
 #   crontab -l             → affiche ce fichier
@@ -15,11 +15,11 @@
 # - webroot : Certbot dépose sa preuve dans certbot/www, servie par Nginx (il n'a pas besoin du port 80) ;
 # - -T : pas de terminal sous cron ;
 # - { ... ; } >> log 2>&1 : la sortie et les erreurs de TOUTES les commandes vont dans le log.
-17 * * * * { cd ~/apo-jesappellegraine/src && date && docker compose -f docker-compose.prod.yml run --rm -T certbot renew --webroot -w /var/www/certbot && docker compose -f docker-compose.prod.yml exec -T nginx nginx -s reload; } >> ~/renouvellement-certificat.log 2>&1
+17 * * * * { cd ~/je-s-appelle-graine/src && date && docker compose -f docker-compose.prod.yml run --rm -T certbot renew --webroot -w /var/www/certbot && docker compose -f docker-compose.prod.yml exec -T nginx nginx -s reload; } >> ~/renouvellement-certificat.log 2>&1
 
 # Au démarrage de la VM (@reboot) : récupère main et relance le site avec le nouveau code.
-# Prérequis : la clé SSH sans phrase de passe (DEPLOIEMENT.md, section 3.1), sinon git pull est refusé.
+# Le dépôt est public : git pull passe en HTTPS, sans clé ni mot de passe.
 # - sleep 60 : laisser au réseau et à Docker le temps de démarrer ;
 # - --ff-only : n'avance que si la VM n'a pas de commit à elle, sinon s'arrête (pas de fusion) ;
 # - restart nginx (et non reload) : recharge le template de Nginx s'il a changé.
-@reboot { sleep 60; cd ~/apo-jesappellegraine/src && date && git pull --ff-only origin main && docker compose -f docker-compose.prod.yml up -d --build && docker compose -f docker-compose.prod.yml restart nginx; } >> ~/mise-a-jour.log 2>&1
+@reboot { sleep 60; cd ~/je-s-appelle-graine/src && date && git pull --ff-only origin main && docker compose -f docker-compose.prod.yml up -d --build && docker compose -f docker-compose.prod.yml restart nginx; } >> ~/mise-a-jour.log 2>&1

@@ -14,6 +14,11 @@ Procédure détaillée, avec le dépannage, sur le wiki (connexion requise) :
 Dans les commandes, remplace `PSEUDO-server.eddi.cloud` par le nom de ta VM : celui de ta commande
 SSH, et non celui qu'affiche `hostname`.
 
+**Depuis le 25/11/2026**, la VM fait tourner le dépôt **public** `DimitryDereppe/je-s-appelle-graine`
+(dossier `~/je-s-appelle-graine`), et non plus le dépôt privé de l'équipe
+(`O-clock-Kyoto/apo-jesappellegraine`). Le dépôt étant public, la VM le clone en HTTPS, sans clé
+SSH. L'ancienne procédure (clé de déploiement) reste dans l'historique Git de ce fichier.
+
 ---
 
 ## 1. Architecture
@@ -66,7 +71,7 @@ Le `.gitignore` de `src/` exclut aussi `certbot/` : il contient la clé privée 
 - les secrets à portée de main : mot de passe d'application Gmail, IBAN et adresse d'envoi des
   chèques (rangés avec les accès de l'équipe, jamais dans le dépôt).
 
-### 3.1 Préparer la VM et la clé SSH
+### 3.1 Préparer la VM
 
 ```bash
 # 1. Mettre la VM à jour (toujours apt update d'abord)
@@ -88,36 +93,16 @@ docker run hello-world                            # attendu : "Hello from Docker
 
 Le groupe `docker` sert aussi aux tâches automatiques (section 6) : cron lance `docker` sans `sudo`.
 
-```bash
-# 3. Créer la clé SSH de la VM pour GitHub, SANS phrase de passe (-N ""), puis l'afficher
-ssh-keygen -t ed25519 -N "" -C "deploy-graine" -f ~/.ssh/deploy_graine
-cat ~/.ssh/deploy_graine.pub
-```
-
-**Pourquoi sans phrase de passe :** le dépôt est privé, et la VM fait un `git pull` toute seule à
-chaque démarrage (section 6). Personne n'est là pour taper une phrase de passe : avec une, GitHub
-répond `Permission denied (publickey)`. Ne jamais écrire de mot de passe dans le dépôt à la place.
-
-**Déclarer la clé sur GitHub** (la ligne `ssh-ed25519 …` affichée par `cat`) :
-
-- **de préférence**, en _Deploy key_ : dépôt → _Settings_ → _Deploy keys_ → _Add deploy key_, titre =
-  nom de la VM, **sans** cocher _Allow write access_. La clé ne peut alors que **lire** ce dépôt.
-  Seul un **admin** du dépôt (l'équipe O'Clock) peut le faire : lui envoyer la ligne. C'est la
-  partie publique, elle peut circuler ;
-- **sinon**, dans ton compte : ta photo → _Settings_ → _SSH and GPG keys_ → _New SSH key_. Pas
-  besoin d'admin, mais la clé ouvre alors **tout** ton compte : la supprimer de GitHub quand la VM
-  ne sert plus.
+**Pas de clé SSH à créer :** le dépôt est public, la VM le lit en HTTPS. Le `git pull` automatique
+de chaque démarrage (section 6) n'a donc besoin d'aucun mot de passe ni d'aucune clé.
 
 ### 3.2 Installer le site
 
 ```bash
-# 4. Récupérer le code avec cette clé
-#    (-c : Git enregistre dans ce dépôt qu'il doit toujours utiliser cette clé)
-#    À la première connexion, SSH demande "continue connecting (yes/no)?" : répondre yes
+# 3-4. Récupérer le code (HTTPS : dépôt public, rien à configurer)
 cd ~
-git clone -c core.sshCommand="ssh -i ~/.ssh/deploy_graine -o IdentitiesOnly=yes" \
-  git@github.com:O-clock-Kyoto/apo-jesappellegraine.git
-cd apo-jesappellegraine/src
+git clone https://github.com/DimitryDereppe/je-s-appelle-graine.git
+cd je-s-appelle-graine/src
 
 # 5. Remplir le .env
 cp .env.prod.example .env
@@ -172,14 +157,6 @@ conteneur est recréé et relit le `.env`). Un `restart` garde les anciennes val
 sa configuration HTTPS pointe dessus. Certbot lance donc son propre petit serveur sur le port 80,
 avant Nginx. Pour les renouvellements, Nginx tourne déjà : on passe en `--webroot` (section 6).
 
-**Dépôt déjà cloné avec une autre clé ?** Enregistrer la nouvelle clé dans le dépôt existant :
-
-```bash
-cd ~/apo-jesappellegraine
-git config core.sshCommand "ssh -i ~/.ssh/deploy_graine -o IdentitiesOnly=yes"
-git fetch origin main         # attendu : "main -> FETCH_HEAD", sans "Permission denied"
-```
-
 ### 3.3 Pare-feu
 
 **Ce qui protège déjà :** dans `docker-compose.prod.yml`, seul `nginx` a une ligne `ports:` (80 et
@@ -232,7 +209,7 @@ Attendu, ligne par ligne :
    l'API. (Next.js choisit le format selon ce qu'accepte le client : `curl` reçoit du JPEG, un
    navigateur du WebP ; l'important est le `200`.)
 
-**Sur la VM**, depuis `~/apo-jesappellegraine/src` :
+**Sur la VM**, depuis `~/je-s-appelle-graine/src` :
 
 | Commande                                                                     | Attendu                                     |
 | ---------------------------------------------------------------------------- | ------------------------------------------- |
@@ -255,7 +232,7 @@ Attendu, ligne par ligne :
 redémarrer, sur la VM :
 
 ```bash
-cd ~/apo-jesappellegraine/src
+cd ~/je-s-appelle-graine/src
 git pull origin main
 docker compose -f docker-compose.prod.yml up -d --build
 docker compose -f docker-compose.prod.yml restart nginx
@@ -299,7 +276,7 @@ port 80, que Nginx occupe. Avec `--webroot`, Certbot dépose un fichier de preuv
 **Installer** (une seule fois, après la section 3) :
 
 ```bash
-cd ~/apo-jesappellegraine/src
+cd ~/je-s-appelle-graine/src
 
 # 1. Essai à blanc du renouvellement (serveur de test : le vrai certificat n'est pas touché)
 docker compose -f docker-compose.prod.yml run --rm -T certbot renew --webroot -w /var/www/certbot --dry-run
@@ -338,7 +315,7 @@ La base vit dans le volume Docker `db-data` : elle survit aux mises à jour et a
 mais pas à un `down -v`, à une erreur de migration ou à la perte de la VM. D'où une sauvegarde
 **avant chaque changement de schéma**, et avant la démo.
 
-**Sauvegarder** (sur la VM, depuis `~/apo-jesappellegraine/src`) :
+**Sauvegarder** (sur la VM, depuis `~/je-s-appelle-graine/src`) :
 
 ```bash
 docker compose -f docker-compose.prod.yml exec -T db sh -c 'pg_dump -U "$POSTGRES_USER" "$POSTGRES_DB"' > ~/sauvegarde-bdd-$(date +%F).sql
@@ -363,7 +340,7 @@ scp student@PSEUDO-server.eddi.cloud:~/sauvegarde-bdd-AAAA-MM-JJ.sql .
 existent déjà et s'arrête en erreur.
 
 ```bash
-cd ~/apo-jesappellegraine/src
+cd ~/je-s-appelle-graine/src
 docker compose -f docker-compose.prod.yml stop api                      # plus personne n'écrit dans la base
 docker compose -f docker-compose.prod.yml exec -T db sh -c \
   'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public;"'
@@ -400,8 +377,7 @@ nombres d'arbres (21), de catégories (3) et d'utilisateurs que la base du site.
 | `apt install` : série de `404 Not Found`                                                          | Liste des paquets pas à jour                                                                                                         | `sudo apt update` d'abord                                                                                        |
 | `apt install npm` : centaines de paquets                                                          | Node est inutile sur la VM                                                                                                           | Annuler : Node est dans les images                                                                               |
 | `docker` : `permission denied` … `docker.sock`                                                    | Groupe `docker` pas encore pris en compte                                                                                            | `exit`, puis se reconnecter en SSH                                                                               |
-| `git clone` ou `git pull` : `Permission denied (publickey)`                                       | Clé absente de GitHub, ou avec phrase de passe sous cron                                                                             | Section 3.1                                                                                                      |
-| `no configuration file provided`                                                                  | Commande lancée hors de `src/`                                                                                                       | `cd ~/apo-jesappellegraine/src`                                                                                  |
+| `no configuration file provided`                                                                  | Commande lancée hors de `src/`                                                                                                       | `cd ~/je-s-appelle-graine/src`                                                                                   |
 | `env file …/src/.env not found`                                                                   | Pas de `.env` dans `src/`                                                                                                            | `cp .env.prod.example .env`                                                                                      |
 | Certbot : `Timeout during connect`                                                                | VM pas rendue publique (après un démarrage)                                                                                          | La rendre publique sur Kourou VM Cloud, relancer                                                                 |
 | Certbot : `Service busy; retry later.`                                                            | Serveur Let's Encrypt surchargé                                                                                                      | Relancer une ou deux minutes plus tard                                                                           |
