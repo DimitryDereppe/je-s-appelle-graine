@@ -11,7 +11,7 @@ le cron `@reboot` met le code à jour, mais la base garde son ancienne structure
 (PR #124). Avec le nouveau code et l'ancienne base, l'API cherche `'disponible'` et ne trouve rien :
 l'accueil est vide, et les arbres retirés réapparaissent dans le catalogue.
 
-Pour le reste du déploiement, voir [[Apothéose/apo-jesappellegraine/DEPLOIEMENT|DEPLOIEMENT.md]].
+Pour le reste du déploiement, voir [[Apothéose/je-s-appelle-graine/DEPLOIEMENT|DEPLOIEMENT.md]].
 
 ---
 
@@ -34,7 +34,7 @@ Toutes les commandes se lancent **sur la VM**.
 
 ```bash
 ssh student@PSEUDO-server.eddi.cloud
-cd ~/apo-jesappellegraine/src
+cd ~/je-s-appelle-graine/src
 git pull origin main
 ```
 
@@ -138,7 +138,7 @@ Vérifier ensuite l'API locale (accueil, catalogue, fiche d'un arbre retiré →
 Sur la VM, **à enchaîner sans attendre** (entre deux, code et base ne sont pas d'accord) :
 
 ```bash
-cd ~/apo-jesappellegraine/src
+cd ~/je-s-appelle-graine/src
 git pull origin main
 # sauvegarde : même commande qu'en 2.2
 docker compose -f docker-compose.prod.yml exec -T db sh -c 'psql -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d "$POSTGRES_DB"' < api/src/data/migrations/AAAA-MM-JJ-description.sql
