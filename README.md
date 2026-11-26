@@ -114,7 +114,7 @@ Depuis `src/api/`, Docker lancé :
 npm test
 ```
 
-- 230 tests d’intégration (chaque route et chaque code de réponse : 200, 400, 401, 403, 404, 409…) et 6 tests unitaires.
+- 235 tests d’intégration (chaque route et chaque code de réponse : 200, 400, 401, 403, 404, 409…) et 17 tests unitaires.
 - Les tests d’intégration créent leur propre base dans un conteneur `graine_test`, puis la suppriment : ils ne touchent jamais à la base de développement.
 - Les tests manuels, les audits Lighthouse et les résultats sont dans le [plan de tests](docs/tests/PLAN-DE-TESTS.md).
 - Des fichiers `.http` (`src/api/test/`) permettent d’essayer chaque route à la main.
