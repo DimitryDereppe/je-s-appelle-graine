@@ -171,7 +171,7 @@ export interface IOrder {
   id: number;
   purchaseDate: string;
   dueDate: string; // "AAAA-MM-JJ" : date de commande + 10 jours
-  status: string;
+  status: OrderStatus;
   paymentMethod: PaymentMethod;
   totalAmount: number;
   billingAddress: string; // adresse de facturation saisie par le client

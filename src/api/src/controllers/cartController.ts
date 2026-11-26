@@ -3,6 +3,12 @@ import type { IAuthenticatedRequest } from "../@types/index.d.ts";
 import { getAuthenticatedUser } from "./utils.ts";
 import { cartDatamapper } from "../datamappers/cartDatamapper.ts";
 import { treeDatamapper } from "../datamappers/treeDatamapper.ts";
+import {
+  MAX_QUANTITY_PER_TREE,
+  exceedsMaxQuantity,
+  isTreeAvailable,
+} from "../services/cartRules.ts";
+import { computeTotal } from "../services/orderRules.ts";
 
 import { z } from "zod";
 
@@ -74,13 +80,12 @@ export const getCart = asyncHandler(
       lineTotal: Number(item.price) * item.quantity,
     }));
 
-    const total = items.reduce((sum, item) => sum + item.lineTotal, 0);
+    // même calcul que pour la commande (somme + arrondi au centime) : services/orderRules.ts
+    const total = computeTotal(items);
 
     res.status(200).json({ items, total });
   },
 );
-
-const MAX_QUANTITY_PER_TREE = 100;
 
 export const addCartItem = asyncHandler(
   async (req: IAuthenticatedRequest, res: Response) => {
@@ -94,19 +99,16 @@ export const addCartItem = asyncHandler(
       return;
     }
 
-    if (
-      tree.availabilityName === "en rupture de stock" ||
-      tree.availabilityName === "retiré"
-    ) {
+    if (!isTreeAvailable(tree.availabilityName)) {
       res.status(409).json({ error: "Cet arbre n'est pas disponible." });
       return;
     }
 
-    // Business logic : somme existant + nouveau ≤ 100
+    // règle métier (services/cartRules.ts) : somme existant + nouveau ≤ 100
     const existingItem = await cartDatamapper.findCartItem(user.id, treeId);
     const currentQuantity = existingItem ? existingItem.quantity : 0;
 
-    if (currentQuantity + quantity > MAX_QUANTITY_PER_TREE) {
+    if (exceedsMaxQuantity(currentQuantity, quantity)) {
       res.status(400).json({
         error: `La quantité totale ne peut pas dépasser ${MAX_QUANTITY_PER_TREE} pour cet arbre.`,
         status: 400,
