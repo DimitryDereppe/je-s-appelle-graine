@@ -1,9 +1,6 @@
 import type { Response } from "express";
 import { z } from "zod";
-import type {
-  IAuthenticatedRequest,
-  PaymentMethod,
-} from "../@types/index.d.ts";
+import type { IAuthenticatedRequest } from "../@types/index.d.ts";
 import { getAuthenticatedUser, billingAddressSchema } from "./utils.ts";
 import {
   BadRequestError,
@@ -13,27 +10,12 @@ import {
 import { cartDatamapper } from "../datamappers/cartDatamapper.ts";
 import { ordersDatamapper } from "../datamappers/ordersDatamapper.ts";
 import { sendOrderConfirmation } from "../services/emailService.ts";
-import { config } from "../../config.ts";
-
-// --------------------------------
-// instructions de paiement selon le mode choisi (valeurs lues dans la config, contrat #103)
-// --------------------------------
-// la fonction n'est pas exportée : elle ne sert qu'aux deux contrôleurs de ce fichier
-function getPaymentInstructions(paymentMethod: PaymentMethod) {
-  // virement → coordonnées bancaires
-  if (paymentMethod === "virement") {
-    return {
-      iban: config.payment.iban,
-      bic: config.payment.bic,
-      holder: config.payment.holder,
-    };
-  }
-  // sinon (chèque) → à quel ordre et à quelle adresse l'envoyer
-  return {
-    payableTo: config.payment.payableTo,
-    address: config.payment.address,
-  };
-}
+import {
+  computeTotal,
+  canBeCancelledByClient,
+  getPaymentInstructions,
+} from "../services/orderRules.ts";
+import { isTreeAvailable } from "../services/cartRules.ts";
 
 // --------------------------------
 // POST /api/orders → passe commande à partir du panier (contrat carte #103)
@@ -70,19 +52,17 @@ export async function createOrder(req: IAuthenticatedRequest, res: Response) {
   }
 
   // 3. some : true si AU MOINS une ligne vérifie la condition → 409
+  // (la règle « disponible » est dans la couche métier : services/cartRules.ts)
   const hasUnavailableTree = cart.some(
-    (line) => line.availabilityName !== "disponible",
+    (line) => !isTreeAvailable(line.availabilityName),
   );
   if (hasUnavailableTree) {
     throw new ConflictError("Un arbre de votre panier n'est plus disponible.");
   }
 
   // 4. total recalculé ici, avec les prix de la BDD (jamais envoyé par le front)
-  // reduce : additionne prix × quantité de chaque ligne, en partant de 0
-  const total = cart.reduce((sum, line) => sum + line.price * line.quantity, 0);
-  // les nombres à virgule de JS sont approximatifs (16.9 * 3 = 50.699999999999996) :
-  // on arrondit au centime
-  const totalAmount = Math.round(total * 100) / 100;
+  // le calcul (somme + arrondi au centime) est une règle métier : services/orderRules.ts
+  const totalAmount = computeTotal(cart);
 
   // 5. la commande, ses lignes et le panier vidé, dans une seule transaction
   const orderId = await ordersDatamapper.createOrderFromCart(
@@ -187,7 +167,7 @@ export async function cancelOrder(req: IAuthenticatedRequest, res: Response) {
   if (!order) {
     throw new NotFoundError("Commande introuvable.");
   }
-  if (order.status !== "en attente") {
+  if (!canBeCancelledByClient(order.status)) {
     throw new ConflictError(
       "Seule une commande en attente de paiement peut être annulée.",
     );

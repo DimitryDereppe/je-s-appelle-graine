@@ -3,6 +3,7 @@ import { z } from "zod";
 import { ordersDatamapper } from "../datamappers/ordersDatamapper.ts";
 import { ConflictError, NotFoundError } from "../lib/errors.ts";
 import { sendOrderStatusEmail } from "../services/emailService.ts";
+import { canChangeStatus } from "../services/orderRules.ts";
 
 // GET /api/admin/orders?status=… : toutes les commandes, ou celles d'un statut
 export async function getAllOrders(req: Request, res: Response) {
@@ -48,11 +49,8 @@ export async function updateOneOrder(req: Request, res: Response) {
   if (!order) {
     throw new NotFoundError("Commande introuvable.");
   }
-  // les 3 seuls changements autorisés, tout le reste → 409
-  const isAllowed =
-    (order.status === "en attente" &&
-      (status === "payée" || status === "annulée")) ||
-    (order.status === "payée" && status === "plantée");
+  // les changements autorisés sont une règle métier (services/orderRules.ts), tout le reste → 409
+  const isAllowed = canChangeStatus(order.status, status);
 
   if (!isAllowed) {
     throw new ConflictError(
