@@ -152,6 +152,7 @@ Dans le `.env` :
 
 Après **toute** modification du `.env` : `docker compose -f docker-compose.prod.yml up -d` (le
 conteneur est recréé et relit le `.env`). Un `restart` garde les anciennes valeurs.
+Si l'API a été recréée mais pas Nginx, Nginx garde l'ancienne adresse du conteneur et l'API répond `502` : lancer aussi `docker compose -f docker-compose.prod.yml restart nginx`.
 
 **Pourquoi `--standalone` au premier certificat :** Nginx ne peut pas démarrer sans certificat, car
 sa configuration HTTPS pointe dessus. Certbot lance donc son propre petit serveur sur le port 80,
@@ -382,6 +383,7 @@ nombres d'arbres (21), de catégories (3) et d'utilisateurs que la base du site.
 | Certbot : `Timeout during connect`                                                                | VM pas rendue publique (après un démarrage)                                                                                          | La rendre publique sur Kourou VM Cloud, relancer                                                                 |
 | Certbot : `Service busy; retry later.`                                                            | Serveur Let's Encrypt surchargé                                                                                                      | Relancer une ou deux minutes plus tard                                                                           |
 | Règle ajoutée au template Nginx sans effet                                                        | `nginx -s reload` ne relit pas le template                                                                                           | `docker compose -f docker-compose.prod.yml restart nginx`                                                        |
+| `502` qui dure après `up -d` (l'API est « Server ready »)                                         | Nginx garde l'adresse de l'ancien conteneur `api`                                                                                    | `docker compose -f docker-compose.prod.yml restart nginx`                                                        |
 | `502` ou `500` juste après une mise à jour                                                        | Les conteneurs redémarrent                                                                                                           | Attendre 30 secondes                                                                                             |
 | `mise-a-jour.log` : `Not possible to fast-forward`                                                | Des commits ont été faits sur la VM                                                                                                  | `git status` pour les voir ; ne pas coder sur la VM                                                              |
 | Photos des arbres absentes ; `/_next/image?url=…` en `500` (`internal response is invalid`)       | `API_URL` absent pendant `next build` : les `rewrites` de `next.config.ts` sont figés au build, `env_file` ne compte qu'au démarrage | `ARG API_URL` / `ENV API_URL` avant `npm run build` dans `front/Dockerfile.prod`, puis `up -d --build front`     |

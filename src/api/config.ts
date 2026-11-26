@@ -10,6 +10,24 @@ if (isProduction && !process.env.JWT_SECRET) {
   throw new Error("JWT_SECRET manquant dans les variables d'environnement");
 }
 
+// Même règle pour les coordonnées de paiement : leurs valeurs par défaut sont fictives,
+// et un client ne doit jamais recevoir un faux IBAN ou une fausse adresse d'envoi du chèque.
+// (titulaire et ordre du chèque ont pour valeur par défaut le nom de l'association : pas obligatoires)
+const requiredInProduction = [
+  "PAYMENT_IBAN",
+  "PAYMENT_BIC",
+  "PAYMENT_CHECK_ADDRESS",
+];
+if (isProduction) {
+  // filter garde les variables absentes ou vides
+  const missing = requiredInProduction.filter((name) => !process.env[name]);
+  if (missing.length > 0) {
+    throw new Error(
+      `Variables manquantes dans l'environnement de production : ${missing.join(", ")}`,
+    );
+  }
+}
+
 export const config = {
   port: parseInt(process.env.PORT || "4050", 10),
   isProduction, // sert aussi pour le cookie : secure (HTTPS seulement) en production
@@ -22,7 +40,8 @@ export const config = {
   // || pour la même raison que jwtSecret (ligne vide dans le .env)
   allowedOrigins: process.env.ALLOWED_ORIGINS || "http://localhost:3000",
   // Instructions de paiement renvoyées après une commande (contrat carte #103).
-  // Valeurs fictives par défaut pour le dev et les tests ; les vraies sont dans le .env de production.
+  // Valeurs fictives par défaut pour le dev et les tests ; les vraies sont dans le .env de production,
+  // où IBAN, BIC et adresse sont obligatoires (vérifié plus haut).
   payment: {
     // virement
     iban: process.env.PAYMENT_IBAN || "FR76 0000 0000 0000 0000 0000 000",
