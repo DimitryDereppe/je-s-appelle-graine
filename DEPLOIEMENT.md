@@ -136,19 +136,21 @@ Dans le `.env` :
 - `SMTP_*` : l'envoi des emails aux clients (confirmation de commande, paiement reçu, annulation, plantation) par le compte Gmail de l'équipe. Seul `SMTP_PASSWORD` est à remplir : le **mot de passe d'application** (16 lettres à la suite, sans espaces), rangé avec les accès de l'équipe.
 - `PAYMENT_*` : les instructions de paiement affichées après une commande et dans l'email de
   confirmation. Virement : `PAYMENT_IBAN`, `PAYMENT_BIC`, `PAYMENT_HOLDER` (titulaire du compte).
-  Chèque : `PAYMENT_CHECK_PAYABLE_TO` (ordre) et `PAYMENT_CHECK_ADDRESS` (adresse d'envoi). Une
-  variable vide n'empêche pas l'API de démarrer : elle prend la valeur **fictive** de
-  `src/api/config.ts` (`FR76 0000…`). Pour la démo, c'est acceptable ; pour un vrai site, à remplir.
+  Chèque : `PAYMENT_CHECK_PAYABLE_TO` (ordre) et `PAYMENT_CHECK_ADDRESS` (adresse d'envoi). En
+  production, l'API refuse de démarrer si `PAYMENT_IBAN`, `PAYMENT_BIC` ou `PAYMENT_CHECK_ADDRESS`
+  est vide : les valeurs par défaut de `src/api/config.ts` (`FR76 0000…`) sont fictives et ne
+  servent qu'en développement et en test. `PAYMENT_HOLDER` et `PAYMENT_CHECK_PAYABLE_TO` valent
+  « Je s'appelle Graine » s'ils sont vides.
 
 **Variables à ne pas oublier** (sans elles, le site démarre mais une partie ne marche pas) :
 
-| Variable          | Si elle est vide ou fausse                                                                               |
-| ----------------- | -------------------------------------------------------------------------------------------------------- |
-| `JWT_SECRET`      | l'API refuse de démarrer                                                                                 |
-| `ALLOWED_ORIGINS` | rien de visible ici (un seul domaine), mais un autre site appelant l'API serait bloqué par le navigateur |
-| `DATABASE_URL`    | l'API ne joint pas la base : routes en `500`                                                             |
-| `SMTP_PASSWORD`   | aucun email envoyé (`Invalid login` dans les logs de l'API)                                              |
-| `PAYMENT_*`       | IBAN et adresse fictifs affichés au client                                                               |
+| Variable                                               | Si elle est vide ou fausse                                                                               |
+| ------------------------------------------------------ | -------------------------------------------------------------------------------------------------------- |
+| `JWT_SECRET`                                           | l'API refuse de démarrer                                                                                 |
+| `ALLOWED_ORIGINS`                                      | rien de visible ici (un seul domaine), mais un autre site appelant l'API serait bloqué par le navigateur |
+| `DATABASE_URL`                                         | l'API ne joint pas la base : routes en `500`                                                             |
+| `SMTP_PASSWORD`                                        | aucun email envoyé (`Invalid login` dans les logs de l'API)                                              |
+| `PAYMENT_IBAN`, `PAYMENT_BIC`, `PAYMENT_CHECK_ADDRESS` | l'API refuse de démarrer                                                                                 |
 
 Après **toute** modification du `.env` : `docker compose -f docker-compose.prod.yml up -d` (le
 conteneur est recréé et relit le `.env`). Un `restart` garde les anciennes valeurs.
